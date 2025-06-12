@@ -1,0 +1,30 @@
+{
+  "name": "my-firebase-app",
+  "version": "1.0.0",
+  "description": "Instagram/YouTube URL管理アプリ",
+  "type": "module",
+  "dependencies": {
+    "@supabase/postgrest-js": "^1.6.0",
+    "@supabase/realtime-js": "^2.5.0",
+    "@supabase/supabase-js": "^2.39.4",
+    "express": "^5.1.0",
+    "firebase": "^11.8.0",
+    "next": "^15.3.3",
+    "node-fetch": "^3.3.2",
+    "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "parcel": "^2.10.3"
+  },
+ 
+
+
+  "scripts": {
+    "postinstall": "npm rebuild parcel",
+     "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache --no-optimize"
+  },
+  "browser": {
+    "./node_modules/@supabase/realtime-js/dist/module/RealtimeSubscription": false
+  }
+}
