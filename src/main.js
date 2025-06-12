@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await addUrl(rawUrl, title, category, userId, imageUrl);
 
     // プレビュー表示
-    const proxyUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;
+    const proxyUrl = `https://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;
     loadThumbnail(proxyUrl);
 
     urlForm.reset();
