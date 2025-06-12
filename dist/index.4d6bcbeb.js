@@ -578,34 +578,35 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var _dbOperationsJs = require("./utils/dbOperations.js");
 var _fetchPreviewJs = require("./utils/fetchPreview.js");
 var _supabaseClientJs = require("./utils/supabaseClient.js");
+// ✅ プロキシベースURLを本番用に設定
+const IS_LOCAL = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const PROXY_BASE_URL = IS_LOCAL ? "http://localhost:3001/proxy" : "https://proxy-server-89ba.onrender.com/proxy";
+// ✅ プロキシURLを生成する関数
+function getProxyUrl(imageUrl) {
+    return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
+}
 console.log("\u2705 main.js loaded");
-console.log("const proxyUrl = `https://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;");
 document.addEventListener("DOMContentLoaded", ()=>{
-    // ── 認証ユーザー取得（テスト用フォールバック含む）
     const session = (0, _supabaseClientJs.supabase).auth.session;
     const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
     const thumbnailImg = document.getElementById("thumbnail");
-    const thumbnailBg = document.getElementById("thumbnail-bg"); // フォールバック用DIV
+    const thumbnailBg = document.getElementById("thumbnail-bg");
     // ── サムネイル読み込み関数
     function loadThumbnail(proxyUrl) {
-        // 初期化
         thumbnailBg.style.display = "none";
         thumbnailImg.style.display = "block";
-        // img が失敗したら background-image に切り替え
         thumbnailImg.onerror = ()=>{
             console.warn("\uD83D\uDC1E \u30D7\u30EC\u30D3\u30E5\u30FC\u8AAD\u307F\u8FBC\u307F\u5931\u6557 \u2192 background-image \u3067\u30D5\u30A9\u30FC\u30EB\u30D0\u30C3\u30AF:", proxyUrl);
             thumbnailImg.style.display = "none";
             thumbnailBg.style.backgroundImage = `url(${proxyUrl})`;
             thumbnailBg.style.display = "block";
         };
-        // 成功時は念のため bg を隠して img 表示
         thumbnailImg.onload = ()=>{
             thumbnailBg.style.display = "none";
             thumbnailImg.style.display = "block";
         };
-        // iOS Safari 再描画対策：一度クリアしてから再セット
         thumbnailImg.src = "";
         setTimeout(()=>{
             thumbnailImg.src = proxyUrl;
@@ -622,10 +623,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
             li.style.alignItems = "center";
             li.style.gap = "12px";
             li.style.margin = "10px 0";
-            // 画像要素
             const img = document.createElement("img");
-            const proxyThumbUrl = thumbnail_url ? `http://localhost:3001/proxy?url=${encodeURIComponent(thumbnail_url)}` : "https://placehold.co/80x80";
-            // 高速表示 & フォールバック
+            const proxyThumbUrl = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
             img.src = proxyThumbUrl;
             img.width = 80;
             img.height = 80;
@@ -634,7 +633,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
             img.onerror = ()=>{
                 img.src = "https://placehold.co/80x80";
             };
-            // タイトルリンク
             const link = document.createElement("a");
             link.href = url;
             link.target = "_blank";
@@ -644,7 +642,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
             link.style.fontWeight = "bold";
             link.style.color = "#E76F51";
             link.style.textDecoration = "none";
-            // 削除ボタン
             const btn = document.createElement("button");
             btn.innerText = "\u524A\u9664";
             btn.classList.add("btn-delete");
@@ -669,11 +666,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
         const title = urlForm.titleInput.value.trim();
         const category = urlForm.categoryInput.value.trim();
         if (!rawUrl || !title || !category) return;
-        // プレビューURL取得 & 保存
         const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
         await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
-        // プレビュー表示
-        const proxyUrl = `https://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;
+        const proxyUrl = getProxyUrl(imageUrl);
         loadThumbnail(proxyUrl);
         urlForm.reset();
         loadUrls();
