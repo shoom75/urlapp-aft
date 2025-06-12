@@ -3,7 +3,7 @@ import { getPreview } from "./utils/fetchPreview.js";
 import { supabase } from "./utils/supabaseClient.js";
 
 console.log("✅ main.js loaded");
-
+console.log("const proxyUrl = `https://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;");
 document.addEventListener("DOMContentLoaded", () => {
   // ── 認証ユーザー取得（テスト用フォールバック含む）
   const session = supabase.auth.session;
@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // プレビュー表示
     const proxyUrl = `https://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;
     loadThumbnail(proxyUrl);
-console.log("const proxyUrl = `https://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;")
+
     urlForm.reset();
     loadUrls();
   });
