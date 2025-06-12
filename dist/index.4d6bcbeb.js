@@ -579,28 +579,53 @@ var _dbOperationsJs = require("./utils/dbOperations.js");
 var _fetchPreviewJs = require("./utils/fetchPreview.js");
 var _supabaseClientJs = require("./utils/supabaseClient.js");
 console.log("\u2705 main.js loaded");
-document.addEventListener("DOMContentLoaded", async ()=>{
-    // 🔹 認証ユーザー取得（仮に未ログインならテスト用ID）
-    const session = (0, _supabaseClientJs.supabase).auth.session; // 修正: v1では `getSession()` は不要
+document.addEventListener("DOMContentLoaded", ()=>{
+    // ── 認証ユーザー取得（テスト用フォールバック含む）
+    const session = (0, _supabaseClientJs.supabase).auth.session;
     const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
-    const thumbnailPreview = document.getElementById("thumbnail");
+    const thumbnailImg = document.getElementById("thumbnail");
+    const thumbnailBg = document.getElementById("thumbnail-bg"); // フォールバック用DIV
+    // ── サムネイル読み込み関数
+    function loadThumbnail(proxyUrl) {
+        // 初期化
+        thumbnailBg.style.display = "none";
+        thumbnailImg.style.display = "block";
+        // img が失敗したら background-image に切り替え
+        thumbnailImg.onerror = ()=>{
+            console.warn("\uD83D\uDC1E \u30D7\u30EC\u30D3\u30E5\u30FC\u8AAD\u307F\u8FBC\u307F\u5931\u6557 \u2192 background-image \u3067\u30D5\u30A9\u30FC\u30EB\u30D0\u30C3\u30AF:", proxyUrl);
+            thumbnailImg.style.display = "none";
+            thumbnailBg.style.backgroundImage = `url(${proxyUrl})`;
+            thumbnailBg.style.display = "block";
+        };
+        // 成功時は念のため bg を隠して img 表示
+        thumbnailImg.onload = ()=>{
+            thumbnailBg.style.display = "none";
+            thumbnailImg.style.display = "block";
+        };
+        // iOS Safari 再描画対策：一度クリアしてから再セット
+        thumbnailImg.src = "";
+        setTimeout(()=>{
+            thumbnailImg.src = proxyUrl;
+        }, 50);
+    }
+    // ── 既存の URL 一覧ロード
     async function loadUrls() {
-        console.log("\u25B6\uFE0F loadUrls called");
         urlList.innerHTML = "";
         const urls = await (0, _dbOperationsJs.fetchUrls)();
-        const fragment = document.createDocumentFragment();
+        const frag = document.createDocumentFragment();
         urls.forEach(({ id, url, title, thumbnail_url })=>{
             const li = document.createElement("li");
             li.style.display = "flex";
             li.style.alignItems = "center";
             li.style.gap = "12px";
             li.style.margin = "10px 0";
-            // 画像
+            // 画像要素
             const img = document.createElement("img");
-            const proxiedUrl = thumbnail_url ? `http://localhost:3001/proxy?url=${encodeURIComponent(thumbnail_url)}` : "https://placehold.co/80x80";
-            img.src = proxiedUrl;
+            const proxyThumbUrl = thumbnail_url ? `http://localhost:3001/proxy?url=${encodeURIComponent(thumbnail_url)}` : "https://placehold.co/80x80";
+            // 高速表示 & フォールバック
+            img.src = proxyThumbUrl;
             img.width = 80;
             img.height = 80;
             img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
@@ -614,15 +639,15 @@ document.addEventListener("DOMContentLoaded", async ()=>{
             link.target = "_blank";
             link.innerText = title;
             link.style.flex = "1";
-            link.style.fontWeight = "bold";
             link.style.fontSize = "16px";
+            link.style.fontWeight = "bold";
             link.style.color = "#E76F51";
             link.style.textDecoration = "none";
             // 削除ボタン
-            const btnDelete = document.createElement("button");
-            btnDelete.innerText = "\u524A\u9664";
-            btnDelete.classList.add("btn-delete");
-            btnDelete.onclick = async ()=>{
+            const btn = document.createElement("button");
+            btn.innerText = "\u524A\u9664";
+            btn.classList.add("btn-delete");
+            btn.onclick = async ()=>{
                 if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
                 const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
                 if (success) loadUrls();
@@ -631,31 +656,28 @@ document.addEventListener("DOMContentLoaded", async ()=>{
                     console.error(error);
                 }
             };
-            // 並び順：画像 → タイトルリンク → 削除ボタン
-            li.appendChild(img);
-            li.appendChild(link);
-            li.appendChild(btnDelete);
-            fragment.appendChild(li);
+            li.append(img, link, btn);
+            frag.appendChild(li);
         });
-        urlList.appendChild(fragment);
+        urlList.appendChild(frag);
     }
-    urlForm.addEventListener("submit", async (event)=>{
-        event.preventDefault();
-        const url = urlForm.urlInput.value.trim();
+    // ── フォーム登録処理
+    urlForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const rawUrl = urlForm.urlInput.value.trim();
         const title = urlForm.titleInput.value.trim();
         const category = urlForm.categoryInput.value.trim();
-        if (!url || !title || !category) return;
-        const imageUrl = await (0, _fetchPreviewJs.getPreview)(url);
-        await (0, _dbOperationsJs.addUrl)(url, title, category, userId, imageUrl);
-        // プレビュー
-        const proxiedImageUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;
-        thumbnailPreview.src = proxiedImageUrl;
-        thumbnailPreview.onerror = ()=>{
-            thumbnailPreview.src = "https://placehold.co/300x200";
-        };
+        if (!rawUrl || !title || !category) return;
+        // プレビューURL取得 & 保存
+        const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
+        await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
+        // プレビュー表示
+        const proxyUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;
+        loadThumbnail(proxyUrl);
         urlForm.reset();
         loadUrls();
     });
+    // 初回一覧ロード
     loadUrls();
 });
 
