@@ -7,11 +7,12 @@ body {
     padding: 40px;
 }
 
-/* 👁 プレビュー画像（一時表示） */
+/* 👁 プレビュー画像 */
 #thumbnail {
     display: none;
     margin-top: 20px;
-    max-width: 300px;
+    max-width: 100px;
+    height: auto;
     border-radius: 6px;
 }
 
@@ -20,7 +21,7 @@ form {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 12px;
+    gap: 20px;
     flex-wrap: wrap;
     background: #FFFFFF;
     padding: 20px;
@@ -31,7 +32,8 @@ form {
 /* 🎨 入力欄 */
 input {
     padding: 12px;
-    width: 250px;
+    width: 100%;
+    max-width: 300px;
     border: 1px solid #E9A36A;
     border-radius: 8px;
     font-size: 16px;
@@ -45,9 +47,9 @@ input:focus {
     box-shadow: 0px 0px 8px rgba(228, 115, 80, 0.3);
 }
 
-/* ✅ 通常ボタン（登録） */
+/* ✅ ボタン（登録） */
 button {
-    padding: 12px 20px;
+    padding: 14px 24px;
     background: linear-gradient(135deg, #F4C06C, #E9A36A);
     color: white;
     border: none;
@@ -84,21 +86,22 @@ button:hover {
 /* 📜 リストアイテム */
 li {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 12px;
     background: white;
     border-radius: 10px;
     padding: 15px;
     margin: 12px auto;
-    width: 80%;
+    width: 90%;
     max-width: 500px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 🖼 画像 */
 li img {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: auto;
     object-fit: cover;
     border-radius: 6px;
 }
@@ -118,11 +121,11 @@ li a:hover {
     color: #D67D6A;
 }
 
-/* 📱 レスポンシブ対応 */
+/* 📱 スマホ表示最適化 */
 @media (max-width: 600px) {
     form {
         flex-direction: column;
-        padding: 20px;
+        gap: 16px;
     }
 
     input {
@@ -130,9 +133,9 @@ li a:hover {
     }
 
     li {
-        width: 90%;
         flex-direction: column;
         align-items: flex-start;
+        width: 100%;
     }
 
     li a {
