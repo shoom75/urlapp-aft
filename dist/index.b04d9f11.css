@@ -1,29 +1,17 @@
-body {
-  text-align: center;
-  background: linear-gradient(135deg, #fff7e3, #fdebd3);
-  margin: 0;
-  padding: 40px;
-  font-family: Inter, sans-serif;
+#toggleFormBtn:hover {
+  background: linear-gradient(135deg, #e9a36a, #d67d6a);
+  transform: scale(1.05);
 }
 
-#thumbnail {
-  border-radius: 6px;
-  max-width: 100px;
-  height: auto;
-  margin-top: 20px;
-  display: none;
-}
-
-form {
+#urlForm {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 10px;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
+  gap: 12px;
+  padding: 16px;
   display: flex;
-  box-shadow: 5px 5px 12px #0000001a;
+  box-shadow: 0 0 8px #00000014;
 }
 
 input {
@@ -49,7 +37,7 @@ button {
   background: linear-gradient(135deg, #f4c06c, #e9a36a);
   border: none;
   border-radius: 8px;
-  padding: 14px 24px;
+  padding: 12px 20px;
   font-size: 16px;
   transition: all .3s;
   box-shadow: 0 4px 8px #0000001a;
@@ -60,66 +48,24 @@ button:hover {
   transform: scale(1.05);
 }
 
-.btn-delete {
-  color: #fff;
-  cursor: pointer;
-  background: linear-gradient(135deg, #f08080, #e76f51);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 14px;
-  transition: all .3s;
-  box-shadow: 0 4px 6px #00000014;
-}
-
-.btn-delete:hover {
-  background: linear-gradient(135deg, #e76f51, #d65f51);
-  transform: scale(1.05);
-}
-
 li {
   background: #fff;
-  border-radius: 10px;
+  border-radius: 8px;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: 8px;
   width: 90%;
-  max-width: 500px;
-  margin: 12px auto;
-  padding: 15px;
+  max-width: 480px;
+  margin: 10px auto;
+  padding: 12px;
   display: flex;
-  box-shadow: 2px 2px 8px #0000001a;
-}
-
-li img {
-  object-fit: cover;
-  border-radius: 6px;
-  width: 100px;
-  height: auto;
-}
-
-li a {
-  color: #e76f51;
-  flex: 1;
-  font-size: 16px;
-  font-weight: bold;
-  text-decoration: none;
-  transition: color .3s ease-in-out;
-}
-
-li a:hover {
-  color: #d67d6a;
-  text-decoration: underline;
+  box-shadow: 1px 1px 6px #00000014;
 }
 
 @media (width <= 600px) {
-  form {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  input {
-    width: 100%;
+  #urlForm {
+    width: 90%;
+    margin: 0 auto;
   }
 
   li {
@@ -127,16 +73,91 @@ li a:hover {
     align-items: flex-start;
     width: 100%;
   }
+}
 
-  li a {
+body {
+  text-align: center;
+  background: linear-gradient(135deg, #fff7e3, #fdebd3);
+  margin: 0;
+  padding: 40px 20px;
+  font-family: Inter, sans-serif;
+}
+
+#toggleFormBtn {
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f4c06c, #e9a36a);
+  border: none;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  font-size: 16px;
+  transition: all .3s;
+  box-shadow: 2px 2px 6px #0000001a;
+}
+
+#toggleFormBtn:hover {
+  transform: scale(1.05);
+}
+
+#urlForm {
+  background: #fff;
+  border-radius: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 420px;
+  margin: 0 auto 24px;
+  padding: 20px;
+  display: flex;
+  box-shadow: 0 0 12px #0000000d;
+}
+
+#urlForm input {
+  background-color: #fff7e3;
+  border: 1px solid #e9a36a;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 360px;
+  padding: 12px;
+  font-size: 16px;
+  box-shadow: inset 1px 1px 3px #0000000d;
+}
+
+#urlForm input:focus {
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 6px #e473504d;
+}
+
+#urlForm button {
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f4c06c, #e9a36a);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
+  box-shadow: 0 4px 8px #0000001a;
+}
+
+#urlForm button:hover {
+  background: linear-gradient(135deg, #e9a36a, #d67d6a);
+  transform: scale(1.05);
+}
+
+@media (width <= 600px) {
+  #urlForm {
     width: 100%;
-    margin-top: 8px;
+    padding: 20px 16px;
   }
+}
 
-  .btn-delete {
-    align-self: flex-end;
-    margin-top: 8px;
-  }
+#thumbnail {
+  border-radius: 6px;
+  max-width: 300px;
+  margin-top: 20px;
+  display: none;
 }
 
 /*# sourceMappingURL=index.b04d9f11.css.map */

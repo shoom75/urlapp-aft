@@ -1,29 +1,36 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head><script type="module" src="/index.runtime.b13adeff.js"></script>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>グルメURL管理アプリ</title>
-  <link rel="stylesheet" href="/index.d7de1577.css">
+  <link rel="stylesheet" href="/index.b04d9f11.css">
 </head>
 <body>
   <h1>URL管理</h1>
 
-  <!-- URL登録フォーム -->
-  <form id="urlForm">
+  <!-- トグルボタン -->
+  <button id="toggleFormBtn">＋ URLを登録</button>
+
+  <!-- 折りたたみフォーム -->
+  <form id="urlForm" style="display: none">
     <input type="text" id="urlInput" placeholder="URLを入力" required="">
-    <input type="text" id="titleInput" placeholder="タイトルを入力" required="">
-    <input type="text" id="categoryInput" placeholder="カテゴリを入力" required="">
+    <input type="text" id="titleInput" placeholder="タイトルを入力">
+    <input type="text" id="categoryInput" placeholder="カテゴリを入力">
     <button type="submit">登録</button>
   </form>
-
-  <!-- 登録直後のプレビュー -->
+<!-- 登録直後のプレビュー -->
   <img id="thumbnail" src="https://placehold.co/100x100" alt="サムネイル" width="300">
-
-  <!-- 一覧表示エリア -->
+  <!-- 一覧 -->
   <ul id="urlList"></ul>
 
-  <!-- Parcelで束ねたmain.js -->
-  <script type="module" src="/index.c2df2637.js" defer=""></script>
+  <script src="/index.4d6bcbeb.js" defer=""></script>
+  <script>const toggleBtn = document.getElementById("toggleFormBtn");
+const form = document.getElementById("urlForm");
+toggleBtn.addEventListener("click", ()=>{
+    form.style.display = form.style.display === "flex" ? "none" : "flex";
+});
+
+</script>
 </body>
 </html>

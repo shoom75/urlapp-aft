@@ -580,8 +580,8 @@ var _fetchPreviewJs = require("./utils/fetchPreview.js");
 var _supabaseClientJs = require("./utils/supabaseClient.js");
 console.log("\u2705 main.js loaded");
 document.addEventListener("DOMContentLoaded", async ()=>{
-    // 認証ユーザー取得（仮に未ログインならテスト用ID）
-    const { data: { session } } = await (0, _supabaseClientJs.supabase).auth.getSession();
+    // 🔹 認証ユーザー取得（仮に未ログインならテスト用ID）
+    const session = (0, _supabaseClientJs.supabase).auth.session; // 修正: v1では `getSession()` は不要
     const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
