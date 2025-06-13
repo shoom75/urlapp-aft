@@ -12,16 +12,17 @@
   <!-- トグルボタン -->
   <button id="toggleFormBtn">＋ URLを登録</button>
 
-  <!-- 折りたたみフォーム -->
+  <!-- 入力フォーム -->
   <form id="urlForm" style="display: none">
     <input type="text" id="urlInput" placeholder="URLを入力" required="">
     <input type="text" id="titleInput" placeholder="タイトルを入力">
     <input type="text" id="categoryInput" placeholder="カテゴリを入力">
     <button type="submit">登録</button>
   </form>
-<!-- 登録直後のプレビュー -->
-  <img id="thumbnail" src="https://placehold.co/100x100" alt="サムネイル" width="300"><!-- 既存の <img id="thumbnail"> の下に追加 -->
-<div id="thumbnail-bg" style="background-position: center; background-size: cover; width: 300px; height: 200px; display: none"></div>
+
+  <!-- プレビュー -->
+  <!-- <img id="thumbnail" src="https://placehold.co/100x100" alt="サムネイル" width="300" />
+  <div id="thumbnail-bg"></div> -->
 
   <!-- 一覧 -->
   <ul id="urlList"></ul>
@@ -35,9 +36,4 @@ toggleBtn.addEventListener("click", ()=>{
 
 </script>
 </body>
-<!-- ページ内に軽量DevToolsを出現させる -->
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();
-
-</script>
 </html>

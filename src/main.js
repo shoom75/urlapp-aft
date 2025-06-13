@@ -2,13 +2,12 @@ import { addUrl, fetchUrls, deleteUrl } from "./utils/dbOperations.js";
 import { getPreview } from "./utils/fetchPreview.js";
 import { supabase } from "./utils/supabaseClient.js";
 
-// ✅ プロキシベースURLを本番用に設定
+// ✅ プロキシベースURLの定義（Mixed Content回避のため）
 const IS_LOCAL = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 const PROXY_BASE_URL = IS_LOCAL
-  ? "http://localhost:3001/proxy"
-  : "https://proxy-server-89ba.onrender.com/proxy";
+  ? "http://localhost:3001/proxy" // ローカルはhttpでOK（開発中）
+  : "https://your-domain.com/proxy"; // ← 本番ではhttps必須！
 
-// ✅ プロキシURLを生成する関数
 function getProxyUrl(imageUrl) {
   return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
 }
@@ -21,31 +20,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const urlForm      = document.getElementById("urlForm");
   const urlList      = document.getElementById("urlList");
-  const thumbnailImg = document.getElementById("thumbnail");
-  const thumbnailBg  = document.getElementById("thumbnail-bg");
+//   const thumbnailImg = document.getElementById("thumbnail");
+//   const thumbnailBg  = document.getElementById("thumbnail-bg");
 
   // ── サムネイル読み込み関数
-  function loadThumbnail(proxyUrl) {
-    thumbnailBg.style.display  = "none";
-    thumbnailImg.style.display = "block";
+//   function loadThumbnail(proxyUrl) {
+//     thumbnailBg.style.display  = "none";
+//     thumbnailImg.style.display = "block";
 
-    thumbnailImg.onerror = () => {
-      console.warn("🐞 プレビュー読み込み失敗 → background-image でフォールバック:", proxyUrl);
-      thumbnailImg.style.display = "none";
-      thumbnailBg.style.backgroundImage = `url(${proxyUrl})`;
-      thumbnailBg.style.display      = "block";
-    };
+    // thumbnailImg.onerror = () => {
+    //   console.warn("🐞 プレビュー読み込み失敗 → background-image でフォールバック:", proxyUrl);
+    //   thumbnailImg.style.display = "none";
+    //   thumbnailBg.style.backgroundImage = `url(${proxyUrl})`;
+    //   thumbnailBg.style.display      = "block";
+    // };
 
-    thumbnailImg.onload = () => {
-      thumbnailBg.style.display  = "none";
-      thumbnailImg.style.display = "block";
-    };
+    // thumbnailImg.onload = () => {
+    //   thumbnailBg.style.display  = "none";
+    //   thumbnailImg.style.display = "block";
+    // };
 
-    thumbnailImg.src = "";
-    setTimeout(() => {
-      thumbnailImg.src = proxyUrl;
-    }, 50);
-  }
+//     thumbnailImg.src = "";
+//     setTimeout(() => {
+//       thumbnailImg.src = proxyUrl;
+//     }, 50);
+//   },
 
   // ── 既存の URL 一覧ロード
   async function loadUrls() {
@@ -117,12 +116,11 @@ document.addEventListener("DOMContentLoaded", () => {
     await addUrl(rawUrl, title, category, userId, imageUrl);
 
     const proxyUrl = getProxyUrl(imageUrl);
-    loadThumbnail(proxyUrl);
+    // loadThumbnail(proxyUrl);
 
     urlForm.reset();
     loadUrls();
   });
 
-  // 初回一覧ロード
   loadUrls();
 });

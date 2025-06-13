@@ -578,10 +578,10 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var _dbOperationsJs = require("./utils/dbOperations.js");
 var _fetchPreviewJs = require("./utils/fetchPreview.js");
 var _supabaseClientJs = require("./utils/supabaseClient.js");
-// ✅ プロキシベースURLを本番用に設定
+// ✅ プロキシベースURLの定義（Mixed Content回避のため）
 const IS_LOCAL = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-const PROXY_BASE_URL = IS_LOCAL ? "http://localhost:3001/proxy" : "https://proxy-server-89ba.onrender.com/proxy";
-// ✅ プロキシURLを生成する関数
+const PROXY_BASE_URL = IS_LOCAL ? "http://localhost:3001/proxy" // ローカルはhttpでOK（開発中）
+ : "https://your-domain.com/proxy"; // ← 本番ではhttps必須！
 function getProxyUrl(imageUrl) {
     return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
 }
@@ -591,27 +591,27 @@ document.addEventListener("DOMContentLoaded", ()=>{
     const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
-    const thumbnailImg = document.getElementById("thumbnail");
-    const thumbnailBg = document.getElementById("thumbnail-bg");
+    //   const thumbnailImg = document.getElementById("thumbnail");
+    //   const thumbnailBg  = document.getElementById("thumbnail-bg");
     // ── サムネイル読み込み関数
-    function loadThumbnail(proxyUrl) {
-        thumbnailBg.style.display = "none";
-        thumbnailImg.style.display = "block";
-        thumbnailImg.onerror = ()=>{
-            console.warn("\uD83D\uDC1E \u30D7\u30EC\u30D3\u30E5\u30FC\u8AAD\u307F\u8FBC\u307F\u5931\u6557 \u2192 background-image \u3067\u30D5\u30A9\u30FC\u30EB\u30D0\u30C3\u30AF:", proxyUrl);
-            thumbnailImg.style.display = "none";
-            thumbnailBg.style.backgroundImage = `url(${proxyUrl})`;
-            thumbnailBg.style.display = "block";
-        };
-        thumbnailImg.onload = ()=>{
-            thumbnailBg.style.display = "none";
-            thumbnailImg.style.display = "block";
-        };
-        thumbnailImg.src = "";
-        setTimeout(()=>{
-            thumbnailImg.src = proxyUrl;
-        }, 50);
-    }
+    //   function loadThumbnail(proxyUrl) {
+    //     thumbnailBg.style.display  = "none";
+    //     thumbnailImg.style.display = "block";
+    // thumbnailImg.onerror = () => {
+    //   console.warn("🐞 プレビュー読み込み失敗 → background-image でフォールバック:", proxyUrl);
+    //   thumbnailImg.style.display = "none";
+    //   thumbnailBg.style.backgroundImage = `url(${proxyUrl})`;
+    //   thumbnailBg.style.display      = "block";
+    // };
+    // thumbnailImg.onload = () => {
+    //   thumbnailBg.style.display  = "none";
+    //   thumbnailImg.style.display = "block";
+    // };
+    //     thumbnailImg.src = "";
+    //     setTimeout(() => {
+    //       thumbnailImg.src = proxyUrl;
+    //     }, 50);
+    //   },
     // ── 既存の URL 一覧ロード
     async function loadUrls() {
         urlList.innerHTML = "";
@@ -669,11 +669,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
         const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
         await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
         const proxyUrl = getProxyUrl(imageUrl);
-        loadThumbnail(proxyUrl);
+        // loadThumbnail(proxyUrl);
         urlForm.reset();
         loadUrls();
     });
-    // 初回一覧ロード
     loadUrls();
 });
 

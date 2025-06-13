@@ -1,155 +1,57 @@
-/* 🌅 優しい暖色背景 */
+/* ベース */
 body {
-    font-family: 'Inter', sans-serif;
-    text-align: center;
-    background: linear-gradient(135deg, #FFF7E3, #FDEBD3);
-    margin: 0;
-    padding: 40px;
-}
-
-/* 📌 トグルボタン */
-#toggleFormBtn {
-    padding: 12px 20px;
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, #F4C06C, #E9A36A);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-}
-
-#toggleFormBtn:hover {
-    background: linear-gradient(135deg, #E9A36A, #D67D6A);
-    transform: scale(1.05);
-}
-
-/* 📄 折りたたみフォーム */
-#urlForm {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-    background: #fff;
-    padding: 16px;
-    border-radius: 10px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.08);
-}
-
-/* 🎨 入力欄 */
-input {
-    padding: 12px;
-    width: 100%;
-    max-width: 300px;
-    border: 1px solid #E9A36A;
-    border-radius: 8px;
-    font-size: 16px;
-    background-color: #FFF7E3;
-    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-input:focus {
-    outline: none;
-    background-color: #FFFFFF;
-    box-shadow: 0px 0px 8px rgba(228, 115, 80, 0.3);
-}
-
-/* ✅ 登録ボタン */
-button {
-    padding: 12px 20px;
-    background: linear-gradient(135deg, #F4C06C, #E9A36A);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-button:hover {
-    background: linear-gradient(135deg, #E9A36A, #D67D6A);
-    transform: scale(1.05);
-}
-
-/* 📜 リストアイテム */
-li {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    background: white;
-    border-radius: 8px;
-    padding: 12px;
-    margin: 10px auto;
-    width: 90%;
-    max-width: 480px;
-    box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.08);
-}
-
-/* 📱 スマホ表示最適化 */
-@media (max-width: 600px) {
-    #urlForm {
-        width: 90%;
-        margin: 0 auto;
-    }
-
-    li {
-        flex-direction: column;
-        align-items: flex-start;
-        width: 100%;
-    }
-}body {
   font-family: 'Inter', sans-serif;
-  text-align: center;
   background: linear-gradient(135deg, #FFF7E3, #FDEBD3);
   margin: 0;
-  padding: 40px 20px;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 16px;
+  font-size: 24px;
 }
 
 /* トグルボタン */
 #toggleFormBtn {
   padding: 12px 20px;
-  margin-bottom: 16px;
   background: linear-gradient(135deg, #F4C06C, #E9A36A);
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
   transition: all 0.3s ease;
 }
+
 #toggleFormBtn:hover {
   transform: scale(1.05);
 }
 
-/* フォーム */
+/* 入力フォーム */
+/* スマホは縦並びflex */
 #urlForm {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  align-items: center;
+  gap: 12px;
   background: #fff;
-  padding: 20px;
+  padding: 16px 24px;
   border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
-  max-width: 420px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.06);
+  max-width: 400px;
   margin: 0 auto 24px;
 }
 
-/* 入力欄 */
+/* input共通 */
 #urlForm input {
-  width: 100%;
-  max-width: 360px;
-  padding: 12px;
-  font-size: 16px;
+  padding: 10px 12px;
+  font-size: 14px;
   border: 1px solid #E9A36A;
   border-radius: 8px;
   background-color: #FFF7E3;
-  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+  width: 100%;
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 #urlForm input:focus {
@@ -160,30 +62,187 @@ li {
 
 /* 登録ボタン */
 #urlForm button {
-  padding: 12px 20px;
+  padding: 10px 25px;
+  font-size: 15px;
   background: linear-gradient(135deg, #F4C06C, #E9A36A);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
   cursor: pointer;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  transition: all 0.3s ease;
 }
+
 #urlForm button:hover {
   background: linear-gradient(135deg, #E9A36A, #D67D6A);
   transform: scale(1.05);
 }
 
-/* スマホレスポンシブ */
-@media (max-width: 600px) {
+/* PC以上はグリッド3列 */
+@media (min-width: 601px) {
   #urlForm {
-    width: 100%;
-    padding: 20px 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 900px;
+    margin: 0 auto 24px;
+  }
+
+  #urlForm button {
+    grid-column: span 3;
+    width: auto;
+    justify-self: center;
+    max-width: 100%;
   }
 }
-#thumbnail {
-    display: none;
-    margin-top: 20px;
-    max-width: 300px;
+
+/* 一覧アイテム（カード型） */
+#urlList {
+  list-style: none;
+  padding: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+#urlList li {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 12px 0;
+  gap: 16px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.08);
+}
+
+#urlList img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+#urlList a {
+  flex: 1;
+  font-weight: bold;
+  font-size: 16px;
+  color: #E76F51;
+  text-decoration: none;
+  text-align: left;
+}
+
+/* 削除ボタン */
+.btn-delete {
+  padding: 8px 12px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* スマホ最適化 */
+@media (max-width: 600px) {
+  #urlList li {
+    list-style: none;
+    padding: 8px 10px;
+    max-width: 600px;
+    margin: 8px auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  #urlList img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
     border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  #urlList a {
+    font-size: 14px;
+    color: #E76F51;
+    text-decoration: none;
+    font-weight: bold;
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .btn-delete {
+    padding: 8px 12px;
+    font-size: 14px;
+    background: #F4C06C;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-delete:hover {
+    background: #D67D6A;
+  }
+}
+
+/* PCは2列グリッド表示 */
+@media (min-width: 601px) {
+  #urlList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  #urlList li {
+    list-style: none;
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  #urlList img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  #urlList a {
+    font-size: 16px;
+    color: #E76F51;
+    text-decoration: none;
+    font-weight: bold;
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .btn-delete {
+    padding: 8px 14px;
+    font-size: 14px;
+    background: #F4C06C;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-delete:hover {
+    background: #D67D6A;
+  }
 }
