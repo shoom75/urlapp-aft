@@ -617,14 +617,14 @@ document.addEventListener("DOMContentLoaded", ()=>{
         urlList.innerHTML = "";
         const urls = await (0, _dbOperationsJs.fetchUrls)();
         const frag = document.createDocumentFragment();
-        urls.forEach(({ id, url, title, thumbnail_url })=>{
+        urls.forEach(({ id, url, title, thumbnail_url: thumbnail_url1 })=>{
             const li = document.createElement("li");
             li.style.display = "flex";
             li.style.alignItems = "center";
             li.style.gap = "12px";
             li.style.margin = "10px 0";
             const img = document.createElement("img");
-            const proxyThumbUrl = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
+            const proxyThumbUrl = thumbnail_url1 ? getProxyUrl(thumbnail_url1) : "https://placehold.co/80x80";
             img.src = proxyThumbUrl;
             img.width = 80;
             img.height = 80;
@@ -670,6 +670,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
         await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
         const proxyUrl = getProxyUrl(imageUrl);
         // loadThumbnail(proxyUrl);
+        console.log("\uD83D\uDFE1 \u5143\u753B\u50CFURL:", thumbnail_url);
+        console.log("\uD83D\uDFE2 \u30D7\u30ED\u30AD\u30B7URL:", getProxyUrl(thumbnail_url));
         urlForm.reset();
         loadUrls();
     });

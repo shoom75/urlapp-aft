@@ -117,10 +117,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const proxyUrl = getProxyUrl(imageUrl);
     // loadThumbnail(proxyUrl);
+console.log("🟡 元画像URL:", thumbnail_url);
+console.log("🟢 プロキシURL:", getProxyUrl(thumbnail_url));
 
     urlForm.reset();
     loadUrls();
   });
 
   loadUrls();
+
 });
