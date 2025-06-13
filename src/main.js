@@ -17,59 +17,79 @@ document.addEventListener("DOMContentLoaded", () => {
   const urlForm = document.getElementById("urlForm");
   const urlList = document.getElementById("urlList");
 
+  // 差分だけ更新するloadUrls関数
   async function loadUrls() {
-    urlList.innerHTML = "";
     const urls = await fetchUrls();
-    const frag = document.createDocumentFragment();
 
-    urls.forEach(({ id, url, title, thumbnail_url }) => {
-      const li = document.createElement("li");
-      li.style.display = "flex";
-      li.style.alignItems = "center";
-      li.style.gap = "12px";
-      li.style.margin = "10px 0";
+    // 現在表示中のli要素のidを取得
+    const existingIds = Array.from(urlList.children).map(li => li.dataset.id);
 
-      const img = document.createElement("img");
-      const proxyThumbUrl = thumbnail_url
-        ? getProxyUrl(thumbnail_url)
-        : "https://placehold.co/80x80";
-      img.src = proxyThumbUrl;
-      img.width = 80;
-      img.height = 80;
-      img.alt = "サムネイル";
-      img.style.objectFit = "cover";
-      img.onerror = () => {
-        img.src = "https://placehold.co/80x80";
-      };
+    // 新規URLのid一覧
+    const newIds = urls.map(u => u.id);
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.target = "_blank";
-      link.innerText = title;
-      link.style.flex = "1";
-      link.style.fontSize = "16px";
-      link.style.fontWeight = "bold";
-      link.style.color = "#E76F51";
-      link.style.textDecoration = "none";
-
-      const btn = document.createElement("button");
-      btn.innerText = "削除";
-      btn.classList.add("btn-delete");
-      btn.onclick = async () => {
-        if (!confirm(`「${title}」を削除しますか？`)) return;
-        const { success, error } = await deleteUrl(id);
-        if (success) {
-          loadUrls();
-        } else {
-          alert("削除に失敗しました");
-          console.error(error);
-        }
-      };
-
-      li.append(img, link, btn);
-      frag.appendChild(li);
+    // 削除対象のliを削除
+    existingIds.forEach(id => {
+      if (!newIds.includes(id)) {
+        const li = urlList.querySelector(`li[data-id="${id}"]`);
+        if (li) li.remove();
+      }
     });
-    urlList.appendChild(frag);
+
+    // 追加・更新
+    urls.forEach(({ id, url, title, thumbnail_url }) => {
+      let li = urlList.querySelector(`li[data-id="${id}"]`);
+
+      if (!li) {
+        li = document.createElement("li");
+        li.dataset.id = id;
+        li.style.display = "flex";
+        li.style.alignItems = "center";
+        li.style.gap = "12px";
+        li.style.margin = "10px 0";
+
+        const img = document.createElement("img");
+        img.width = 80;
+        img.height = 80;
+        img.alt = "サムネイル";
+        img.style.objectFit = "cover";
+        img.onerror = () => {
+          img.src = "https://placehold.co/80x80";
+        };
+
+        const link = document.createElement("a");
+        link.target = "_blank";
+        link.style.flex = "1";
+        link.style.fontSize = "16px";
+        link.style.fontWeight = "bold";
+        link.style.color = "#E76F51";
+        link.style.textDecoration = "none";
+
+        const btn = document.createElement("button");
+        btn.innerText = "削除";
+        btn.classList.add("btn-delete");
+        btn.onclick = async () => {
+          if (!confirm(`「${title}」を削除しますか？`)) return;
+          const { success, error } = await deleteUrl(id);
+          if (success) {
+            loadUrls();
+          } else {
+            alert("削除に失敗しました");
+            console.error(error);
+          }
+        };
+
+        li.append(img, link, btn);
+        urlList.appendChild(li);
+      }
+
+      // 更新部分（差分チェックは省略）
+      const img = li.querySelector("img");
+      img.src = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
+
+      const link = li.querySelector("a");
+      link.href = url;
+      link.innerText = title;
+    });
   }
 
   urlForm.addEventListener("submit", async (e) => {
@@ -82,19 +102,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const imageUrl = await getPreview(rawUrl);
     await addUrl(rawUrl, title, category, userId, imageUrl);
 
-    const proxyUrl = getProxyUrl(imageUrl);
-    console.log("🟡 元画像URL:", imageUrl);
-    console.log("🟢 プロキシURL:", proxyUrl);
-
     urlForm.reset();
+    // 登録後に即反映
     loadUrls();
   });
 
   // 初回ロード
   loadUrls();
 
-  // 5秒ごとにURL一覧を再読み込みするポーリング追加
-  setInterval(() => {
-    loadUrls();
-  }, 5000);
+  // 5秒ごとに差分更新で再ロード（チカチカ防止）
+  setInterval(loadUrls, 5000);
 });
