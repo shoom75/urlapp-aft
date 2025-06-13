@@ -582,6 +582,7 @@ var _supabaseClientJs = require("./utils/supabaseClient.js");
 const IS_LOCAL = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 const PROXY_BASE_URL = IS_LOCAL ? "http://localhost:3001/proxy" // ローカルはhttpでOK（開発中）
  : "https://your-domain.com/proxy"; // ← 本番ではhttps必須！
+// ✅ プロキシURLを生成する関数
 function getProxyUrl(imageUrl) {
     return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
 }
@@ -591,40 +592,22 @@ document.addEventListener("DOMContentLoaded", ()=>{
     const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
-    //   const thumbnailImg = document.getElementById("thumbnail");
-    //   const thumbnailBg  = document.getElementById("thumbnail-bg");
-    // ── サムネイル読み込み関数
-    //   function loadThumbnail(proxyUrl) {
-    //     thumbnailBg.style.display  = "none";
-    //     thumbnailImg.style.display = "block";
-    // thumbnailImg.onerror = () => {
-    //   console.warn("🐞 プレビュー読み込み失敗 → background-image でフォールバック:", proxyUrl);
-    //   thumbnailImg.style.display = "none";
-    //   thumbnailBg.style.backgroundImage = `url(${proxyUrl})`;
-    //   thumbnailBg.style.display      = "block";
-    // };
-    // thumbnailImg.onload = () => {
-    //   thumbnailBg.style.display  = "none";
-    //   thumbnailImg.style.display = "block";
-    // };
-    //     thumbnailImg.src = "";
-    //     setTimeout(() => {
-    //       thumbnailImg.src = proxyUrl;
-    //     }, 50);
-    //   },
+    // 以下、プレビュー用の要素はコメントアウトされています（必要なら復活してください）
+    // const thumbnailImg = document.getElementById("thumbnail");
+    // const thumbnailBg  = document.getElementById("thumbnail-bg");
     // ── 既存の URL 一覧ロード
     async function loadUrls() {
         urlList.innerHTML = "";
         const urls = await (0, _dbOperationsJs.fetchUrls)();
         const frag = document.createDocumentFragment();
-        urls.forEach(({ id, url, title, thumbnail_url: thumbnail_url1 })=>{
+        urls.forEach(({ id, url, title, thumbnail_url })=>{
             const li = document.createElement("li");
             li.style.display = "flex";
             li.style.alignItems = "center";
             li.style.gap = "12px";
             li.style.margin = "10px 0";
             const img = document.createElement("img");
-            const proxyThumbUrl = thumbnail_url1 ? getProxyUrl(thumbnail_url1) : "https://placehold.co/80x80";
+            const proxyThumbUrl = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
             img.src = proxyThumbUrl;
             img.width = 80;
             img.height = 80;
@@ -666,15 +649,17 @@ document.addEventListener("DOMContentLoaded", ()=>{
         const title = urlForm.titleInput.value.trim();
         const category = urlForm.categoryInput.value.trim();
         if (!rawUrl || !title || !category) return;
+        // getPreviewで画像URLを取得
         const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
         await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
         const proxyUrl = getProxyUrl(imageUrl);
-        // loadThumbnail(proxyUrl);
-        console.log("\uD83D\uDFE1 \u5143\u753B\u50CFURL:", thumbnail_url);
-        console.log("\uD83D\uDFE2 \u30D7\u30ED\u30AD\u30B7URL:", getProxyUrl(thumbnail_url));
+        // ログ出力の際、正しく imageUrl を参照する
+        console.log("\uD83D\uDFE1 \u5143\u753B\u50CFURL:", imageUrl);
+        console.log("\uD83D\uDFE2 \u30D7\u30ED\u30AD\u30B7URL:", getProxyUrl(imageUrl));
         urlForm.reset();
         loadUrls();
     });
+    // 初回一覧ロード
     loadUrls();
 });
 
