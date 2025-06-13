@@ -578,23 +578,16 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var _dbOperationsJs = require("./utils/dbOperations.js");
 var _fetchPreviewJs = require("./utils/fetchPreview.js");
 var _supabaseClientJs = require("./utils/supabaseClient.js");
-// 常に公開済みのプロキシサーバーを使用（/proxy を必ず含む）
 const PROXY_BASE_URL = "https://proxy-server-89ba.onrender.com/proxy";
-// プロキシURLを生成する関数
 function getProxyUrl(imageUrl) {
     return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
 }
 console.log("\u2705 main.js loaded");
 document.addEventListener("DOMContentLoaded", ()=>{
-    // Supabase のセッションからユーザーIDを取得（なければ "user_123" とする）
     const session = (0, _supabaseClientJs.supabase).auth.session;
     const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
-    // プレビュー用の要素は必要に応じてコメント解除してください
-    // const thumbnailImg = document.getElementById("thumbnail");
-    // const thumbnailBg  = document.getElementById("thumbnail-bg");
-    // ── 既存の URL 一覧ロード処理
     async function loadUrls() {
         urlList.innerHTML = "";
         const urls = await (0, _dbOperationsJs.fetchUrls)();
@@ -641,25 +634,26 @@ document.addEventListener("DOMContentLoaded", ()=>{
         });
         urlList.appendChild(frag);
     }
-    // ── フォーム登録処理
     urlForm.addEventListener("submit", async (e)=>{
         e.preventDefault();
         const rawUrl = urlForm.urlInput.value.trim();
         const title = urlForm.titleInput.value.trim();
         const category = urlForm.categoryInput.value.trim();
         if (!rawUrl || !title || !category) return;
-        // getPreview で画像URLを取得し、DBへ登録
         const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
         await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
-        // 生成されたプロキシURLをログ出力
         const proxyUrl = getProxyUrl(imageUrl);
         console.log("\uD83D\uDFE1 \u5143\u753B\u50CFURL:", imageUrl);
         console.log("\uD83D\uDFE2 \u30D7\u30ED\u30AD\u30B7URL:", proxyUrl);
         urlForm.reset();
         loadUrls();
     });
-    // 初回URL一覧ロード
+    // 初回ロード
     loadUrls();
+    // 5秒ごとにURL一覧を再読み込みするポーリング追加
+    setInterval(()=>{
+        loadUrls();
+    }, 5000);
 });
 
 },{"./utils/dbOperations.js":"7f4gD","./utils/fetchPreview.js":"3NxY8","./utils/supabaseClient.js":"kDxOT"}],"7f4gD":[function(require,module,exports) {
