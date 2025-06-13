@@ -581,7 +581,7 @@ var _supabaseClientJs = require("./utils/supabaseClient.js");
 // ✅ プロキシベースURLの定義（Mixed Content回避のため）
 const IS_LOCAL = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 const PROXY_BASE_URL = IS_LOCAL ? "http://localhost:3001/proxy" // ローカルはhttpでOK（開発中）
- : "https://your-domain.com/proxy"; // ← 本番ではhttps必須！
+ : "https://proxy-server-89ba.onrender.com"; // ← 本番ではhttps必須！
 // ✅ プロキシURLを生成する関数
 function getProxyUrl(imageUrl) {
     return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
