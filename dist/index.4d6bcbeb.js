@@ -588,51 +588,92 @@ document.addEventListener("DOMContentLoaded", ()=>{
     const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
+    // 既存リストアイテムをMapで保持（id -> {url, title, thumbnailUrl, li}）
+    const existingItems = new Map();
     async function loadUrls() {
-        urlList.innerHTML = "";
         const urls = await (0, _dbOperationsJs.fetchUrls)();
-        const frag = document.createDocumentFragment();
-        urls.forEach(({ id, url, title, thumbnail_url })=>{
-            const li = document.createElement("li");
-            li.style.display = "flex";
-            li.style.alignItems = "center";
-            li.style.gap = "12px";
-            li.style.margin = "10px 0";
-            const img = document.createElement("img");
-            const proxyThumbUrl = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
-            img.src = proxyThumbUrl;
-            img.width = 80;
-            img.height = 80;
-            img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
-            img.style.objectFit = "cover";
-            img.onerror = ()=>{
-                img.src = "https://placehold.co/80x80";
-            };
-            const link = document.createElement("a");
-            link.href = url;
-            link.target = "_blank";
-            link.innerText = title;
-            link.style.flex = "1";
-            link.style.fontSize = "16px";
-            link.style.fontWeight = "bold";
-            link.style.color = "#E76F51";
-            link.style.textDecoration = "none";
-            const btn = document.createElement("button");
-            btn.innerText = "\u524A\u9664";
-            btn.classList.add("btn-delete");
-            btn.onclick = async ()=>{
-                if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
-                const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
-                if (success) loadUrls();
-                else {
-                    alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-                    console.error(error);
+        // 新規id一覧
+        const newIds = urls.map((u)=>u.id);
+        // 削除処理：既存にあって新規にないidは削除
+        for (const id of existingItems.keys())if (!newIds.includes(id)) {
+            const { li } = existingItems.get(id);
+            li.remove();
+            existingItems.delete(id);
+        }
+        // 追加・更新処理
+        for (const { id, url, title, thumbnail_url } of urls){
+            const proxyThumbnail = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
+            if (!existingItems.has(id)) {
+                // 新規追加
+                const li = document.createElement("li");
+                li.dataset.id = id;
+                li.style.display = "flex";
+                li.style.alignItems = "center";
+                li.style.gap = "12px";
+                li.style.margin = "10px 0";
+                const img = document.createElement("img");
+                img.width = 80;
+                img.height = 80;
+                img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
+                img.style.objectFit = "cover";
+                img.onerror = ()=>{
+                    img.src = "https://placehold.co/80x80";
+                };
+                img.src = proxyThumbnail;
+                const link = document.createElement("a");
+                link.target = "_blank";
+                link.style.flex = "1";
+                link.style.fontSize = "16px";
+                link.style.fontWeight = "bold";
+                link.style.color = "#E76F51";
+                link.style.textDecoration = "none";
+                link.href = url;
+                link.innerText = title;
+                const btn = document.createElement("button");
+                btn.innerText = "\u524A\u9664";
+                btn.classList.add("btn-delete");
+                btn.onclick = async ()=>{
+                    if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
+                    const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
+                    if (success) // 削除はloadUrlsで反映
+                    loadUrls();
+                    else {
+                        alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+                        console.error(error);
+                    }
+                };
+                li.append(img, link, btn);
+                urlList.appendChild(li);
+                existingItems.set(id, {
+                    url,
+                    title,
+                    thumbnailUrl: proxyThumbnail,
+                    li,
+                    img,
+                    link
+                });
+            } else {
+                // 既存アイテムの差分チェック・更新
+                const item = existingItems.get(id);
+                let changed = false;
+                if (item.url !== url) {
+                    item.link.href = url;
+                    item.url = url;
+                    changed = true;
                 }
-            };
-            li.append(img, link, btn);
-            frag.appendChild(li);
-        });
-        urlList.appendChild(frag);
+                if (item.title !== title) {
+                    item.link.innerText = title;
+                    item.title = title;
+                    changed = true;
+                }
+                if (item.thumbnailUrl !== proxyThumbnail) {
+                    item.img.src = proxyThumbnail;
+                    item.thumbnailUrl = proxyThumbnail;
+                    changed = true;
+                }
+                changed;
+            }
+        }
     }
     urlForm.addEventListener("submit", async (e)=>{
         e.preventDefault();
@@ -642,18 +683,13 @@ document.addEventListener("DOMContentLoaded", ()=>{
         if (!rawUrl || !title || !category) return;
         const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
         await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
-        const proxyUrl = getProxyUrl(imageUrl);
-        console.log("\uD83D\uDFE1 \u5143\u753B\u50CFURL:", imageUrl);
-        console.log("\uD83D\uDFE2 \u30D7\u30ED\u30AD\u30B7URL:", proxyUrl);
         urlForm.reset();
-        loadUrls();
+        await loadUrls();
     });
     // 初回ロード
     loadUrls();
-    // 5秒ごとにURL一覧を再読み込みするポーリング追加
-    setInterval(()=>{
-        loadUrls();
-    }, 5000);
+    // 5秒ごとに差分だけ更新
+    setInterval(loadUrls, 5000);
 });
 
 },{"./utils/dbOperations.js":"7f4gD","./utils/fetchPreview.js":"3NxY8","./utils/supabaseClient.js":"kDxOT"}],"7f4gD":[function(require,module,exports) {
