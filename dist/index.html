@@ -20,9 +20,11 @@
     <button type="submit">登録</button>
   </form>
 
-  <!-- プレビュー -->
-  <!-- <img id="thumbnail" src="https://placehold.co/100x100" alt="サムネイル" width="300" />
-  <div id="thumbnail-bg"></div> -->
+  <!-- プレビュー（必要ならコメントを解除してください） -->
+  <!--
+  <img id="thumbnail" src="https://placehold.co/100x100" alt="サムネイル" width="300" />
+  <div id="thumbnail-bg"></div>
+  -->
 
   <!-- 一覧 -->
   <ul id="urlList"></ul>
@@ -33,6 +35,12 @@ const form = document.getElementById("urlForm");
 toggleBtn.addEventListener("click", ()=>{
     form.style.display = form.style.display === "flex" ? "none" : "flex";
 });
+
+</script>
+
+  <!-- eruda（モバイル向け軽量DevTools）-->
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>eruda.init();
 
 </script>
 </body>

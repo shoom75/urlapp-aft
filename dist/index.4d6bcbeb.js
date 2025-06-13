@@ -578,24 +578,23 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var _dbOperationsJs = require("./utils/dbOperations.js");
 var _fetchPreviewJs = require("./utils/fetchPreview.js");
 var _supabaseClientJs = require("./utils/supabaseClient.js");
-// ✅ プロキシベースURLの定義（Mixed Content回避のため）
-const IS_LOCAL = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-const PROXY_BASE_URL = IS_LOCAL ? "http://localhost:3001/proxy" // ローカルはhttpでOK（開発中）
- : "https://proxy-server-89ba.onrender.com"; // ← 本番ではhttps必須！
-// ✅ プロキシURLを生成する関数
+// 常に公開済みのプロキシサーバーを使用（/proxy を必ず含む）
+const PROXY_BASE_URL = "https://proxy-server-89ba.onrender.com/proxy";
+// プロキシURLを生成する関数
 function getProxyUrl(imageUrl) {
     return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
 }
 console.log("\u2705 main.js loaded");
 document.addEventListener("DOMContentLoaded", ()=>{
+    // Supabase のセッションからユーザーIDを取得（なければ "user_123" とする）
     const session = (0, _supabaseClientJs.supabase).auth.session;
     const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
-    // 以下、プレビュー用の要素はコメントアウトされています（必要なら復活してください）
+    // プレビュー用の要素は必要に応じてコメント解除してください
     // const thumbnailImg = document.getElementById("thumbnail");
     // const thumbnailBg  = document.getElementById("thumbnail-bg");
-    // ── 既存の URL 一覧ロード
+    // ── 既存の URL 一覧ロード処理
     async function loadUrls() {
         urlList.innerHTML = "";
         const urls = await (0, _dbOperationsJs.fetchUrls)();
@@ -649,17 +648,17 @@ document.addEventListener("DOMContentLoaded", ()=>{
         const title = urlForm.titleInput.value.trim();
         const category = urlForm.categoryInput.value.trim();
         if (!rawUrl || !title || !category) return;
-        // getPreviewで画像URLを取得
+        // getPreview で画像URLを取得し、DBへ登録
         const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
         await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
+        // 生成されたプロキシURLをログ出力
         const proxyUrl = getProxyUrl(imageUrl);
-        // ログ出力の際、正しく imageUrl を参照する
         console.log("\uD83D\uDFE1 \u5143\u753B\u50CFURL:", imageUrl);
-        console.log("\uD83D\uDFE2 \u30D7\u30ED\u30AD\u30B7URL:", getProxyUrl(imageUrl));
+        console.log("\uD83D\uDFE2 \u30D7\u30ED\u30AD\u30B7URL:", proxyUrl);
         urlForm.reset();
         loadUrls();
     });
-    // 初回一覧ロード
+    // 初回URL一覧ロード
     loadUrls();
 });
 
