@@ -584,27 +584,143 @@ function getProxyUrl(imageUrl) {
 }
 console.log("\u2705 main.js loaded");
 document.addEventListener("DOMContentLoaded", ()=>{
-    const session = (0, _supabaseClientJs.supabase).auth.session;
-    const userId = session?.user?.id || "user_123";
+    // DOM要素
+    const loginSection = document.getElementById("loginSection");
+    const authForm = document.getElementById("authForm");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const authMessage = document.getElementById("authMessage");
+    const appSection = document.getElementById("appSection");
     const urlForm = document.getElementById("urlForm");
+    const urlInput = document.getElementById("urlInput");
+    const titleInput = document.getElementById("titleInput");
+    const categoryInput = document.getElementById("categoryInput");
     const urlList = document.getElementById("urlList");
-    // 既存リストアイテムをMapで保持（id -> {url, title, thumbnailUrl, li}）
+    const toggleBtn = document.getElementById("toggleFormBtn");
+    let currentUser = null;
     const existingItems = new Map();
+    // ユーザー状態確認
+    async function checkAuthState() {
+        const { data } = await (0, _supabaseClientJs.supabase).auth.getSession();
+        if (data.session && data.session.user) {
+            currentUser = data.session.user;
+            showAppSection();
+            loadUrls();
+            setInterval(loadUrls, 5000);
+        } else showLoginSection();
+    }
+    function showLoginSection() {
+        loginSection.style.display = "block";
+        appSection.style.display = "none";
+    }
+    function showAppSection() {
+        loginSection.style.display = "none";
+        appSection.style.display = "block";
+        toggleBtn.disabled = false;
+        urlForm.style.display = "none";
+        toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
+        // ログアウトボタンなければ追加
+        if (!document.getElementById("logoutBtn")) {
+            const logoutBtn = document.createElement("button");
+            logoutBtn.id = "logoutBtn";
+            logoutBtn.innerText = "\u30ED\u30B0\u30A2\u30A6\u30C8";
+            logoutBtn.style.marginLeft = "12px";
+            toggleBtn.insertAdjacentElement("afterend", logoutBtn);
+            logoutBtn.addEventListener("click", async ()=>{
+                await (0, _supabaseClientJs.supabase).auth.signOut();
+                currentUser = null;
+                showLoginSection();
+            });
+        }
+    }
+    authForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        authMessage.textContent = "";
+        if (!email || !password) {
+            authMessage.textContent = "\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3068\u30D1\u30B9\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044";
+            return;
+        }
+        // ログイン or サインアップ
+        let { error, data: loginData } = await (0, _supabaseClientJs.supabase).auth.signInWithPassword({
+            email,
+            password
+        });
+        if (error) {
+            // ログイン失敗 → 新規登録を試す
+            const { error: signUpError, data: signUpData } = await (0, _supabaseClientJs.supabase).auth.signUp({
+                email,
+                password
+            });
+            if (signUpError) {
+                authMessage.textContent = "\u30ED\u30B0\u30A4\u30F3\u30FB\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F";
+                console.error(signUpError);
+                return;
+            } else {
+                currentUser = signUpData.user;
+                showAppSection();
+                loadUrls();
+                setInterval(loadUrls, 5000);
+            }
+        } else {
+            currentUser = loginData.user;
+            showAppSection();
+            loadUrls();
+            setInterval(loadUrls, 5000);
+        }
+    });
+    // URLフォーム切り替え
+    toggleBtn.addEventListener("click", ()=>{
+        if (urlForm.style.display === "flex") {
+            urlForm.style.display = "none";
+            toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
+        } else {
+            urlForm.style.display = "flex";
+            toggleBtn.innerText = "\xd7 \u9589\u3058\u308B";
+        }
+    });
+    // URL登録処理
+    urlForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        if (!currentUser) {
+            alert("\u30ED\u30B0\u30A4\u30F3\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        const rawUrl = urlInput.value.trim();
+        const title = titleInput.value.trim();
+        const category = categoryInput.value.trim();
+        if (!rawUrl || !title || !category) {
+            alert("\u3059\u3079\u3066\u306E\u9805\u76EE\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        try {
+            const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
+            const result = await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, currentUser.id, imageUrl);
+            if (result.success) {
+                urlForm.reset();
+                urlForm.style.display = "none";
+                toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
+                await loadUrls();
+            } else alert("\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        } catch (err) {
+            alert("\u30A8\u30E9\u30FC\u304C\u767A\u751F\u3057\u307E\u3057\u305F");
+            console.error(err);
+        }
+    });
+    // URL一覧読み込み
     async function loadUrls() {
+        if (!currentUser) return;
         const urls = await (0, _dbOperationsJs.fetchUrls)();
-        // 新規id一覧
         const newIds = urls.map((u)=>u.id);
-        // 削除処理：既存にあって新規にないidは削除
         for (const id of existingItems.keys())if (!newIds.includes(id)) {
             const { li } = existingItems.get(id);
             li.remove();
             existingItems.delete(id);
         }
-        // 追加・更新処理
         for (const { id, url, title, thumbnail_url } of urls){
             const proxyThumbnail = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
             if (!existingItems.has(id)) {
-                // 新規追加
                 const li = document.createElement("li");
                 li.dataset.id = id;
                 li.style.display = "flex";
@@ -635,8 +751,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 btn.onclick = async ()=>{
                     if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
                     const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
-                    if (success) // 削除はloadUrlsで反映
-                    loadUrls();
+                    if (success) loadUrls();
                     else {
                         alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
                         console.error(error);
@@ -653,7 +768,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
                     link
                 });
             } else {
-                // 既存アイテムの差分チェック・更新
                 const item = existingItems.get(id);
                 let changed = false;
                 if (item.url !== url) {
@@ -671,25 +785,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
                     item.thumbnailUrl = proxyThumbnail;
                     changed = true;
                 }
-                changed;
             }
         }
     }
-    urlForm.addEventListener("submit", async (e)=>{
-        e.preventDefault();
-        const rawUrl = urlForm.urlInput.value.trim();
-        const title = urlForm.titleInput.value.trim();
-        const category = urlForm.categoryInput.value.trim();
-        if (!rawUrl || !title || !category) return;
-        const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
-        await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, userId, imageUrl);
-        urlForm.reset();
-        await loadUrls();
-    });
-    // 初回ロード
-    loadUrls();
-    // 5秒ごとに差分だけ更新
-    setInterval(loadUrls, 5000);
+    checkAuthState(); // 初期化
 });
 
 },{"./utils/dbOperations.js":"7f4gD","./utils/fetchPreview.js":"3NxY8","./utils/supabaseClient.js":"kDxOT"}],"7f4gD":[function(require,module,exports) {

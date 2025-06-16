@@ -159,4 +159,120 @@ h1 {
   }
 }
 
+#loginSection {
+  text-align: center;
+  background: #fff;
+  border-radius: 12px;
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 24px;
+  box-shadow: 0 6px 12px #0000000d;
+}
+
+#loginSection h1 {
+  color: #e76f51;
+  margin-bottom: 16px;
+  font-size: 24px;
+}
+
+#authForm {
+  flex-direction: column;
+  gap: 16px;
+  display: flex;
+}
+
+#authForm input {
+  background-color: #fff7e3;
+  border: 1px solid #e9a36a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  box-shadow: inset 1px 1px 3px #0000000d;
+}
+
+#authForm input:focus {
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 6px #e473504d;
+}
+
+#authForm button {
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f4c06c, #e9a36a);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  transition: all .3s;
+  box-shadow: 0 4px 8px #0000001a;
+}
+
+#authForm button:hover {
+  background: linear-gradient(135deg, #e9a36a, #d67d6a);
+  transform: scale(1.05);
+}
+
+#authMessage {
+  color: #d9534f;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+#logoutBtn {
+  color: #fff;
+  cursor: pointer;
+  z-index: 10;
+  background: linear-gradient(135deg, #f4c06c, #e9a36a);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  transition: all .3s;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  box-shadow: 0 4px 8px #0000001a;
+}
+
+#appSection {
+  padding-top: 60px;
+  position: relative;
+}
+
+#logoutBtn {
+  color: #fff;
+  cursor: pointer;
+  z-index: 10;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #f4c06c, #e9a36a);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  transition: all .3s;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  box-shadow: 0 4px 8px #0000001a;
+}
+
+#logoutBtn:hover {
+  background: linear-gradient(135deg, #e9a36a, #d67d6a);
+  transform: scale(1.05);
+}
+
+@media (width <= 600px) {
+  #logoutBtn {
+    white-space: normal;
+    width: auto;
+    margin: 12px auto 24px;
+    padding: 8px 16px;
+    font-size: 13px;
+    display: block;
+    position: static;
+    box-shadow: 0 3px 6px #0000001f;
+  }
+}
+
 /*# sourceMappingURL=index.b04d9f11.css.map */

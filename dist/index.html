@@ -7,39 +7,30 @@
   <link rel="stylesheet" href="/index.b04d9f11.css">
 </head>
 <body>
-  <h1>URL管理</h1>
+  <!-- ログイン画面 -->
+  <div id="loginSection" style="display: none">
+    <h1>ログイン</h1>
+    <form id="authForm">
+      <input type="email" id="email" placeholder="メールアドレス" required="">
+      <input type="password" id="password" placeholder="パスワード" required="">
+      <button type="submit">ログイン / 新規登録</button>
+    </form>
+    <p id="authMessage" style="color: red"></p>
+  </div>
 
-  <!-- トグルボタン -->
-  <button id="toggleFormBtn">＋ URLを登録</button>
-
-  <!-- 入力フォーム -->
-  <form id="urlForm" style="display: none">
-    <input type="text" id="urlInput" placeholder="URLを入力" required="">
-    <input type="text" id="titleInput" placeholder="タイトルを入力">
-    <input type="text" id="categoryInput" placeholder="カテゴリを入力">
-    <button type="submit">登録</button>
-  </form>
-
-  <!-- プレビュー（必要ならコメントを解除してください） -->
-  <!--
-  <img id="thumbnail" src="https://placehold.co/100x100" alt="サムネイル" width="300" />
-  <div id="thumbnail-bg"></div>
-  -->
-
-  <!-- 一覧 -->
-  <ul id="urlList"></ul>
+  <!-- アプリ本体 -->
+  <div id="appSection" style="display: none">
+    <h1>URL管理</h1>
+    <button id="toggleFormBtn">＋ URLを登録</button>
+    <form id="urlForm" style="display: none">
+      <input type="text" id="urlInput" placeholder="URLを入力" required="">
+      <input type="text" id="titleInput" placeholder="タイトルを入力">
+      <input type="text" id="categoryInput" placeholder="カテゴリを入力">
+      <button type="submit">登録</button>
+    </form>
+    <ul id="urlList"></ul>
+  </div>
 
   <script src="/index.4d6bcbeb.js" defer=""></script>
-  <script>const toggleBtn = document.getElementById("toggleFormBtn");
-const form = document.getElementById("urlForm");
-toggleBtn.addEventListener("click", ()=>{
-    form.style.display = form.style.display === "flex" ? "none" : "flex";
-});
-
-</script>
-
-  <!-- eruda（モバイル向け軽量DevTools）-->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-  <script>eruda.init();</script> -->
 </body>
-</html>
+</html> 
