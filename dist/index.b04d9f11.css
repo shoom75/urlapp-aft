@@ -275,4 +275,105 @@ h1 {
   }
 }
 
+#loginSection, #signUpForm {
+  text-align: center;
+  background: #fff;
+  border-radius: 12px;
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 24px;
+  font-family: Inter, sans-serif;
+  box-shadow: 0 6px 18px #e76f5126;
+}
+
+#loginSection h1, #signUpForm h1 {
+  color: #e76f51;
+  margin-bottom: 16px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+#loginFormElement, #signUpFormElement {
+  flex-direction: column;
+  gap: 16px;
+  display: flex;
+}
+
+#loginFormElement input, #signUpFormElement input {
+  background-color: #fff7e3;
+  border: 1.5px solid #e9a36a;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 15px;
+  transition: background-color .3s, box-shadow .3s;
+  box-shadow: inset 1px 1px 4px #0000000d;
+}
+
+#loginFormElement input:focus, #signUpFormElement input:focus {
+  background-color: #fff;
+  outline: none;
+  box-shadow: 0 0 10px #e76f5166;
+}
+
+#loginFormElement button, #signUpFormElement button {
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f4c06c, #e9a36a);
+  border: none;
+  border-radius: 10px;
+  padding: 14px 0;
+  font-size: 17px;
+  font-weight: 700;
+  transition: background-color .3s, transform .3s;
+  box-shadow: 0 6px 12px #e76f514d;
+}
+
+#loginFormElement button:hover, #signUpFormElement button:hover {
+  background: linear-gradient(135deg, #e9a36a, #d67d6a);
+  transform: scale(1.05);
+}
+
+#loginSection p, #signUpForm p {
+  color: #555;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+#showSignUpLink, #showLoginLink {
+  color: #e76f51;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: color .3s;
+}
+
+#showSignUpLink:hover, #showLoginLink:hover {
+  color: #d15c3c;
+}
+
+#authMessage {
+  color: #d9534f;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  display: block;
+}
+
+@media (width <= 600px) {
+  #loginSection, #signUpForm {
+    margin: 24px 16px;
+    padding: 20px;
+  }
+
+  #loginFormElement input, #signUpFormElement input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  #loginFormElement button, #signUpFormElement button {
+    padding: 12px 0;
+    font-size: 16px;
+  }
+}
+
 /*# sourceMappingURL=index.b04d9f11.css.map */

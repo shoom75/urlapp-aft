@@ -577,6 +577,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 },{}],"gLLPy":[function(require,module,exports) {
 var _dbOperationsJs = require("./utils/dbOperations.js");
 var _fetchPreviewJs = require("./utils/fetchPreview.js");
+var _authJs = require("./utils/auth.js");
 var _supabaseClientJs = require("./utils/supabaseClient.js");
 const PROXY_BASE_URL = "https://proxy-server-89ba.onrender.com/proxy";
 function getProxyUrl(imageUrl) {
@@ -584,11 +585,17 @@ function getProxyUrl(imageUrl) {
 }
 console.log("\u2705 main.js loaded");
 document.addEventListener("DOMContentLoaded", ()=>{
-    // DOM要素
     const loginSection = document.getElementById("loginSection");
-    const authForm = document.getElementById("authForm");
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
+    const loginFormWrapper = document.getElementById("loginForm");
+    const loginForm = document.getElementById("loginFormElement");
+    const loginEmail = document.getElementById("loginEmail");
+    const loginPassword = document.getElementById("loginPassword");
+    const signUpFormWrapper = document.getElementById("signUpForm");
+    const signUpForm = document.getElementById("signUpFormElement");
+    const signUpEmail = document.getElementById("signUpEmail");
+    const signUpPassword = document.getElementById("signUpPassword");
+    const showSignUpLink = document.getElementById("showSignUpLink");
+    const showLoginLink = document.getElementById("showLoginLink");
     const authMessage = document.getElementById("authMessage");
     const appSection = document.getElementById("appSection");
     const urlForm = document.getElementById("urlForm");
@@ -599,19 +606,24 @@ document.addEventListener("DOMContentLoaded", ()=>{
     const toggleBtn = document.getElementById("toggleFormBtn");
     let currentUser = null;
     const existingItems = new Map();
-    // ユーザー状態確認
-    async function checkAuthState() {
-        const { data } = await (0, _supabaseClientJs.supabase).auth.getSession();
-        if (data.session && data.session.user) {
-            currentUser = data.session.user;
-            showAppSection();
-            loadUrls();
-            setInterval(loadUrls, 5000);
-        } else showLoginSection();
+    let refreshInterval = null;
+    function showLoginForm() {
+        loginFormWrapper.style.display = "block";
+        signUpFormWrapper.style.display = "none";
+        authMessage.textContent = "";
+        authMessage.style.color = "red";
+    }
+    function showSignUpForm() {
+        loginFormWrapper.style.display = "none";
+        signUpFormWrapper.style.display = "block";
+        authMessage.textContent = "";
+        authMessage.style.color = "red";
     }
     function showLoginSection() {
         loginSection.style.display = "block";
         appSection.style.display = "none";
+        showLoginForm();
+        clearInterval(refreshInterval);
     }
     function showAppSection() {
         loginSection.style.display = "none";
@@ -619,7 +631,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
         toggleBtn.disabled = false;
         urlForm.style.display = "none";
         toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
-        // ログアウトボタンなければ追加
         if (!document.getElementById("logoutBtn")) {
             const logoutBtn = document.createElement("button");
             logoutBtn.id = "logoutBtn";
@@ -627,60 +638,58 @@ document.addEventListener("DOMContentLoaded", ()=>{
             logoutBtn.style.marginLeft = "12px";
             toggleBtn.insertAdjacentElement("afterend", logoutBtn);
             logoutBtn.addEventListener("click", async ()=>{
-                await (0, _supabaseClientJs.supabase).auth.signOut();
+                await (0, _authJs.logout)();
                 currentUser = null;
                 showLoginSection();
             });
         }
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(loadUrls, 5000);
     }
-    authForm.addEventListener("submit", async (e)=>{
-        e.preventDefault();
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
-        authMessage.textContent = "";
-        if (!email || !password) {
-            authMessage.textContent = "\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3068\u30D1\u30B9\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044";
-            return;
-        }
-        // ログイン or サインアップ
-        let { error, data: loginData } = await (0, _supabaseClientJs.supabase).auth.signInWithPassword({
-            email,
-            password
-        });
-        if (error) {
-            // ログイン失敗 → 新規登録を試す
-            const { error: signUpError, data: signUpData } = await (0, _supabaseClientJs.supabase).auth.signUp({
-                email,
-                password
-            });
-            if (signUpError) {
-                authMessage.textContent = "\u30ED\u30B0\u30A4\u30F3\u30FB\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F";
-                console.error(signUpError);
-                return;
-            } else {
-                currentUser = signUpData.user;
-                showAppSection();
-                loadUrls();
-                setInterval(loadUrls, 5000);
-            }
-        } else {
-            currentUser = loginData.user;
+    async function checkAuthState() {
+        const { data } = await (0, _supabaseClientJs.supabase).auth.getSession();
+        if (data.session && data.session.user) {
+            currentUser = data.session.user;
             showAppSection();
-            loadUrls();
-            setInterval(loadUrls, 5000);
-        }
-    });
-    // URLフォーム切り替え
-    toggleBtn.addEventListener("click", ()=>{
-        if (urlForm.style.display === "flex") {
-            urlForm.style.display = "none";
-            toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
+            await loadUrls();
         } else {
-            urlForm.style.display = "flex";
-            toggleBtn.innerText = "\xd7 \u9589\u3058\u308B";
+            currentUser = null;
+            showLoginSection();
+        }
+    }
+    loginForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const email = loginEmail.value.trim();
+        const password = loginPassword.value.trim();
+        const success = await (0, _authJs.handleLogin)(email, password, authMessage);
+        if (success) {
+            const { data } = await (0, _supabaseClientJs.supabase).auth.getUser();
+            currentUser = data.user;
+            showAppSection();
+            await loadUrls();
         }
     });
-    // URL登録処理
+    signUpForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const email = signUpEmail.value.trim();
+        const password = signUpPassword.value.trim();
+        await (0, _authJs.handleSignUp)(email, password, authMessage, ()=>{
+            showLoginForm();
+        });
+    });
+    showSignUpLink.addEventListener("click", (e)=>{
+        e.preventDefault();
+        showSignUpForm();
+    });
+    showLoginLink.addEventListener("click", (e)=>{
+        e.preventDefault();
+        showLoginForm();
+    });
+    toggleBtn.addEventListener("click", ()=>{
+        const showing = urlForm.style.display === "flex";
+        urlForm.style.display = showing ? "none" : "flex";
+        toggleBtn.innerText = showing ? "\uFF0B URL\u3092\u767B\u9332" : "\xd7 \u9589\u3058\u308B";
+    });
     urlForm.addEventListener("submit", async (e)=>{
         e.preventDefault();
         if (!currentUser) {
@@ -708,7 +717,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
             console.error(err);
         }
     });
-    // URL一覧読み込み
     async function loadUrls() {
         if (!currentUser) return;
         const urls = await (0, _dbOperationsJs.fetchUrls)();
@@ -732,9 +740,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 img.height = 80;
                 img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
                 img.style.objectFit = "cover";
-                img.onerror = ()=>{
-                    img.src = "https://placehold.co/80x80";
-                };
+                img.onerror = ()=>img.src = "https://placehold.co/80x80";
                 img.src = proxyThumbnail;
                 const link = document.createElement("a");
                 link.target = "_blank";
@@ -769,29 +775,22 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 });
             } else {
                 const item = existingItems.get(id);
-                let changed = false;
-                if (item.url !== url) {
-                    item.link.href = url;
-                    item.url = url;
-                    changed = true;
-                }
-                if (item.title !== title) {
-                    item.link.innerText = title;
-                    item.title = title;
-                    changed = true;
-                }
-                if (item.thumbnailUrl !== proxyThumbnail) {
-                    item.img.src = proxyThumbnail;
-                    item.thumbnailUrl = proxyThumbnail;
-                    changed = true;
-                }
+                if (item.url !== url) item.link.href = url;
+                if (item.title !== title) item.link.innerText = title;
+                if (item.thumbnailUrl !== proxyThumbnail) item.img.src = proxyThumbnail;
+                existingItems.set(id, {
+                    ...item,
+                    url,
+                    title,
+                    thumbnailUrl: proxyThumbnail
+                });
             }
         }
     }
-    checkAuthState(); // 初期化
+    checkAuthState();
 });
 
-},{"./utils/dbOperations.js":"7f4gD","./utils/fetchPreview.js":"3NxY8","./utils/supabaseClient.js":"kDxOT"}],"7f4gD":[function(require,module,exports) {
+},{"./utils/dbOperations.js":"7f4gD","./utils/fetchPreview.js":"3NxY8","./utils/supabaseClient.js":"kDxOT","./utils/auth.js":"lncmE"}],"7f4gD":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -7956,6 +7955,59 @@ async function getPreview(url) {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["3zq8u","gLLPy"], "gLLPy", "parcelRequire893f")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"lncmE":[function(require,module,exports) {
+// src/utils/auth.js
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "handleLogin", ()=>handleLogin);
+parcelHelpers.export(exports, "handleSignUp", ()=>handleSignUp);
+parcelHelpers.export(exports, "logout", ()=>logout);
+var _supabaseClientJs = require("./supabaseClient.js");
+async function handleLogin(email, password, messageEl) {
+    messageEl.textContent = "";
+    if (!email || !password) {
+        messageEl.textContent = "\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3068\u30D1\u30B9\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044";
+        messageEl.style.color = "red";
+        return false;
+    }
+    const { data, error } = await (0, _supabaseClientJs.supabase).auth.signInWithPassword({
+        email,
+        password
+    });
+    if (error) {
+        messageEl.textContent = "\u30ED\u30B0\u30A4\u30F3\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error.message;
+        messageEl.style.color = "red";
+        return false;
+    }
+    messageEl.textContent = "";
+    return true;
+}
+async function handleSignUp(email, password, messageEl, onSuccess) {
+    messageEl.textContent = "";
+    if (!email || !password) {
+        messageEl.textContent = "\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3068\u30D1\u30B9\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044";
+        messageEl.style.color = "red";
+        return false;
+    }
+    const { data, error } = await (0, _supabaseClientJs.supabase).auth.signUp({
+        email,
+        password
+    });
+    if (error) {
+        if (error.message.includes("already registered") || error.message.includes("User already registered")) messageEl.textContent = "\u3053\u306E\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u306F\u3059\u3067\u306B\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u3059";
+        else messageEl.textContent = "\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error.message;
+        messageEl.style.color = "red";
+        return false;
+    }
+    messageEl.style.color = "green";
+    messageEl.textContent = "\u767B\u9332\u6210\u529F\uFF01\u78BA\u8A8D\u30E1\u30FC\u30EB\u3092\u3054\u78BA\u8A8D\u304F\u3060\u3055\u3044\u3002";
+    if (onSuccess) onSuccess();
+    return true;
+}
+async function logout() {
+    await (0, _supabaseClientJs.supabase).auth.signOut();
+}
+
+},{"./supabaseClient.js":"kDxOT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["3zq8u","gLLPy"], "gLLPy", "parcelRequire893f")
 
 //# sourceMappingURL=index.4d6bcbeb.js.map

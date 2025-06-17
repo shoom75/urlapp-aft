@@ -7,16 +7,31 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <!-- ログイン画面 -->
-  <div id="loginSection" style="display: none;">
+<!-- ログイン画面 -->
+<div id="loginSection" style="display: none;">
+  <div id="loginForm">
     <h1>ログイン</h1>
-    <form id="authForm">
-      <input type="email" id="email" placeholder="メールアドレス" required />
-      <input type="password" id="password" placeholder="パスワード" required />
-      <button type="submit">ログイン / 新規登録</button>
+    <form id="loginFormElement">
+      <input type="email" id="loginEmail" placeholder="メールアドレス" required />
+      <input type="password" id="loginPassword" placeholder="パスワード" required />
+      <button type="submit">ログイン</button>
     </form>
-    <p id="authMessage" style="color: red;"></p>
+    <p>アカウントがない方は <a href="#" id="showSignUpLink">新規登録はこちら</a></p>
   </div>
+
+  <div id="signUpForm" style="display: none;">
+    <h1>新規登録</h1>
+    <form id="signUpFormElement">
+      <input type="email" id="signUpEmail" placeholder="メールアドレス" required />
+      <input type="password" id="signUpPassword" placeholder="パスワード" required />
+      <button type="submit">登録</button>
+    </form>
+    <p>すでにアカウントをお持ちの方は <a href="#" id="showLoginLink">ログインはこちら</a></p>
+  </div>
+
+  <p id="authMessage" style="color: red;"></p>
+</div>
+
 
   <!-- アプリ本体 -->
   <div id="appSection" style="display: none;">
