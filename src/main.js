@@ -10,6 +10,9 @@ function getProxyUrl(imageUrl) {
 
 console.log("✅ main.js loaded");
 
+let currentGroupId = null;
+let currentGroupName = "";
+
 document.addEventListener("DOMContentLoaded", () => {
   const loginSection = document.getElementById("loginSection");
   const loginFormWrapper = document.getElementById("loginForm");
@@ -34,9 +37,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const urlList = document.getElementById("urlList");
   const toggleBtn = document.getElementById("toggleFormBtn");
 
+  const groupebtn = document.getElementById("groupebtn");
+  const groupMenu = document.getElementById("groupMenu");
+
+  const createbtn = document.getElementById("createbtn");
+  const groupename = document.getElementById("groupename");
+  const createform = document.getElementById("createform");
+
+  const groupenameForm = document.getElementById("groupename");
+  const createInput = document.getElementById("create");
+
+  // グループ一覧表示用の要素取得
+  const groupListArea = document.getElementById("groupListArea");
+  const groupList = document.getElementById("groupList");
+  const showGroupsBtn = document.getElementById("showGroupsBtn");
+  const closeGroupListBtn = document.getElementById("closeGroupListBtn");
+  const currentGroupLabel = document.getElementById("currentGroupLabel");
+
   let currentUser = null;
   const existingItems = new Map();
   let refreshInterval = null;
+
+  // 全てのフォームを閉じる関数
+  function closeAllForms() {
+    createform.style.display = "none";
+    const joinform = document.getElementById("joinform");
+    if (joinform) joinform.style.display = "none";
+    const inviteform = document.getElementById("inviteform");
+    if (inviteform) inviteform.style.display = "none";
+    groupListArea.style.display = "none";
+  }
 
   function showLoginForm() {
     loginFormWrapper.style.display = "block";
@@ -85,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.session && data.session.user) {
       currentUser = data.session.user;
       showAppSection();
-      await loadUrls();
+      resetGroupSelection();
     } else {
       currentUser = null;
       showLoginSection();
@@ -102,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const { data } = await supabase.auth.getUser();
       currentUser = data.user;
       showAppSection();
-      await loadUrls();
+      resetGroupSelection();
     }
   });
 
@@ -126,15 +156,58 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   toggleBtn.addEventListener("click", () => {
+    if (!currentGroupId) {
+      alert("グループを選択してください");
+      return;
+    }
     const showing = urlForm.style.display === "flex";
     urlForm.style.display = showing ? "none" : "flex";
     toggleBtn.innerText = showing ? "＋ URLを登録" : "× 閉じる";
   });
 
+  // グループメニューボタン
+  groupebtn.addEventListener("click", () => {
+    const check = groupMenu.style.display === "none";
+    groupMenu.style.display = check ? "block" : "none";
+    if (check) closeAllForms(); // メニューを開いたときフォームを閉じる
+  });
+
+  // グループ作成ボタン
+  createbtn.addEventListener("click", () => {
+    const check = createform.style.display === "none";
+    closeAllForms(); // 他フォームを閉じる
+    createform.style.display = check ? "block" : "none";
+  });
+
+  groupenameForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const groupName = createInput.value.trim();
+    if (!groupName) {
+      alert("グループ名を入力してください");
+      return;
+    }
+    const { data, error } = await supabase
+      .from("groups")
+      .insert([{ name: groupName, created_by: currentUser.id }])
+      .select()
+      .single();
+    if (error) {
+      alert("グループ作成に失敗しました");
+      return;
+    }
+    // 作成者をメンバーにも追加
+    await supabase.from("group_members").insert([
+      { group_id: data.id, user_id: currentUser.id }
+    ]);
+    alert("グループを作成しました");
+    createInput.value = "";
+    createform.style.display = "none";
+  });
+
   urlForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!currentUser) {
-      alert("ログインしてください");
+    if (!currentUser || !currentGroupId) {
+      alert("グループを選択してください");
       return;
     }
 
@@ -149,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const imageUrl = await getPreview(rawUrl);
-      const result = await addUrl(rawUrl, title, category, currentUser.id, imageUrl);
+      const result = await addUrl(rawUrl, title, category, currentUser.id, imageUrl, currentGroupId);
 
       if (result.success) {
         urlForm.reset();
@@ -165,85 +238,142 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  async function loadUrls() {
-    if (!currentUser) return;
-    const urls = await fetchUrls();
-    const newIds = urls.map((u) => u.id);
-
-    for (const id of existingItems.keys()) {
-      if (!newIds.includes(id)) {
-        const { li } = existingItems.get(id);
-        li.remove();
-        existingItems.delete(id);
-      }
+  // グループ一覧ボタンのイベント
+  showGroupsBtn.addEventListener("click", async () => {
+    closeAllForms();
+    groupList.innerHTML = "";
+    groupListArea.style.display = "block";
+    // Supabaseからグループ一覧を取得
+    const { data, error } = await supabase.from("groups").select("*");
+    if (error) {
+      alert("グループ一覧の取得に失敗しました");
+      return;
     }
+    if (!data || data.length === 0) {
+      groupList.innerHTML = "<li>グループがありません</li>";
+      return;
+    }
+    data.forEach(group => {
+      const li = document.createElement("li");
+      li.textContent = group.name + " ";
+      // 選択ボタン
+      const selectBtn = document.createElement("button");
+      selectBtn.textContent = "選択";
+      selectBtn.onclick = () => {
+        setCurrentGroup(group.id, group.name);
+        groupListArea.style.display = "none";
+      };
+      li.appendChild(selectBtn);
+      groupList.appendChild(li);
+    });
+  });
 
-    for (const { id, url, title, thumbnail_url } of urls) {
+  // グループ一覧閉じるボタン
+  if (closeGroupListBtn) {
+    closeGroupListBtn.addEventListener("click", () => {
+      groupListArea.style.display = "none";
+    });
+  }
+
+  // グループ選択時
+  function setCurrentGroup(groupId, groupName) {
+    currentGroupId = groupId;
+    currentGroupName = groupName;
+    currentGroupLabel.textContent = `グループ: ${groupName}`;
+    urlForm.style.display = "none";
+    toggleBtn.innerText = "＋ URLを登録";
+    loadUrls();
+  }
+
+  // グループ未選択時
+  function resetGroupSelection() {
+    currentGroupId = null;
+    currentGroupName = "";
+    currentGroupLabel.textContent = "グループ未選択";
+    urlForm.style.display = "none";
+    urlList.innerHTML = "";
+  }
+
+  async function loadUrls() {
+    if (!currentUser || !currentGroupId) {
+      urlList.innerHTML = "";
+      return;
+    }
+    // group_idで絞り込む
+    const { data: urls } = await supabase
+      .from("urls")
+      .select("*")
+      .eq("group_id", currentGroupId);
+    urlList.innerHTML = "";
+    if (!urls || urls.length === 0) {
+      urlList.innerHTML = "<li>このグループにはURLがありません</li>";
+      return;
+    }
+    urls.forEach(({ id, url, title, thumbnail_url }) => {
       const proxyThumbnail = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
+      const li = document.createElement("li");
+      li.dataset.id = id;
+      li.style.display = "flex";
+      li.style.alignItems = "center";
+      li.style.gap = "12px";
+      li.style.margin = "10px 0";
 
-      if (!existingItems.has(id)) {
-        const li = document.createElement("li");
-        li.dataset.id = id;
-        li.style.display = "flex";
-        li.style.alignItems = "center";
-        li.style.gap = "12px";
-        li.style.margin = "10px 0";
+      const img = document.createElement("img");
+      img.width = 80;
+      img.height = 80;
+      img.alt = "サムネイル";
+      img.style.objectFit = "cover";
+      img.onerror = () => (img.src = "https://placehold.co/80x80");
+      img.src = proxyThumbnail;
 
-        const img = document.createElement("img");
-        img.width = 80;
-        img.height = 80;
-        img.alt = "サムネイル";
-        img.style.objectFit = "cover";
-        img.onerror = () => (img.src = "https://placehold.co/80x80");
-        img.src = proxyThumbnail;
+      const link = document.createElement("a");
+      link.target = "_blank";
+      link.style.flex = "1";
+      link.style.fontSize = "16px";
+      link.style.fontWeight = "bold";
+      link.style.color = "#E76F51";
+      link.style.textDecoration = "none";
+      link.href = url;
+      link.innerText = title;
 
-        const link = document.createElement("a");
-        link.target = "_blank";
-        link.style.flex = "1";
-        link.style.fontSize = "16px";
-        link.style.fontWeight = "bold";
-        link.style.color = "#E76F51";
-        link.style.textDecoration = "none";
-        link.href = url;
-        link.innerText = title;
+      const btn = document.createElement("button");
+      btn.innerText = "削除";
+      btn.classList.add("btn-delete");
+      btn.onclick = async () => {
+        if (!confirm(`「${title}」を削除しますか？`)) return;
+        const { success, error } = await deleteUrl(id);
+        if (success) {
+          loadUrls();
+        } else {
+          alert("削除に失敗しました");
+          console.error(error);
+        }
+      };
 
-        const btn = document.createElement("button");
-        btn.innerText = "削除";
-        btn.classList.add("btn-delete");
-        btn.onclick = async () => {
-          if (!confirm(`「${title}」を削除しますか？`)) return;
-          const { success, error } = await deleteUrl(id);
-          if (success) {
-            loadUrls();
-          } else {
-            alert("削除に失敗しました");
-            console.error(error);
-          }
-        };
+      li.append(img, link, btn);
+      urlList.appendChild(li);
+    });
+  }
 
-        li.append(img, link, btn);
-        urlList.appendChild(li);
-
-        existingItems.set(id, {
-          url,
-          title,
-          thumbnailUrl: proxyThumbnail,
-          li,
-          img,
-          link,
-        });
-      } else {
-        const item = existingItems.get(id);
-        if (item.url !== url) item.link.href = url;
-        if (item.title !== title) item.link.innerText = title;
-        if (item.thumbnailUrl !== proxyThumbnail) item.img.src = proxyThumbnail;
-        existingItems.set(id, {
-          ...item,
-          url,
-          title,
-          thumbnailUrl: proxyThumbnail,
-        });
-      }
+  async function joinGroup(groupId) {
+    const { data: exists } = await supabase
+      .from("group_members")
+      .select("*")
+      .eq("group_id", groupId)
+      .eq("user_id", currentUser.id);
+    if (exists && exists.length > 0) {
+      alert("すでに参加しています");
+      return;
+    }
+    const { error } = await supabase.from("group_members").insert([
+      { group_id: groupId, user_id: currentUser.id }
+    ]);
+    if (error) {
+      alert("グループ参加に失敗しました");
+      console.error(error);
+    } else {
+      alert("グループに参加しました");
+      // ここでグループに関連するデータを再読み込みする処理を追加
     }
   }
 

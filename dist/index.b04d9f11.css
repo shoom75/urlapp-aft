@@ -359,21 +359,80 @@ h1 {
   display: block;
 }
 
-@media (width <= 600px) {
-  #loginSection, #signUpForm {
-    margin: 24px 16px;
-    padding: 20px;
-  }
+#groupListArea {
+  z-index: 1000;
+  background: #fff;
+  border-radius: 16px;
+  min-width: 320px;
+  max-width: 90vw;
+  padding: 32px 24px;
+  display: none;
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 32px #0000001f;
+}
 
-  #loginFormElement input, #signUpFormElement input {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
+#groupListArea ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 
-  #loginFormElement button, #signUpFormElement button {
-    padding: 12px 0;
-    font-size: 16px;
-  }
+#groupListArea li {
+  color: #e76f51;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  padding: 14px 0;
+  font-size: 18px;
+}
+
+#groupListArea li:last-child {
+  border-bottom: none;
+}
+
+button {
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f4c06c, #e9a36a);
+  border: none;
+  border-radius: 8px;
+  margin: 8px 6px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background .3s, transform .2s, box-shadow .3s;
+  box-shadow: 0 4px 12px #e76f511a;
+}
+
+button:hover, button:focus {
+  background: linear-gradient(135deg, #e9a36a, #d67d6a);
+  outline: none;
+  transform: translateY(-2px)scale(1.04);
+  box-shadow: 0 8px 24px #e76f512e;
+}
+
+#closeGroupListBtn {
+  color: #e76f51;
+  width: 36px;
+  height: 36px;
+  box-shadow: none;
+  float: right;
+  background: #eee;
+  border-radius: 50%;
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 36px;
+  transition: background .2s, color .2s;
+}
+
+#closeGroupListBtn:hover {
+  color: #d67d6a;
+  background: #fdebd3;
+  transform: scale(1.1);
 }
 
 /*# sourceMappingURL=index.b04d9f11.css.map */

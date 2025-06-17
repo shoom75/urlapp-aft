@@ -32,20 +32,55 @@
   <p id="authMessage" style="color: red"></p>
 </div>
 
+<!-- アプリ本体 -->
+<div id="appSection" style="display: none">
+  <h1>URL管理</h1>
+  <div id="currentGroupLabel" style="margin: 12px 0; font-weight: bold">グループ未選択</div>
+  <button id="toggleFormBtn">＋ URLを登録</button>
+  <button id="groupebtn">メニュー</button>
+  <div id="groupMenu" style="display: none">
+    <button id="joinbtn">グループに参加</button>
+    <div id="joinform" style="display: none">
+      <form id="joinGroupForm">
+        <input type="text" id="joinGroupName" placeholder="参加するグループ名">
+        <button type="submit">参加</button>
+      </form>
+    </div>
 
-  <!-- アプリ本体 -->
-  <div id="appSection" style="display: none">
-    <h1>URL管理</h1>
-    <button id="toggleFormBtn">＋ URLを登録</button>
-    <form id="urlForm" style="display: none">
-      <input type="text" id="urlInput" placeholder="URLを入力" required="">
-      <input type="text" id="titleInput" placeholder="タイトルを入力">
-      <input type="text" id="categoryInput" placeholder="カテゴリを入力">
-      <button type="submit">登録</button>
-    </form>
-    <ul id="urlList"></ul>
+    <button id="createbtn">グループを作成</button>
+    <div id="createform" style="display: none">
+      <form id="groupename">
+        <input type="text" id="create" placeholder="グループ名を入力">
+        <button type="submit">作成</button>
+      </form>
+    </div>
+
+    <button id="invitebtn">招待を見る</button>
+    <div id="inviteform" style="display: none">
+      <form id="inviteFormElement">
+        <input type="text" id="inviteCode" placeholder="招待コード">
+        <button type="submit">確認</button>
+      </form>
+    </div>
+
+    <!-- グループ一覧表示用ボタン追加 -->
+    <button id="showGroupsBtn">グループ一覧</button>
   </div>
+  <form id="urlForm" style="display: none">
+    <input type="text" id="urlInput" placeholder="URLを入力" required="">
+    <input type="text" id="titleInput" placeholder="タイトルを入力">
+    <input type="text" id="categoryInput" placeholder="カテゴリを入力">
+    <button type="submit">登録</button>
+  </form>
+  <ul id="urlList"></ul>
 
-  <script src="/index.4d6bcbeb.js" defer=""></script>
+  <!-- グループ一覧表示用 -->
+  <div id="groupListArea" style="display: none">
+    <button id="closeGroupListBtn" style="float: right">× 閉じる</button>
+    <ul id="groupList"></ul>
+  </div>
+</div>
+
+<script src="/index.4d6bcbeb.js" defer=""></script>
 </body>
-</html> 
+</html>

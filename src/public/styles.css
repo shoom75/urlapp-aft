@@ -1,4 +1,4 @@
- /* ベース */
+/* ベース */
     * {
       box-sizing: border-box;
     }
@@ -386,20 +386,81 @@
   display: block;
 }
 
-/* レスポンシブ（スマホ） */
-@media (max-width: 600px) {
-  #loginSection, #signUpForm {
-    margin: 24px 16px;
-    padding: 20px;
-  }
+/* グループ一覧エリアを中央にカード風で表示 */
+#groupListArea {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  padding: 32px 24px;
+  min-width: 320px;
+  max-width: 90vw;
+  z-index: 1000;
+  display: none; /* JSでblockに切り替え */
+}
 
-  #loginFormElement input, #signUpFormElement input {
-    font-size: 14px;
-    padding: 10px 12px;
-  }
+#groupListArea ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
 
-  #loginFormElement button, #signUpFormElement button {
-    font-size: 16px;
-    padding: 12px 0;
-  }
+#groupListArea li {
+  padding: 14px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 18px;
+  color: #E76F51;
+  text-align: left;
+}
+
+#groupListArea li:last-child {
+  border-bottom: none;
+}
+
+/* --- ボタン共通デザイン --- */
+button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #F4C06C, #E9A36A);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(231, 111, 81, 0.10);
+  margin: 8px 6px;
+  transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+button:hover, button:focus {
+  background: linear-gradient(135deg, #E9A36A, #D67D6A);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(231, 111, 81, 0.18);
+  outline: none;
+}
+
+/* 閉じるボタン専用デザイン */
+#closeGroupListBtn {
+  background: #eee;
+  color: #E76F51;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  padding: 0;
+  box-shadow: none;
+  float: right;
+  margin-bottom: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+#closeGroupListBtn:hover {
+  background: #FDEBD3;
+  color: #D67D6A;
+  transform: scale(1.1);
 }

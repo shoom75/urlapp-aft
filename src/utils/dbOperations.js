@@ -1,13 +1,13 @@
 import { supabase } from "./supabaseClient.js";
 
 /**
- * URLとサムネイルURLを Supabase に保存する
+ * URLとサムネイルURLを Supabase に保存する（グループID対応）
  */
-export async function addUrl(url, title, category, userId, imageUrl) {
+export async function addUrl(url, title, category, userId, imageUrl, groupId) {
   const { data, error } = await supabase
     .from("urls")
     .insert([
-      { url, title, category, user_id: userId, thumbnail_url: imageUrl },
+      { url, title, category, user_id: userId, thumbnail_url: imageUrl, group_id: groupId },
     ]);
   if (error) {
     console.error("Supabase insert error:", error);
@@ -17,13 +17,19 @@ export async function addUrl(url, title, category, userId, imageUrl) {
 }
 
 /**
- * Supabase の "urls" テーブルからデータを取得する関数
+ * Supabase の "urls" テーブルからデータを取得する関数（グループIDで絞り込み可能）
  */
-export async function fetchUrls() {
-  const { data, error } = await supabase
+export async function fetchUrls(groupId) {
+  let query = supabase
     .from("urls")
-    .select("id, url, title, category, user_id, thumbnail_url, visited, created_at")
+    .select("id, url, title, category, user_id, thumbnail_url, visited, created_at, group_id")
     .order("created_at", { ascending: false });
+
+  if (groupId) {
+    query = query.eq("group_id", groupId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Supabase fetch error:", error);
