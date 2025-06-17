@@ -41,6 +41,7 @@ export function setCurrentGroup(groupId, groupName) {
     toggleBtn.style.display = "inline-block"; // グループ選択時に表示
     closeAllForms(); // グループ選択時にメニューや招待コードを閉じる
     window.loadUrls();
+    window.dispatchEvent(new Event("setCurrentGroup"));
 }
 export function resetGroupSelection() {
     window.currentGroupId = null;

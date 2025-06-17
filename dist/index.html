@@ -145,7 +145,7 @@ input {
       <button id="groupebtn">メニュー</button>
       <button id="logoutBtn">ログアウト</button>
     </div>
-    <div id="groupMenu" style="z-index: 1000; text-align: center; background: #fff; border: 1px solid #ccc; border-radius: 16px; flex-direction: column; align-items: center; min-width: 220px; max-width: 340px; margin: 0 auto; padding: 40px 20px 20px; display: flex; position: fixed; top: 18%; left: 50%; transform: translate(-50%); box-shadow: 0 8px 32px #00000024">
+    <div id="groupMenu" style="z-index: 1000; text-align: center; background: #fff; border: 1px solid #ccc; border-radius: 16px; flex-direction: column; align-items: center; min-width: 220px; max-width: 340px; margin: 0 auto; padding: 40px 20px 20px; display: none; position: fixed; top: 18%; left: 50%; transform: translate(-50%); box-shadow: 0 8px 32px #00000024">
       <button id="closeGroupMenuBtn" style="color: #e76f51; cursor: pointer; z-index: 1010; background: none; border: none; width: auto; height: auto; padding: 0 8px; font-size: 2.2em; font-weight: bold; line-height: 1; position: absolute; top: 8px; right: 12px">×</button>
       <div style="width: 100%; max-width: 260px">
         <button id="showGroupsBtn" style="width: 100%; margin: 14px 0">グループ一覧</button>
@@ -173,11 +173,11 @@ input {
         </div>
       </div>
     </div>
-    <form id="urlForm" style="flex-direction: column; gap: 8px; margin: 16px 0; display: none">
-      <input type="text" id="urlInput" placeholder="URLを入力" required="">
-      <input type="text" id="titleInput" placeholder="タイトルを入力">
-      <input type="text" id="categoryInput" placeholder="カテゴリを入力">
-      <button type="submit">登録</button>
+    <form id="urlForm" style="flex-direction: column; justify-content: center; align-items: center; gap: 8px; width: 100%; max-width: 400px; margin: 16px auto; display: flex">
+      <input type="text" id="urlInput" placeholder="URLを入力" required="" style="width: 100%">
+      <input type="text" id="titleInput" placeholder="タイトルを入力" style="width: 100%">
+      <input type="text" id="categoryInput" placeholder="カテゴリを入力" style="width: 100%">
+      <button type="submit" style="width: 100%">登録</button>
     </form>
     <ul id="urlList" style="padding: 0; list-style: none"></ul>
 

@@ -10448,6 +10448,7 @@ function setCurrentGroup(groupId, groupName) {
     toggleBtn.style.display = "inline-block"; // グループ選択時に表示
     closeAllForms(); // グループ選択時にメニューや招待コードを閉じる
     window.loadUrls();
+    window.dispatchEvent(new Event("setCurrentGroup"));
 }
 function resetGroupSelection() {
     window.currentGroupId = null;
@@ -10548,43 +10549,6 @@ function setupGroupHandlers() {
             setMenuButtonsVisible(true);
         }
     });
-    // 追加: グループに参加フォーム送信（招待コードのみで参加）
-    joinGroupForm.addEventListener("submit", async (e)=>{
-        e.preventDefault();
-        const code = joinGroupInput.value.trim();
-        if (!code) {
-            alert("\u62DB\u5F85\u30B3\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044");
-            return;
-        }
-        // 招待コードでグループを検索
-        const { data: group, error } = await (0, _supabaseClientJs.supabase).from("groups").select("*").eq("invite_code", code).single();
-        if (error || !group) {
-            alert("\u30B0\u30EB\u30FC\u30D7\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
-            return;
-        }
-        // すでにメンバーか確認
-        const { data: member } = await (0, _supabaseClientJs.supabase).from("group_members").select("*").eq("group_id", group.id).eq("user_id", window.currentUser.id).single();
-        if (member) {
-            alert("\u3059\u3067\u306B\u3053\u306E\u30B0\u30EB\u30FC\u30D7\u306B\u53C2\u52A0\u3057\u3066\u3044\u307E\u3059");
-            joinform.style.display = "none";
-            joinGroupInput.value = "";
-            return;
-        }
-        // 参加処理
-        const { error: joinError } = await (0, _supabaseClientJs.supabase).from("group_members").insert([
-            {
-                group_id: group.id,
-                user_id: window.currentUser.id
-            }
-        ]);
-        if (joinError) {
-            alert("\u30B0\u30EB\u30FC\u30D7\u53C2\u52A0\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-            return;
-        }
-        alert("\u30B0\u30EB\u30FC\u30D7\u306B\u53C2\u52A0\u3057\u307E\u3057\u305F");
-        joinform.style.display = "none";
-        joinGroupInput.value = "";
-    });
     groupenameForm.addEventListener("submit", async (e)=>{
         e.preventDefault();
         const groupName = createInput.value.trim();
@@ -10612,6 +10576,46 @@ function setupGroupHandlers() {
         createInput.value = "";
         createform.style.display = "none";
         restoreMenuButtons();
+        groupMenu.style.display = "none"; // ★自動でメニューを閉じる
+    });
+    // 追加: グループに参加フォーム送信（招待コードのみで参加）
+    joinGroupForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const code = joinGroupInput.value.trim();
+        if (!code) {
+            alert("\u62DB\u5F85\u30B3\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        // 招待コードでグループを検索
+        const { data: group, error } = await (0, _supabaseClientJs.supabase).from("groups").select("*").eq("invite_code", code).single();
+        if (error || !group) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
+            return;
+        }
+        // すでにメンバーか確認
+        const { data: member } = await (0, _supabaseClientJs.supabase).from("group_members").select("*").eq("group_id", group.id).eq("user_id", window.currentUser.id).single();
+        if (member) {
+            alert("\u3059\u3067\u306B\u3053\u306E\u30B0\u30EB\u30FC\u30D7\u306B\u53C2\u52A0\u3057\u3066\u3044\u307E\u3059");
+            joinform.style.display = "none";
+            joinGroupInput.value = "";
+            groupMenu.style.display = "none"; // ★自動でメニューを閉じる
+            return;
+        }
+        // 参加処理
+        const { error: joinError } = await (0, _supabaseClientJs.supabase).from("group_members").insert([
+            {
+                group_id: group.id,
+                user_id: window.currentUser.id
+            }
+        ]);
+        if (joinError) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u53C2\u52A0\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+            return;
+        }
+        alert("\u30B0\u30EB\u30FC\u30D7\u306B\u53C2\u52A0\u3057\u307E\u3057\u305F");
+        joinform.style.display = "none";
+        joinGroupInput.value = "";
+        groupMenu.style.display = "none"; // ★自動でメニューを閉じる
     });
     showGroupsBtn.addEventListener("click", async ()=>{
         (0, _sharedUIJs.closeAllForms)();
@@ -10634,6 +10638,7 @@ function setupGroupHandlers() {
             selectBtn.onclick = ()=>{
                 (0, _sharedUIJs.setCurrentGroup)(group.id, group.name);
                 groupListArea.style.display = "none";
+                groupMenu.style.display = "none"; // ★選択時にメニューも閉じる
             };
             li.appendChild(selectBtn);
             groupList.appendChild(li);
@@ -10670,6 +10675,11 @@ function setupGroupHandlers() {
         }
         inviteCodeLabel.textContent = inviteCode;
         inviteCodeArea.style.display = "block";
+        // 招待コード表示後、数秒後に自動でメニューを閉じる
+        setTimeout(()=>{
+            inviteCodeArea.style.display = "none";
+            groupMenu.style.display = "none";
+        }, 2000);
     });
     // 招待コードコピー
     if (copyInviteCodeBtn) copyInviteCodeBtn.addEventListener("click", ()=>{
@@ -10737,6 +10747,32 @@ function setupUrlHandlers() {
             console.error(err);
         }
     });
+    // --- ここから追加 ---
+    // リアルタイムでURL追加を監視
+    let urlSubscription = null;
+    function subscribeRealtimeUrls() {
+        // 既存のサブスクリプションがあれば解除
+        if (urlSubscription) {
+            (0, _supabaseClientJs.supabase).removeChannel(urlSubscription);
+            urlSubscription = null;
+        }
+        if (!window.currentGroupId) return;
+        urlSubscription = (0, _supabaseClientJs.supabase).channel("urls-realtime").on("postgres_changes", {
+            event: "INSERT",
+            schema: "public",
+            table: "urls",
+            filter: `group_id=eq.${window.currentGroupId}`
+        }, (payload)=>{
+            // 新しいURLが追加されたらリストを再取得
+            window.loadUrls && window.loadUrls();
+        }).subscribe();
+    }
+    // グループ選択時にサブスクリプションを張り直す
+    window.addEventListener("setCurrentGroup", ()=>{
+        subscribeRealtimeUrls();
+    });
+    // 初期化時にも呼ぶ
+    subscribeRealtimeUrls();
     window.loadUrls = async function loadUrls1() {
         if (!window.currentUser || !window.currentGroupId) {
             urlList.innerHTML = "";
@@ -10795,34 +10831,87 @@ function setupUrlHandlers() {
 }
 
 },{"../utils/dbOperations.js":"hlloK","../utils/fetchPreview.js":"2NoiV","../utils/supabaseClient.js":"h0CvN","./sharedUI.js":"9HJ2M","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hlloK":[function(require,module,exports) {
-// ...既存のdb操作ロジックがあればここに記述...
-// ダミー実装例（必要に応じて本物のロジックに置き換えてください）
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "addUrl", ()=>addUrl);
-parcelHelpers.export(exports, "deleteUrl", ()=>deleteUrl);
+/**
+ * URLとサムネイルURLを Supabase に保存する（グループID対応）
+ */ parcelHelpers.export(exports, "addUrl", ()=>addUrl);
+/**
+ * Supabase の "urls" テーブルからデータを取得する関数（グループIDで絞り込み可能）
+ */ parcelHelpers.export(exports, "fetchUrls", ()=>fetchUrls);
+/**
+ * 指定されたIDのURLを Supabase から削除する
+ */ parcelHelpers.export(exports, "deleteUrl", ()=>deleteUrl);
+var _supabaseClientJs = require("./supabaseClient.js");
 async function addUrl(url, title, category, userId, imageUrl, groupId) {
-    // ここにSupabaseへのINSERT処理を実装
+    const { data, error } = await (0, _supabaseClientJs.supabase).from("urls").insert([
+        {
+            url,
+            title,
+            category,
+            user_id: userId,
+            thumbnail_url: imageUrl,
+            group_id: groupId
+        }
+    ]);
+    if (error) {
+        console.error("Supabase insert error:", error);
+        return {
+            success: false,
+            error
+        };
+    }
     return {
-        success: true
+        success: true,
+        data
     };
 }
+async function fetchUrls(groupId) {
+    let query = (0, _supabaseClientJs.supabase).from("urls").select("id, url, title, category, user_id, thumbnail_url, visited, created_at, group_id").order("created_at", {
+        ascending: false
+    });
+    if (groupId) query = query.eq("group_id", groupId);
+    const { data, error } = await query;
+    if (error) {
+        console.error("Supabase fetch error:", error);
+        return [];
+    }
+    return data;
+}
 async function deleteUrl(id) {
-    // ここにSupabaseへのDELETE処理を実装
+    const { data, error } = await (0, _supabaseClientJs.supabase).from("urls").delete().eq("id", id);
+    if (error) {
+        console.error("Supabase delete error:", error);
+        return {
+            success: false,
+            error
+        };
+    }
     return {
-        success: true
+        success: true,
+        data
     };
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2NoiV":[function(require,module,exports) {
-// ...既存のプレビュー取得ロジックがあればここに記述...
-// ダミー実装例
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./supabaseClient.js":"h0CvN"}],"2NoiV":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "getPreview", ()=>getPreview);
 async function getPreview(url) {
-    // 本来はURLからサムネイル画像URLを取得
-    return "https://placehold.co/80x80";
+    const API_KEY = "479caf1751a010ec074397313794465c"; // LinkPreview API
+    const apiUrl = `https://api.linkpreview.net/?key=${API_KEY}&q=${encodeURIComponent(url)}`;
+    try {
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error(`HTTP\u{30A8}\u{30E9}\u{30FC}: ${res.status}`);
+        const data = await res.json();
+        // プロキシ経由で画像を取得
+        const rawImageUrl = data.image || "https://placehold.co/300x200";
+        const proxiedImageUrl = `https://proxy-server-89ba.onrender.com/proxy?url=${encodeURIComponent(rawImageUrl)}`;
+        return proxiedImageUrl;
+    } catch (error) {
+        console.error("\u753B\u50CFURL\u53D6\u5F97\u30A8\u30E9\u30FC:", error);
+        return "https://placehold.co/300x200";
+    }
 }
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["cbjdT","adjPd"], "adjPd", "parcelRequire893f")

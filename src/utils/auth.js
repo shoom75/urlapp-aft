@@ -7,7 +7,6 @@
 //     messageEl.style.color = "red";
 //     return false;
 //   }
-// /
 //   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
 //   if (error) {
@@ -58,4 +57,5 @@
 //     window.currentUser = null;
 //     return false;
 //   }
+// }
 // }

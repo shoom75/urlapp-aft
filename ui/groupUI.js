@@ -86,6 +86,32 @@ export function setupGroupHandlers() {
         }
     });
 
+    groupenameForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const groupName = createInput.value.trim();
+        if (!groupName) {
+            alert("グループ名を入力してください");
+            return;
+        }
+        const { data, error } = await supabase
+            .from("groups")
+            .insert([{ name: groupName, created_by: window.currentUser.id }])
+            .select()
+            .single();
+        if (error) {
+            alert("グループ作成に失敗しました");
+            return;
+        }
+        await supabase.from("group_members").insert([
+            { group_id: data.id, user_id: window.currentUser.id }
+        ]);
+        alert("グループを作成しました");
+        createInput.value = "";
+        createform.style.display = "none";
+        restoreMenuButtons();
+        groupMenu.style.display = "none"; // ★自動でメニューを閉じる
+    });
+
     // 追加: グループに参加フォーム送信（招待コードのみで参加）
     joinGroupForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -115,6 +141,7 @@ export function setupGroupHandlers() {
             alert("すでにこのグループに参加しています");
             joinform.style.display = "none";
             joinGroupInput.value = "";
+            groupMenu.style.display = "none"; // ★自動でメニューを閉じる
             return;
         }
         // 参加処理
@@ -128,31 +155,7 @@ export function setupGroupHandlers() {
         alert("グループに参加しました");
         joinform.style.display = "none";
         joinGroupInput.value = "";
-    });
-
-    groupenameForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const groupName = createInput.value.trim();
-        if (!groupName) {
-            alert("グループ名を入力してください");
-            return;
-        }
-        const { data, error } = await supabase
-            .from("groups")
-            .insert([{ name: groupName, created_by: window.currentUser.id }])
-            .select()
-            .single();
-        if (error) {
-            alert("グループ作成に失敗しました");
-            return;
-        }
-        await supabase.from("group_members").insert([
-            { group_id: data.id, user_id: window.currentUser.id }
-        ]);
-        alert("グループを作成しました");
-        createInput.value = "";
-        createform.style.display = "none";
-        restoreMenuButtons();
+        groupMenu.style.display = "none"; // ★自動でメニューを閉じる
     });
 
     showGroupsBtn.addEventListener("click", async () => {
@@ -179,6 +182,7 @@ export function setupGroupHandlers() {
             selectBtn.onclick = () => {
                 setCurrentGroup(group.id, group.name);
                 groupListArea.style.display = "none";
+                groupMenu.style.display = "none"; // ★選択時にメニューも閉じる
             };
             li.appendChild(selectBtn);
             groupList.appendChild(li);
@@ -228,6 +232,11 @@ export function setupGroupHandlers() {
             }
             inviteCodeLabel.textContent = inviteCode;
             inviteCodeArea.style.display = "block";
+            // 招待コード表示後、数秒後に自動でメニューを閉じる
+            setTimeout(() => {
+                inviteCodeArea.style.display = "none";
+                groupMenu.style.display = "none";
+            }, 2000);
         });
     }
 

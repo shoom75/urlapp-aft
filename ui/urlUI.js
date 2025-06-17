@@ -53,6 +53,42 @@ export function setupUrlHandlers() {
         }
     });
 
+    // --- ここから追加 ---
+    // リアルタイムでURL追加を監視
+    let urlSubscription = null;
+    function subscribeRealtimeUrls() {
+        // 既存のサブスクリプションがあれば解除
+        if (urlSubscription) {
+            supabase.removeChannel(urlSubscription);
+            urlSubscription = null;
+        }
+        if (!window.currentGroupId) return;
+        urlSubscription = supabase
+            .channel('urls-realtime')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'urls',
+                    filter: `group_id=eq.${window.currentGroupId}`
+                },
+                payload => {
+                    // 新しいURLが追加されたらリストを再取得
+                    window.loadUrls && window.loadUrls();
+                }
+            )
+            .subscribe();
+    }
+
+    // グループ選択時にサブスクリプションを張り直す
+    window.addEventListener("setCurrentGroup", () => {
+        subscribeRealtimeUrls();
+    });
+
+    // 初期化時にも呼ぶ
+    subscribeRealtimeUrls();
+
     window.loadUrls = async function loadUrls() {
         if (!window.currentUser || !window.currentGroupId) {
             urlList.innerHTML = "";
