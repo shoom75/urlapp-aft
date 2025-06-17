@@ -10704,6 +10704,7 @@ var _fetchPreviewJs = require("../utils/fetchPreview.js");
 var _supabaseClientJs = require("../utils/supabaseClient.js");
 var _sharedUIJs = require("./sharedUI.js");
 let lastUrlsJson = "";
+let lastUrlIds = new Set();
 function setupUrlHandlers() {
     const urlForm = document.getElementById("urlForm");
     const urlInput = document.getElementById("urlInput");
@@ -10777,6 +10778,7 @@ function setupUrlHandlers() {
         if (!window.currentUser || !window.currentGroupId) {
             urlList.innerHTML = "";
             lastUrlsJson = "";
+            lastUrlIds = new Set();
             return;
         }
         const { data: urls } = await (0, _supabaseClientJs.supabase).from("urls").select("*").eq("group_id", window.currentGroupId);
@@ -10784,6 +10786,7 @@ function setupUrlHandlers() {
         if (urlsJson === lastUrlsJson) return;
         lastUrlsJson = urlsJson;
         urlList.innerHTML = "";
+        lastUrlIds = new Set(); // ★ここで初期化
         if (!urls || urls.length === 0) {
             urlList.innerHTML = "<li>\u3053\u306E\u30B0\u30EB\u30FC\u30D7\u306B\u306FURL\u304C\u3042\u308A\u307E\u305B\u3093</li>";
             return;
@@ -10826,8 +10829,107 @@ function setupUrlHandlers() {
             };
             li.append(img, link, btn);
             urlList.appendChild(li);
+            lastUrlIds.add(id); // ★ここでIDをセット
         });
     };
+    // 定期ポーリングで差分だけ追加
+    setInterval(async ()=>{
+        if (!window.currentUser || !window.currentGroupId) return;
+        const { data: urls } = await (0, _supabaseClientJs.supabase).from("urls").select("*").eq("group_id", window.currentGroupId);
+        if (!urls) return;
+        // 差分検出
+        const newUrls = urls.filter((u)=>!lastUrlIds.has(u.id));
+        if (newUrls.length > 0) // 既存リストを維持しつつ新規分だけ追加
+        newUrls.forEach(({ id, url, title, thumbnail_url })=>{
+            const proxyThumbnail = thumbnail_url ? (0, _sharedUIJs.getProxyUrl)(thumbnail_url) : "https://placehold.co/80x80";
+            const li = document.createElement("li");
+            li.dataset.id = id;
+            li.style.display = "flex";
+            li.style.alignItems = "center";
+            li.style.gap = "12px";
+            li.style.margin = "10px 0";
+            const img = document.createElement("img");
+            img.width = 80;
+            img.height = 80;
+            img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
+            img.style.objectFit = "cover";
+            img.onerror = ()=>img.src = "https://placehold.co/80x80";
+            img.src = proxyThumbnail;
+            const link = document.createElement("a");
+            link.target = "_blank";
+            link.style.flex = "1";
+            link.style.fontSize = "16px";
+            link.style.fontWeight = "bold";
+            link.style.color = "#E76F51";
+            link.style.textDecoration = "none";
+            link.href = url;
+            link.innerText = title;
+            const btn = document.createElement("button");
+            btn.innerText = "\u524A\u9664";
+            btn.classList.add("btn-delete");
+            btn.onclick = async ()=>{
+                if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
+                const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
+                if (success) {
+                    li.remove();
+                    lastUrlIds.delete(id);
+                } else {
+                    alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+                    console.error(error);
+                }
+            };
+            li.append(img, link, btn);
+            urlList.appendChild(li);
+            lastUrlIds.add(id);
+        });
+        // 初回やグループ切替時は全件セット
+        if (lastUrlIds.size !== urls.length) {
+            urlList.innerHTML = "";
+            lastUrlIds = new Set(); // ★ここで初期化
+            urls.forEach(({ id, url, title, thumbnail_url })=>{
+                const proxyThumbnail = thumbnail_url ? (0, _sharedUIJs.getProxyUrl)(thumbnail_url) : "https://placehold.co/80x80";
+                const li = document.createElement("li");
+                li.dataset.id = id;
+                li.style.display = "flex";
+                li.style.alignItems = "center";
+                li.style.gap = "12px";
+                li.style.margin = "10px 0";
+                const img = document.createElement("img");
+                img.width = 80;
+                img.height = 80;
+                img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
+                img.style.objectFit = "cover";
+                img.onerror = ()=>img.src = "https://placehold.co/80x80";
+                img.src = proxyThumbnail;
+                const link = document.createElement("a");
+                link.target = "_blank";
+                link.style.flex = "1";
+                link.style.fontSize = "16px";
+                link.style.fontWeight = "bold";
+                link.style.color = "#E76F51";
+                link.style.textDecoration = "none";
+                link.href = url;
+                link.innerText = title;
+                const btn = document.createElement("button");
+                btn.innerText = "\u524A\u9664";
+                btn.classList.add("btn-delete");
+                btn.onclick = async ()=>{
+                    if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
+                    const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
+                    if (success) {
+                        li.remove();
+                        lastUrlIds.delete(id);
+                    } else {
+                        alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+                        console.error(error);
+                    }
+                };
+                li.append(img, link, btn);
+                urlList.appendChild(li);
+                lastUrlIds.add(id);
+            });
+        }
+    }, 7000); // 7秒ごとにチェック
 }
 
 },{"../utils/dbOperations.js":"hlloK","../utils/fetchPreview.js":"2NoiV","../utils/supabaseClient.js":"h0CvN","./sharedUI.js":"9HJ2M","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hlloK":[function(require,module,exports) {
