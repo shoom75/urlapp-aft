@@ -1,86 +1,212 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>グルメURL管理アプリ</title>
   <link rel="stylesheet" href="./styles.css" />
+  <style>
+    @media (max-width: 600px) {
+
+      #appSection,
+      #loginSection {
+        padding: 0 4vw;
+      }
+
+      #groupMenu {
+        min-width: 90vw !important;
+        max-width: 98vw !important;
+        padding: 18vw 2vw 6vw 2vw !important;
+        border-radius: 8px !important;
+        font-size: 1em;
+      }
+
+      #groupMenu button,
+      #groupMenu input {
+        font-size: 1em !important;
+      }
+
+      #mainBtnArea {
+        flex-direction: column !important;
+        gap: 12px !important;
+        position: static !important;
+      }
+
+      #logoutBtn {
+        position: fixed !important;
+        top: 8px !important;
+        right: 12px !important;
+        margin: 0 !important;
+        min-width: 80px;
+        z-index: 900;
+        background: inherit !important;
+        border: inherit !important;
+        border-radius: inherit !important;
+        box-shadow: inherit !important;
+        color: inherit !important;
+        font-weight: inherit !important;
+      }
+
+      #toggleFormBtn,
+      #groupebtn {
+        width: 100%;
+      }
+
+      #urlForm {
+        gap: 10px !important;
+      }
+
+      #urlForm input,
+      #urlForm button {
+        font-size: 1em !important;
+      }
+
+      #groupListArea {
+        min-width: 90vw !important;
+        max-width: 98vw !important;
+        border-radius: 8px !important;
+        font-size: 1em;
+      }
+
+      #groupListArea ul {
+        font-size: 1em !important;
+      }
+
+      h1 {
+        font-size: 1.3em !important;
+      }
+    }
+
+    @media (min-width: 601px) {
+      #mainBtnArea {
+        position: relative;
+      }
+
+      #logoutBtn {
+        /* 右上固定にする */
+        position: fixed !important;
+        top: 16px !important;
+        right: 32px !important;
+        margin: 0 !important;
+        min-width: 80px;
+        z-index: 900;
+        background: inherit !important;
+        border: inherit !important;
+        border-radius: inherit !important;
+        box-shadow: inherit !important;
+        color: inherit !important;
+        font-weight: inherit !important;
+        width: auto;
+      }
+
+      #toggleFormBtn,
+      #groupebtn {
+        width: auto;
+      }
+    }
+
+    button {
+      min-height: 40px;
+      touch-action: manipulation;
+    }
+
+    input {
+      min-height: 38px;
+    }
+  </style>
 </head>
+
 <body>
-<!-- ログイン画面 -->
-<div id="loginSection" style="display: none;">
-  <div id="loginForm">
-    <h1>ログイン</h1>
-    <form id="loginFormElement">
-      <input type="email" id="loginEmail" placeholder="メールアドレス" required />
-      <input type="password" id="loginPassword" placeholder="パスワード" required />
-      <button type="submit">ログイン</button>
-    </form>
-    <p>アカウントがない方は <a href="#" id="showSignUpLink">新規登録はこちら</a></p>
+  <!-- ログイン画面 -->
+  <div id="loginSection" style="display: none;">
+    <div id="loginForm">
+      <h1>ログイン</h1>
+      <form id="loginFormElement">
+        <input type="email" id="loginEmail" placeholder="メールアドレス" required />
+        <input type="password" id="loginPassword" placeholder="パスワード" required />
+        <button type="submit">ログイン</button>
+      </form>
+      <p>アカウントがない方は <a href="#" id="showSignUpLink">新規登録はこちら</a></p>
+    </div>
+
+    <div id="signUpForm" style="display: none;">
+      <h1>新規登録</h1>
+      <form id="signUpFormElement">
+        <input type="email" id="signUpEmail" placeholder="メールアドレス" required />
+        <input type="password" id="signUpPassword" placeholder="パスワード" required />
+        <button type="submit">登録</button>
+      </form>
+      <p>すでにアカウントをお持ちの方は <a href="#" id="showLoginLink">ログインはこちら</a></p>
+    </div>
+
+    <p id="authMessage" style="color: red;"></p>
   </div>
 
-  <div id="signUpForm" style="display: none;">
-    <h1>新規登録</h1>
-    <form id="signUpFormElement">
-      <input type="email" id="signUpEmail" placeholder="メールアドレス" required />
-      <input type="password" id="signUpPassword" placeholder="パスワード" required />
+  <!-- アプリ本体 -->
+  <div id="appSection" style="display: none;">
+    <h1>URL管理</h1>
+    <div id="currentGroupLabel" style="margin: 12px 0; font-weight: bold;">グループをメニューから選択してください</div>
+    <div id="mainBtnArea"
+      style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 16px; position: relative;">
+      <button id="toggleFormBtn" style="display: none;">＋ URLを登録</button>
+      <button id="groupebtn">メニュー</button>
+      <button id="logoutBtn">ログアウト</button>
+    </div>
+    <div id="groupMenu"
+      style="display: none; position: fixed; top: 18%; left: 50%; transform: translate(-50%, 0); z-index: 1000; margin: 0 auto; border: 1px solid #ccc; border-radius: 16px; padding: 40px 20px 20px 20px; background: #fff; max-width: 340px; min-width: 220px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); text-align: center; display: flex; flex-direction: column; align-items: center;">
+      <button id="closeGroupMenuBtn"
+        style="color: #e76f51; cursor: pointer; z-index: 1010; background: none; border: none; font-size: 2.2em; font-weight: bold; line-height: 1; position: absolute; top: 8px; right: 12px; width: auto; height: auto; padding: 0 8px;">×</button>
+      <div style="width: 100%; max-width: 260px;">
+        <button id="showGroupsBtn" style="width: 100%; margin: 14px 0;">グループ一覧</button>
+        <div style="margin: 10px 0;"></div>
+        <button id="createbtn" style="width: 100%; margin: 14px 0;">グループを作成</button>
+        <div id="createform" style="display: none; margin: 8px 0;">
+          <form id="groupename" style="display: flex; gap: 8px;">
+            <input type="text" id="create" placeholder="グループ名を入力"
+              style="flex:1; padding: 10px 12px; border: 1px solid #bbb; border-radius: 8px; font-size: 1.1em; outline: none;">
+            <button type="submit"
+              style="padding: 10px 18px; border: none; border-radius: 8px; background: #E76F51; color: #fff; font-weight: bold; font-size: 1.1em; cursor: pointer; width: 90px;">作成</button>
+          </form>
+        </div>
+        <div style="margin: 10px 0;"></div>
+        <button id="joinbtn" style="width: 100%; margin: 14px 0;">グループに参加</button>
+        <div id="joinform" style="display: none; margin: 8px 0;">
+          <form id="joinGroupForm" style="display: flex; gap: 8px;">
+            <input type="text" id="joinGroupInput" placeholder="招待コードを入力"
+              style="flex:1; padding: 10px 12px; border: 1px solid #bbb; border-radius: 8px; font-size: 1.1em; outline: none;">
+            <button type="submit"
+              style="padding: 10px 18px; border: none; border-radius: 8px; background: #2A9D8F; color: #fff; font-weight: bold; font-size: 1.1em; cursor: pointer; width: 90px;">参加</button>
+          </form>
+        </div>
+        <div style="margin: 10px 0;"></div>
+        <button id="showInviteBtn" style="width: 100%; margin: 14px 0;">招待コード表示</button>
+        <div id="inviteCodeArea" style="display: none; margin: 8px 0;">
+          <span id="inviteCodeLabel" style="font-weight: bold; font-size: 1.1em;"></span>
+          <button id="copyInviteCodeBtn" style="margin-left: 8px;">コピー</button>
+        </div>
+      </div>
+    </div>
+    <form id="urlForm" style="display: none; margin: 16px 0; gap: 8px; flex-direction: column;">
+      <input type="text" id="urlInput" placeholder="URLを入力" required />
+      <input type="text" id="titleInput" placeholder="タイトルを入力" />
+      <input type="text" id="categoryInput" placeholder="カテゴリを入力" />
       <button type="submit">登録</button>
     </form>
-    <p>すでにアカウントをお持ちの方は <a href="#" id="showLoginLink">ログインはこちら</a></p>
+    <ul id="urlList" style="padding: 0; list-style: none;"></ul>
+
+    <!-- グループ一覧表示用 -->
+    <div id="groupListArea"
+      style="display: block; margin-top: 32px; position: fixed; top: 12%; left: 50%; transform: translate(-50%, 0); background: #fff; border: 1px solid #ccc; border-radius: 12px; box-shadow: 0 4px 16px #0001; max-width: 300px; min-width: 180px; padding: 24px 16px 16px 16px; z-index: 1100;">
+      <button id="closeGroupListBtn"
+        style="cursor: pointer; background: none; border: none; font-size: 1.3em; position: absolute; top: 8px; right: 12px;">×</button>
+      <ul id="groupList" style="margin-top: 32px; padding: 0; list-style: none;">
+        <!-- ...li要素はJSで生成されるので省略... -->
+      </ul>
+    </div>
   </div>
 
-  <p id="authMessage" style="color: red;"></p>
-</div>
-
-<!-- アプリ本体 -->
-<div id="appSection" style="display: none;">
-  <h1>URL管理</h1>
-  <div id="currentGroupLabel" style="margin: 12px 0; font-weight: bold;">グループ未選択</div>
-  <button id="toggleFormBtn">＋ URLを登録</button>
-  <button id="groupebtn">メニュー</button>
-  <div id="groupMenu" style="display: none;">
-    <button id="joinbtn">グループに参加</button>
-    <div id="joinform" style="display: none;">
-      <form id="joinGroupForm">
-        <input type="text" id="joinGroupName" placeholder="参加するグループ名">
-        <button type="submit">参加</button>
-      </form>
-    </div>
-
-    <button id="createbtn">グループを作成</button>
-    <div id="createform" style="display: none;">
-      <form id="groupename">
-        <input type="text" id="create" placeholder="グループ名を入力">
-        <button type="submit">作成</button>
-      </form>
-    </div>
-
-    <button id="invitebtn">招待を見る</button>
-    <div id="inviteform" style="display: none;">
-      <form id="inviteFormElement">
-        <input type="text" id="inviteCode" placeholder="招待コード">
-        <button type="submit">確認</button>
-      </form>
-    </div>
-
-    <!-- グループ一覧表示用ボタン追加 -->
-    <button id="showGroupsBtn">グループ一覧</button>
-  </div>
-  <form id="urlForm" style="display: none;">
-    <input type="text" id="urlInput" placeholder="URLを入力" required />
-    <input type="text" id="titleInput" placeholder="タイトルを入力" />
-    <input type="text" id="categoryInput" placeholder="カテゴリを入力" />
-    <button type="submit">登録</button>
-  </form>
-  <ul id="urlList"></ul>
-
-  <!-- グループ一覧表示用 -->
-  <div id="groupListArea" style="display: none;">
-    <button id="closeGroupListBtn" style="float:right;">× 閉じる</button>
-    <ul id="groupList"></ul>
-  </div>
-</div>
-
-<script type="module" src="../main.js" defer></script>
+  <script type="module" src="../../main.js" defer></script>
 </body>
+
 </html>

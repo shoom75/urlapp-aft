@@ -142,13 +142,13 @@
       this[globalName] = mainExports;
     }
   }
-})({"3zq8u":[function(require,module,exports) {
+})({"cbjdT":[function(require,module,exports) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
-module.bundle.HMR_BUNDLE_ID = "bed887d14d6bcbeb";
+module.bundle.HMR_BUNDLE_ID = "26170a8763aff760";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -574,113 +574,40 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     });
 }
 
-},{}],"gLLPy":[function(require,module,exports) {
-var _dbOperationsJs = require("./utils/dbOperations.js");
-var _fetchPreviewJs = require("./utils/fetchPreview.js");
-var _authJs = require("./utils/auth.js");
-var _supabaseClientJs = require("./utils/supabaseClient.js");
-const PROXY_BASE_URL = "https://proxy-server-89ba.onrender.com/proxy";
-function getProxyUrl(imageUrl) {
-    return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
-}
+},{}],"adjPd":[function(require,module,exports) {
+var _authUIJs = require("./ui/authUI.js");
+var _groupUIJs = require("./ui/groupUI.js");
+var _urlUIJs = require("./ui/urlUI.js");
+var _sharedUIJs = require("./ui/sharedUI.js");
 console.log("\u2705 main.js loaded");
-let currentGroupId = null;
-let currentGroupName = "";
 document.addEventListener("DOMContentLoaded", ()=>{
-    const loginSection = document.getElementById("loginSection");
-    const loginFormWrapper = document.getElementById("loginForm");
+    (0, _authUIJs.setupAuthHandlers)();
+    (0, _groupUIJs.setupGroupHandlers)();
+    (0, _urlUIJs.setupUrlHandlers)();
+    (0, _sharedUIJs.showLoginSection)(); // 追加: 最初にログイン画面を表示
+    (0, _authUIJs.checkAuthState)();
+});
+
+},{"./ui/authUI.js":"5pu6H","./ui/groupUI.js":"4e0zJ","./ui/urlUI.js":"jnGd2","./ui/sharedUI.js":"9HJ2M"}],"5pu6H":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "setupAuthHandlers", ()=>setupAuthHandlers);
+parcelHelpers.export(exports, "checkAuthState", ()=>checkAuthState) // ...showLoginForm, showSignUpForm などは sharedUI.js へ...
+;
+var _authJs = require("../utils/auth.js");
+var _supabaseClientJs = require("../utils/supabaseClient.js");
+var _sharedUIJs = require("./sharedUI.js");
+function setupAuthHandlers() {
     const loginForm = document.getElementById("loginFormElement");
     const loginEmail = document.getElementById("loginEmail");
     const loginPassword = document.getElementById("loginPassword");
-    const signUpFormWrapper = document.getElementById("signUpForm");
     const signUpForm = document.getElementById("signUpFormElement");
     const signUpEmail = document.getElementById("signUpEmail");
     const signUpPassword = document.getElementById("signUpPassword");
     const showSignUpLink = document.getElementById("showSignUpLink");
     const showLoginLink = document.getElementById("showLoginLink");
     const authMessage = document.getElementById("authMessage");
-    const appSection = document.getElementById("appSection");
-    const urlForm = document.getElementById("urlForm");
-    const urlInput = document.getElementById("urlInput");
-    const titleInput = document.getElementById("titleInput");
-    const categoryInput = document.getElementById("categoryInput");
-    const urlList = document.getElementById("urlList");
-    const toggleBtn = document.getElementById("toggleFormBtn");
-    const groupebtn = document.getElementById("groupebtn");
-    const groupMenu = document.getElementById("groupMenu");
-    const createbtn = document.getElementById("createbtn");
-    const groupename = document.getElementById("groupename");
-    const createform = document.getElementById("createform");
-    const groupenameForm = document.getElementById("groupename");
-    const createInput = document.getElementById("create");
-    // グループ一覧表示用の要素取得
-    const groupListArea = document.getElementById("groupListArea");
-    const groupList = document.getElementById("groupList");
-    const showGroupsBtn = document.getElementById("showGroupsBtn");
-    const closeGroupListBtn = document.getElementById("closeGroupListBtn");
-    const currentGroupLabel = document.getElementById("currentGroupLabel");
-    let currentUser = null;
-    const existingItems = new Map();
-    let refreshInterval = null;
-    // 全てのフォームを閉じる関数
-    function closeAllForms() {
-        createform.style.display = "none";
-        const joinform = document.getElementById("joinform");
-        if (joinform) joinform.style.display = "none";
-        const inviteform = document.getElementById("inviteform");
-        if (inviteform) inviteform.style.display = "none";
-        groupListArea.style.display = "none";
-    }
-    function showLoginForm() {
-        loginFormWrapper.style.display = "block";
-        signUpFormWrapper.style.display = "none";
-        authMessage.textContent = "";
-        authMessage.style.color = "red";
-    }
-    function showSignUpForm() {
-        loginFormWrapper.style.display = "none";
-        signUpFormWrapper.style.display = "block";
-        authMessage.textContent = "";
-        authMessage.style.color = "red";
-    }
-    function showLoginSection() {
-        loginSection.style.display = "block";
-        appSection.style.display = "none";
-        showLoginForm();
-        clearInterval(refreshInterval);
-    }
-    function showAppSection() {
-        loginSection.style.display = "none";
-        appSection.style.display = "block";
-        toggleBtn.disabled = false;
-        urlForm.style.display = "none";
-        toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
-        if (!document.getElementById("logoutBtn")) {
-            const logoutBtn = document.createElement("button");
-            logoutBtn.id = "logoutBtn";
-            logoutBtn.innerText = "\u30ED\u30B0\u30A2\u30A6\u30C8";
-            logoutBtn.style.marginLeft = "12px";
-            toggleBtn.insertAdjacentElement("afterend", logoutBtn);
-            logoutBtn.addEventListener("click", async ()=>{
-                await (0, _authJs.logout)();
-                currentUser = null;
-                showLoginSection();
-            });
-        }
-        if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(loadUrls, 5000);
-    }
-    async function checkAuthState() {
-        const { data } = await (0, _supabaseClientJs.supabase).auth.getSession();
-        if (data.session && data.session.user) {
-            currentUser = data.session.user;
-            showAppSection();
-            resetGroupSelection();
-        } else {
-            currentUser = null;
-            showLoginSection();
-        }
-    }
+    const logoutBtn = document.getElementById("logoutBtn");
     loginForm.addEventListener("submit", async (e)=>{
         e.preventDefault();
         const email = loginEmail.value.trim();
@@ -688,9 +615,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
         const success = await (0, _authJs.handleLogin)(email, password, authMessage);
         if (success) {
             const { data } = await (0, _supabaseClientJs.supabase).auth.getUser();
-            currentUser = data.user;
-            showAppSection();
-            resetGroupSelection();
+            window.currentUser = data.user;
+            (0, _sharedUIJs.showAppSection)();
+            (0, _sharedUIJs.resetGroupSelection)();
         }
     });
     signUpForm.addEventListener("submit", async (e)=>{
@@ -709,289 +636,102 @@ document.addEventListener("DOMContentLoaded", ()=>{
         e.preventDefault();
         showLoginForm();
     });
-    toggleBtn.addEventListener("click", ()=>{
-        if (!currentGroupId) {
-            alert("\u30B0\u30EB\u30FC\u30D7\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
-            return;
-        }
-        const showing = urlForm.style.display === "flex";
-        urlForm.style.display = showing ? "none" : "flex";
-        toggleBtn.innerText = showing ? "\uFF0B URL\u3092\u767B\u9332" : "\xd7 \u9589\u3058\u308B";
+    if (logoutBtn) logoutBtn.addEventListener("click", async ()=>{
+        await (0, _authJs.logout)();
+        window.currentUser = null;
+        (0, _sharedUIJs.resetGroupSelection)();
+        (0, _sharedUIJs.showLoginSection)();
     });
-    // グループメニューボタン
-    groupebtn.addEventListener("click", ()=>{
-        const check = groupMenu.style.display === "none";
-        groupMenu.style.display = check ? "block" : "none";
-        if (check) closeAllForms(); // メニューを開いたときフォームを閉じる
-    });
-    // グループ作成ボタン
-    createbtn.addEventListener("click", ()=>{
-        const check = createform.style.display === "none";
-        closeAllForms(); // 他フォームを閉じる
-        createform.style.display = check ? "block" : "none";
-    });
-    groupenameForm.addEventListener("submit", async (e)=>{
-        e.preventDefault();
-        const groupName = createInput.value.trim();
-        if (!groupName) {
-            alert("\u30B0\u30EB\u30FC\u30D7\u540D\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044");
-            return;
-        }
-        const { data, error } = await (0, _supabaseClientJs.supabase).from("groups").insert([
-            {
-                name: groupName,
-                created_by: currentUser.id
-            }
-        ]).select().single();
-        if (error) {
-            alert("\u30B0\u30EB\u30FC\u30D7\u4F5C\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-            return;
-        }
-        // 作成者をメンバーにも追加
-        await (0, _supabaseClientJs.supabase).from("group_members").insert([
-            {
-                group_id: data.id,
-                user_id: currentUser.id
-            }
-        ]);
-        alert("\u30B0\u30EB\u30FC\u30D7\u3092\u4F5C\u6210\u3057\u307E\u3057\u305F");
-        createInput.value = "";
-        createform.style.display = "none";
-    });
-    urlForm.addEventListener("submit", async (e)=>{
-        e.preventDefault();
-        if (!currentUser || !currentGroupId) {
-            alert("\u30B0\u30EB\u30FC\u30D7\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
-            return;
-        }
-        const rawUrl = urlInput.value.trim();
-        const title = titleInput.value.trim();
-        const category = categoryInput.value.trim();
-        if (!rawUrl || !title || !category) {
-            alert("\u3059\u3079\u3066\u306E\u9805\u76EE\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044");
-            return;
-        }
-        try {
-            const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
-            const result = await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, currentUser.id, imageUrl, currentGroupId);
-            if (result.success) {
-                urlForm.reset();
-                urlForm.style.display = "none";
-                toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
-                await loadUrls();
-            } else alert("\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-        } catch (err) {
-            alert("\u30A8\u30E9\u30FC\u304C\u767A\u751F\u3057\u307E\u3057\u305F");
-            console.error(err);
-        }
-    });
-    // グループ一覧ボタンのイベント
-    showGroupsBtn.addEventListener("click", async ()=>{
-        closeAllForms();
-        groupList.innerHTML = "";
-        groupListArea.style.display = "block";
-        // Supabaseからグループ一覧を取得
-        const { data, error } = await (0, _supabaseClientJs.supabase).from("groups").select("*");
-        if (error) {
-            alert("\u30B0\u30EB\u30FC\u30D7\u4E00\u89A7\u306E\u53D6\u5F97\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-            return;
-        }
-        if (!data || data.length === 0) {
-            groupList.innerHTML = "<li>\u30B0\u30EB\u30FC\u30D7\u304C\u3042\u308A\u307E\u305B\u3093</li>";
-            return;
-        }
-        data.forEach((group)=>{
-            const li = document.createElement("li");
-            li.textContent = group.name + " ";
-            // 選択ボタン
-            const selectBtn = document.createElement("button");
-            selectBtn.textContent = "\u9078\u629E";
-            selectBtn.onclick = ()=>{
-                setCurrentGroup(group.id, group.name);
-                groupListArea.style.display = "none";
-            };
-            li.appendChild(selectBtn);
-            groupList.appendChild(li);
-        });
-    });
-    // グループ一覧閉じるボタン
-    if (closeGroupListBtn) closeGroupListBtn.addEventListener("click", ()=>{
-        groupListArea.style.display = "none";
-    });
-    // グループ選択時
-    function setCurrentGroup(groupId, groupName) {
-        currentGroupId = groupId;
-        currentGroupName = groupName;
-        currentGroupLabel.textContent = `\u{30B0}\u{30EB}\u{30FC}\u{30D7}: ${groupName}`;
-        urlForm.style.display = "none";
-        toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
-        loadUrls();
+}
+async function checkAuthState() {
+    const { data } = await (0, _supabaseClientJs.supabase).auth.getSession();
+    if (data.session && data.session.user) {
+        window.currentUser = data.session.user;
+        (0, _sharedUIJs.showAppSection)();
+        (0, _sharedUIJs.resetGroupSelection)();
+    } else {
+        window.currentUser = null;
+        (0, _sharedUIJs.showLoginSection)();
     }
-    // グループ未選択時
-    function resetGroupSelection() {
-        currentGroupId = null;
-        currentGroupName = "";
-        currentGroupLabel.textContent = "\u30B0\u30EB\u30FC\u30D7\u672A\u9078\u629E";
-        urlForm.style.display = "none";
-        urlList.innerHTML = "";
-    }
-    async function loadUrls() {
-        if (!currentUser || !currentGroupId) {
-            urlList.innerHTML = "";
-            return;
-        }
-        // group_idで絞り込む
-        const { data: urls } = await (0, _supabaseClientJs.supabase).from("urls").select("*").eq("group_id", currentGroupId);
-        urlList.innerHTML = "";
-        if (!urls || urls.length === 0) {
-            urlList.innerHTML = "<li>\u3053\u306E\u30B0\u30EB\u30FC\u30D7\u306B\u306FURL\u304C\u3042\u308A\u307E\u305B\u3093</li>";
-            return;
-        }
-        urls.forEach(({ id, url, title, thumbnail_url })=>{
-            const proxyThumbnail = thumbnail_url ? getProxyUrl(thumbnail_url) : "https://placehold.co/80x80";
-            const li = document.createElement("li");
-            li.dataset.id = id;
-            li.style.display = "flex";
-            li.style.alignItems = "center";
-            li.style.gap = "12px";
-            li.style.margin = "10px 0";
-            const img = document.createElement("img");
-            img.width = 80;
-            img.height = 80;
-            img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
-            img.style.objectFit = "cover";
-            img.onerror = ()=>img.src = "https://placehold.co/80x80";
-            img.src = proxyThumbnail;
-            const link = document.createElement("a");
-            link.target = "_blank";
-            link.style.flex = "1";
-            link.style.fontSize = "16px";
-            link.style.fontWeight = "bold";
-            link.style.color = "#E76F51";
-            link.style.textDecoration = "none";
-            link.href = url;
-            link.innerText = title;
-            const btn = document.createElement("button");
-            btn.innerText = "\u524A\u9664";
-            btn.classList.add("btn-delete");
-            btn.onclick = async ()=>{
-                if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
-                const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
-                if (success) loadUrls();
-                else {
-                    alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-                    console.error(error);
-                }
-            };
-            li.append(img, link, btn);
-            urlList.appendChild(li);
-        });
-    }
-    async function joinGroup(groupId) {
-        const { data: exists } = await (0, _supabaseClientJs.supabase).from("group_members").select("*").eq("group_id", groupId).eq("user_id", currentUser.id);
-        if (exists && exists.length > 0) {
-            alert("\u3059\u3067\u306B\u53C2\u52A0\u3057\u3066\u3044\u307E\u3059");
-            return;
-        }
-        const { error } = await (0, _supabaseClientJs.supabase).from("group_members").insert([
-            {
-                group_id: groupId,
-                user_id: currentUser.id
-            }
-        ]);
-        if (error) {
-            alert("\u30B0\u30EB\u30FC\u30D7\u53C2\u52A0\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
-            console.error(error);
-        } else alert("\u30B0\u30EB\u30FC\u30D7\u306B\u53C2\u52A0\u3057\u307E\u3057\u305F");
-    }
-    checkAuthState();
-});
+}
 
-},{"./utils/dbOperations.js":"7f4gD","./utils/fetchPreview.js":"3NxY8","./utils/auth.js":"lncmE","./utils/supabaseClient.js":"kDxOT"}],"7f4gD":[function(require,module,exports) {
+},{"../utils/auth.js":"if8gf","../utils/supabaseClient.js":"h0CvN","./sharedUI.js":"9HJ2M","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"if8gf":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-/**
- * URLとサムネイルURLを Supabase に保存する（グループID対応）
- */ parcelHelpers.export(exports, "addUrl", ()=>addUrl);
-/**
- * Supabase の "urls" テーブルからデータを取得する関数（グループIDで絞り込み可能）
- */ parcelHelpers.export(exports, "fetchUrls", ()=>fetchUrls);
-/**
- * 指定されたIDのURLを Supabase から削除する
- */ parcelHelpers.export(exports, "deleteUrl", ()=>deleteUrl);
+parcelHelpers.export(exports, "handleLogin", ()=>handleLogin);
+parcelHelpers.export(exports, "handleSignUp", ()=>handleSignUp);
+parcelHelpers.export(exports, "logout", ()=>logout);
 var _supabaseClientJs = require("./supabaseClient.js");
-async function addUrl(url, title, category, userId, imageUrl, groupId) {
-    const { data, error } = await (0, _supabaseClientJs.supabase).from("urls").insert([
-        {
-            url,
-            title,
-            category,
-            user_id: userId,
-            thumbnail_url: imageUrl,
-            group_id: groupId
-        }
-    ]);
-    if (error) {
-        console.error("Supabase insert error:", error);
-        return {
-            success: false,
-            error
-        };
+async function handleLogin(email, password, messageEl) {
+    messageEl.textContent = "";
+    if (!email || !password) {
+        messageEl.textContent = "\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3068\u30D1\u30B9\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044";
+        messageEl.style.color = "red";
+        return false;
     }
-    return {
-        success: true,
-        data
-    };
-}
-async function fetchUrls(groupId) {
-    let query = (0, _supabaseClientJs.supabase).from("urls").select("id, url, title, category, user_id, thumbnail_url, visited, created_at, group_id").order("created_at", {
-        ascending: false
+    const { data, error } = await (0, _supabaseClientJs.supabase).auth.signInWithPassword({
+        email,
+        password
     });
-    if (groupId) query = query.eq("group_id", groupId);
-    const { data, error } = await query;
     if (error) {
-        console.error("Supabase fetch error:", error);
-        return [];
+        messageEl.textContent = "\u30ED\u30B0\u30A4\u30F3\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error.message;
+        messageEl.style.color = "red";
+        return false;
     }
-    return data;
+    messageEl.textContent = "";
+    return true;
 }
-async function deleteUrl(id) {
-    const { data, error } = await (0, _supabaseClientJs.supabase).from("urls").delete().eq("id", id);
-    if (error) {
-        console.error("Supabase delete error:", error);
-        return {
-            success: false,
-            error
-        };
+async function handleSignUp(email, password, messageEl, onSuccess) {
+    messageEl.textContent = "";
+    if (!email || !password) {
+        messageEl.textContent = "\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3068\u30D1\u30B9\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044";
+        messageEl.style.color = "red";
+        return false;
     }
-    return {
-        success: true,
-        data
-    };
+    const { data, error } = await (0, _supabaseClientJs.supabase).auth.signUp({
+        email,
+        password
+    });
+    if (error) {
+        if (error.message.includes("already registered") || error.message.includes("User already registered")) messageEl.textContent = "\u3053\u306E\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u306F\u3059\u3067\u306B\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u3059";
+        else messageEl.textContent = "\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error.message;
+        messageEl.style.color = "red";
+        return false;
+    }
+    messageEl.style.color = "green";
+    messageEl.textContent = "\u767B\u9332\u6210\u529F\uFF01\u78BA\u8A8D\u30E1\u30FC\u30EB\u3092\u3054\u78BA\u8A8D\u304F\u3060\u3055\u3044\u3002";
+    if (onSuccess) onSuccess();
+    return true;
+}
+async function logout() {
+    await (0, _supabaseClientJs.supabase).auth.signOut();
 }
 
-},{"./supabaseClient.js":"kDxOT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kDxOT":[function(require,module,exports) {
+},{"./supabaseClient.js":"h0CvN","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"h0CvN":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "supabase", ()=>supabase);
 var _supabaseJs = require("@supabase/supabase-js");
-const supabaseUrl = "https://zjfleyijqxqjbwabuucw.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqZmxleWlqcXhxamJ3YWJ1dWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NTEyNjgsImV4cCI6MjA2NDQyNzI2OH0.e4gQgy43WhCQCgPWssWW-_y3_7VHpizBLb9wD60XwzY";
+const supabaseUrl = "https://zjfleyijqxqjbwabuucw.supabase.co"; // ←あなたのSupabaseプロジェクトURL
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqZmxleWlqcXhxamJ3YWJ1dWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NTEyNjgsImV4cCI6MjA2NDQyNzI2OH0.e4gQgy43WhCQCgPWssWW-_y3_7VHpizBLb9wD60XwzY"; // ←あなたのSupabase anon key
 const supabase = (0, _supabaseJs.createClient)(supabaseUrl, supabaseKey);
 
 },{"@supabase/supabase-js":"04ZJL","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"04ZJL":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "PostgrestError", ()=>(0, _postgrestJs.PostgrestError));
 parcelHelpers.export(exports, "FunctionsHttpError", ()=>(0, _functionsJs.FunctionsHttpError));
 parcelHelpers.export(exports, "FunctionsFetchError", ()=>(0, _functionsJs.FunctionsFetchError));
 parcelHelpers.export(exports, "FunctionsRelayError", ()=>(0, _functionsJs.FunctionsRelayError));
 parcelHelpers.export(exports, "FunctionsError", ()=>(0, _functionsJs.FunctionsError));
+parcelHelpers.export(exports, "FunctionRegion", ()=>(0, _functionsJs.FunctionRegion));
 parcelHelpers.export(exports, "SupabaseClient", ()=>(0, _supabaseClientDefault.default));
 parcelHelpers.export(exports, "createClient", ()=>createClient);
 var _supabaseClient = require("./SupabaseClient");
 var _supabaseClientDefault = parcelHelpers.interopDefault(_supabaseClient);
-var _gotrueJs = require("@supabase/gotrue-js");
-parcelHelpers.exportAll(_gotrueJs, exports);
+var _authJs = require("@supabase/auth-js");
+parcelHelpers.exportAll(_authJs, exports);
+var _postgrestJs = require("@supabase/postgrest-js");
 var _functionsJs = require("@supabase/functions-js");
 var _realtimeJs = require("@supabase/realtime-js");
 parcelHelpers.exportAll(_realtimeJs, exports);
@@ -999,7 +739,7 @@ const createClient = (supabaseUrl, supabaseKey, options)=>{
     return new (0, _supabaseClientDefault.default)(supabaseUrl, supabaseKey, options);
 };
 
-},{"./SupabaseClient":"66Vb3","@supabase/gotrue-js":"26DbQ","@supabase/functions-js":false,"@supabase/realtime-js":"bPg7h","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"66Vb3":[function(require,module,exports) {
+},{"./SupabaseClient":"66Vb3","@supabase/auth-js":"7Q2lo","@supabase/postgrest-js":"ejTPu","@supabase/functions-js":false,"@supabase/realtime-js":"ii5aX","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"66Vb3":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _functionsJs = require("@supabase/functions-js");
@@ -1050,18 +790,20 @@ class SupabaseClient {
      * @param options.global.fetch A custom fetch implementation.
      * @param options.global.headers Any additional headers to send with each network request.
      */ constructor(supabaseUrl, supabaseKey, options){
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c;
         this.supabaseUrl = supabaseUrl;
         this.supabaseKey = supabaseKey;
         if (!supabaseUrl) throw new Error("supabaseUrl is required.");
         if (!supabaseKey) throw new Error("supabaseKey is required.");
-        const _supabaseUrl = (0, _helpers.stripTrailingSlash)(supabaseUrl);
-        this.realtimeUrl = `${_supabaseUrl}/realtime/v1`.replace(/^http/i, "ws");
-        this.authUrl = `${_supabaseUrl}/auth/v1`;
-        this.storageUrl = `${_supabaseUrl}/storage/v1`;
-        this.functionsUrl = `${_supabaseUrl}/functions/v1`;
+        const _supabaseUrl = (0, _helpers.ensureTrailingSlash)(supabaseUrl);
+        const baseUrl = new URL(_supabaseUrl);
+        this.realtimeUrl = new URL("realtime/v1", baseUrl);
+        this.realtimeUrl.protocol = this.realtimeUrl.protocol.replace("http", "ws");
+        this.authUrl = new URL("auth/v1", baseUrl);
+        this.storageUrl = new URL("storage/v1", baseUrl);
+        this.functionsUrl = new URL("functions/v1", baseUrl);
         // default storage key uses the supabase project ref as a namespace
-        const defaultStorageKey = `sb-${new URL(this.authUrl).hostname.split(".")[0]}-auth-token`;
+        const defaultStorageKey = `sb-${baseUrl.hostname.split(".")[0]}-auth-token`;
         const DEFAULTS = {
             db: (0, _constants.DEFAULT_DB_OPTIONS),
             realtime: (0, _constants.DEFAULT_REALTIME_OPTIONS),
@@ -1071,24 +813,33 @@ class SupabaseClient {
             global: (0, _constants.DEFAULT_GLOBAL_OPTIONS)
         };
         const settings = (0, _helpers.applySettingDefaults)(options !== null && options !== void 0 ? options : {}, DEFAULTS);
-        this.storageKey = (_b = (_a = settings.auth) === null || _a === void 0 ? void 0 : _a.storageKey) !== null && _b !== void 0 ? _b : "";
-        this.headers = (_d = (_c = settings.global) === null || _c === void 0 ? void 0 : _c.headers) !== null && _d !== void 0 ? _d : {};
-        this.auth = this._initSupabaseAuthClient((_e = settings.auth) !== null && _e !== void 0 ? _e : {}, this.headers, (_f = settings.global) === null || _f === void 0 ? void 0 : _f.fetch);
-        this.fetch = (0, _fetch.fetchWithAuth)(supabaseKey, this._getAccessToken.bind(this), (_g = settings.global) === null || _g === void 0 ? void 0 : _g.fetch);
+        this.storageKey = (_a = settings.auth.storageKey) !== null && _a !== void 0 ? _a : "";
+        this.headers = (_b = settings.global.headers) !== null && _b !== void 0 ? _b : {};
+        if (!settings.accessToken) this.auth = this._initSupabaseAuthClient((_c = settings.auth) !== null && _c !== void 0 ? _c : {}, this.headers, settings.global.fetch);
+        else {
+            this.accessToken = settings.accessToken;
+            this.auth = new Proxy({}, {
+                get: (_, prop)=>{
+                    throw new Error(`@supabase/supabase-js: Supabase Client is configured with the accessToken option, accessing supabase.auth.${String(prop)} is not possible`);
+                }
+            });
+        }
+        this.fetch = (0, _fetch.fetchWithAuth)(supabaseKey, this._getAccessToken.bind(this), settings.global.fetch);
         this.realtime = this._initRealtimeClient(Object.assign({
-            headers: this.headers
-        }, settings.realtime));
-        this.rest = new (0, _postgrestJs.PostgrestClient)(`${_supabaseUrl}/rest/v1`, {
             headers: this.headers,
-            schema: (_h = settings.db) === null || _h === void 0 ? void 0 : _h.schema,
+            accessToken: this._getAccessToken.bind(this)
+        }, settings.realtime));
+        this.rest = new (0, _postgrestJs.PostgrestClient)(new URL("rest/v1", baseUrl).href, {
+            headers: this.headers,
+            schema: settings.db.schema,
             fetch: this.fetch
         });
-        this._listenForAuthEvents();
+        if (!settings.accessToken) this._listenForAuthEvents();
     }
     /**
      * Supabase Functions allows you to deploy and invoke edge functions.
      */ get functions() {
-        return new (0, _functionsJs.FunctionsClient)(this.functionsUrl, {
+        return new (0, _functionsJs.FunctionsClient)(this.functionsUrl.href, {
             headers: this.headers,
             customFetch: this.fetch
         });
@@ -1096,7 +847,7 @@ class SupabaseClient {
     /**
      * Supabase Storage allows you to manage user-generated content, such as photos or videos.
      */ get storage() {
-        return new (0, _storageJs.StorageClient)(this.storageUrl, this.headers, this.fetch);
+        return new (0, _storageJs.StorageClient)(this.storageUrl.href, this.headers, this.fetch);
     }
     /**
      * Perform a query on a table or a view.
@@ -1105,16 +856,17 @@ class SupabaseClient {
      */ from(relation) {
         return this.rest.from(relation);
     }
+    // NOTE: signatures must be kept in sync with PostgrestClient.schema
     /**
-     * Perform a query on a schema distinct from the default schema supplied via
-     * the `options.db.schema` constructor parameter.
+     * Select a schema to query or perform an function (rpc) call.
      *
      * The schema needs to be on the list of exposed schemas inside Supabase.
      *
-     * @param schema - The name of the schema to query
+     * @param schema - The schema to query
      */ schema(schema) {
         return this.rest.schema(schema);
     }
+    // NOTE: signatures must be kept in sync with PostgrestClient.rpc
     /**
      * Perform a function call.
      *
@@ -1123,6 +875,8 @@ class SupabaseClient {
      * @param options - Named parameters
      * @param options.head - When set to `true`, `data` will not be returned.
      * Useful if you only need the count.
+     * @param options.get - When set to `true`, the function will be called with
+     * read-only access mode.
      * @param options.count - Count algorithm to use to count rows returned by the
      * function. Only applicable for [set-returning
      * functions](https://www.postgresql.org/docs/current/functions-srf.html).
@@ -1135,7 +889,7 @@ class SupabaseClient {
      *
      * `"estimated"`: Uses exact count for low numbers and planned count for high
      * numbers.
-     */ rpc(fn, args = {}, options) {
+     */ rpc(fn, args = {}, options = {}) {
         return this.rest.rpc(fn, args, options);
     }
     /**
@@ -1170,17 +924,18 @@ class SupabaseClient {
     _getAccessToken() {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function*() {
+            if (this.accessToken) return yield this.accessToken();
             const { data } = yield this.auth.getSession();
             return (_b = (_a = data.session) === null || _a === void 0 ? void 0 : _a.access_token) !== null && _b !== void 0 ? _b : null;
         });
     }
-    _initSupabaseAuthClient({ autoRefreshToken, persistSession, detectSessionInUrl, storage, storageKey, flowType, debug }, headers, fetch) {
+    _initSupabaseAuthClient({ autoRefreshToken, persistSession, detectSessionInUrl, storage, storageKey, flowType, lock, debug }, headers, fetch) {
         const authHeaders = {
             Authorization: `Bearer ${this.supabaseKey}`,
             apikey: `${this.supabaseKey}`
         };
         return new (0, _supabaseAuthClient.SupabaseAuthClient)({
-            url: this.authUrl,
+            url: this.authUrl.href,
             headers: Object.assign(Object.assign({}, authHeaders), headers),
             storageKey: storageKey,
             autoRefreshToken,
@@ -1188,12 +943,16 @@ class SupabaseClient {
             detectSessionInUrl,
             storage,
             flowType,
+            lock,
             debug,
-            fetch
+            fetch,
+            // auth checks if there is a custom authorizaiton header using this flag
+            // so it knows whether to return an error when getUser is called with no session
+            hasCustomAuthorizationHeader: "Authorization" in this.headers
         });
     }
     _initRealtimeClient(options) {
-        return new (0, _realtimeJs.RealtimeClient)(this.realtimeUrl, Object.assign(Object.assign({}, options), {
+        return new (0, _realtimeJs.RealtimeClient)(this.realtimeUrl.href, Object.assign(Object.assign({}, options), {
             params: Object.assign({
                 apikey: this.supabaseKey
             }, options === null || options === void 0 ? void 0 : options.params)
@@ -1206,13 +965,9 @@ class SupabaseClient {
         return data;
     }
     _handleTokenChanged(event, source, token) {
-        if ((event === "TOKEN_REFRESHED" || event === "SIGNED_IN") && this.changedAccessToken !== token) {
-            // Token has changed
-            this.realtime.setAuth(token !== null && token !== void 0 ? token : null);
-            this.changedAccessToken = token;
-        } else if (event === "SIGNED_OUT") {
-            // Token is removed
-            this.realtime.setAuth(this.supabaseKey);
+        if ((event === "TOKEN_REFRESHED" || event === "SIGNED_IN") && this.changedAccessToken !== token) this.changedAccessToken = token;
+        else if (event === "SIGNED_OUT") {
+            this.realtime.setAuth();
             if (source == "STORAGE") this.auth.signOut();
             this.changedAccessToken = undefined;
         }
@@ -1220,7 +975,7 @@ class SupabaseClient {
 }
 exports.default = SupabaseClient;
 
-},{"@supabase/functions-js":"7mhif","@supabase/postgrest-js":"j2FaI","@supabase/realtime-js":"bPg7h","@supabase/storage-js":"8f7kf","./lib/constants":"17il3","./lib/fetch":"8ZZRj","./lib/helpers":"lD7E0","./lib/SupabaseAuthClient":"bmkFW","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7mhif":[function(require,module,exports) {
+},{"@supabase/functions-js":"7mhif","@supabase/postgrest-js":"ejTPu","@supabase/realtime-js":"ii5aX","@supabase/storage-js":"8f7kf","./lib/constants":"17il3","./lib/fetch":"8ZZRj","./lib/helpers":"lD7E0","./lib/SupabaseAuthClient":"bmkFW","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7mhif":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "FunctionsClient", ()=>(0, _functionsClient.FunctionsClient));
@@ -1228,6 +983,7 @@ parcelHelpers.export(exports, "FunctionsError", ()=>(0, _types.FunctionsError));
 parcelHelpers.export(exports, "FunctionsFetchError", ()=>(0, _types.FunctionsFetchError));
 parcelHelpers.export(exports, "FunctionsHttpError", ()=>(0, _types.FunctionsHttpError));
 parcelHelpers.export(exports, "FunctionsRelayError", ()=>(0, _types.FunctionsRelayError));
+parcelHelpers.export(exports, "FunctionRegion", ()=>(0, _types.FunctionRegion));
 var _functionsClient = require("./FunctionsClient");
 var _types = require("./types");
 
@@ -1265,9 +1021,10 @@ var __awaiter = undefined && undefined.__awaiter || function(thisArg, _arguments
     });
 };
 class FunctionsClient {
-    constructor(url, { headers = {}, customFetch } = {}){
+    constructor(url, { headers = {}, customFetch, region = (0, _types.FunctionRegion).Any } = {}){
         this.url = url;
         this.headers = headers;
+        this.region = region;
         this.fetch = (0, _helper.resolveFetch)(customFetch);
     }
     /**
@@ -1286,6 +1043,9 @@ class FunctionsClient {
             try {
                 const { headers, method, body: functionArgs } = options;
                 let _headers = {};
+                let { region } = options;
+                if (!region) region = this.region;
+                if (region && region !== "any") _headers["x-region"] = region;
                 let body;
                 if (functionArgs && (headers && !Object.prototype.hasOwnProperty.call(headers, "Content-Type") || !headers)) {
                     if (typeof Blob !== "undefined" && functionArgs instanceof Blob || functionArgs instanceof ArrayBuffer) {
@@ -1324,6 +1084,7 @@ class FunctionsClient {
                 let data;
                 if (responseType === "application/json") data = yield response.json();
                 else if (responseType === "application/octet-stream") data = yield response.blob();
+                else if (responseType === "text/event-stream") data = response;
                 else if (responseType === "multipart/form-data") data = yield response.formData();
                 else // default to text
                 data = yield response.text();
@@ -1393,6 +1154,7 @@ parcelHelpers.export(exports, "FunctionsError", ()=>FunctionsError);
 parcelHelpers.export(exports, "FunctionsFetchError", ()=>FunctionsFetchError);
 parcelHelpers.export(exports, "FunctionsRelayError", ()=>FunctionsRelayError);
 parcelHelpers.export(exports, "FunctionsHttpError", ()=>FunctionsHttpError);
+parcelHelpers.export(exports, "FunctionRegion", ()=>FunctionRegion);
 class FunctionsError extends Error {
     constructor(message, name = "FunctionsError", context){
         super(message);
@@ -1415,35 +1177,103 @@ class FunctionsHttpError extends FunctionsError {
         super("Edge Function returned a non-2xx status code", "FunctionsHttpError", context);
     }
 }
+var FunctionRegion;
+(function(FunctionRegion) {
+    FunctionRegion["Any"] = "any";
+    FunctionRegion["ApNortheast1"] = "ap-northeast-1";
+    FunctionRegion["ApNortheast2"] = "ap-northeast-2";
+    FunctionRegion["ApSouth1"] = "ap-south-1";
+    FunctionRegion["ApSoutheast1"] = "ap-southeast-1";
+    FunctionRegion["ApSoutheast2"] = "ap-southeast-2";
+    FunctionRegion["CaCentral1"] = "ca-central-1";
+    FunctionRegion["EuCentral1"] = "eu-central-1";
+    FunctionRegion["EuWest1"] = "eu-west-1";
+    FunctionRegion["EuWest2"] = "eu-west-2";
+    FunctionRegion["EuWest3"] = "eu-west-3";
+    FunctionRegion["SaEast1"] = "sa-east-1";
+    FunctionRegion["UsEast1"] = "us-east-1";
+    FunctionRegion["UsWest1"] = "us-west-1";
+    FunctionRegion["UsWest2"] = "us-west-2";
+})(FunctionRegion || (FunctionRegion = {}));
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"j2FaI":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ejTPu":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "PostgrestClient", ()=>(0, _postgrestClientDefault.default));
-parcelHelpers.export(exports, "PostgrestQueryBuilder", ()=>(0, _postgrestQueryBuilderDefault.default));
-parcelHelpers.export(exports, "PostgrestFilterBuilder", ()=>(0, _postgrestFilterBuilderDefault.default));
-parcelHelpers.export(exports, "PostgrestTransformBuilder", ()=>(0, _postgrestTransformBuilderDefault.default));
-parcelHelpers.export(exports, "PostgrestBuilder", ()=>(0, _postgrestBuilderDefault.default));
-var _postgrestClient = require("./PostgrestClient");
-var _postgrestClientDefault = parcelHelpers.interopDefault(_postgrestClient);
-var _postgrestQueryBuilder = require("./PostgrestQueryBuilder");
-var _postgrestQueryBuilderDefault = parcelHelpers.interopDefault(_postgrestQueryBuilder);
-var _postgrestFilterBuilder = require("./PostgrestFilterBuilder");
-var _postgrestFilterBuilderDefault = parcelHelpers.interopDefault(_postgrestFilterBuilder);
-var _postgrestTransformBuilder = require("./PostgrestTransformBuilder");
-var _postgrestTransformBuilderDefault = parcelHelpers.interopDefault(_postgrestTransformBuilder);
-var _postgrestBuilder = require("./PostgrestBuilder");
-var _postgrestBuilderDefault = parcelHelpers.interopDefault(_postgrestBuilder);
+parcelHelpers.export(exports, "PostgrestBuilder", ()=>PostgrestBuilder);
+parcelHelpers.export(exports, "PostgrestClient", ()=>PostgrestClient);
+parcelHelpers.export(exports, "PostgrestFilterBuilder", ()=>PostgrestFilterBuilder);
+parcelHelpers.export(exports, "PostgrestQueryBuilder", ()=>PostgrestQueryBuilder);
+parcelHelpers.export(exports, "PostgrestTransformBuilder", ()=>PostgrestTransformBuilder);
+parcelHelpers.export(exports, "PostgrestError", ()=>PostgrestError);
+var _indexJs = require("../cjs/index.js");
+var _indexJsDefault = parcelHelpers.interopDefault(_indexJs);
+const { PostgrestClient, PostgrestQueryBuilder, PostgrestFilterBuilder, PostgrestTransformBuilder, PostgrestBuilder, PostgrestError } = (0, _indexJsDefault.default);
+// compatibility with CJS output
+exports.default = {
+    PostgrestClient,
+    PostgrestQueryBuilder,
+    PostgrestFilterBuilder,
+    PostgrestTransformBuilder,
+    PostgrestBuilder,
+    PostgrestError
+};
 
-},{"./PostgrestClient":"auia4","./PostgrestQueryBuilder":"jwebE","./PostgrestFilterBuilder":"74Xif","./PostgrestTransformBuilder":"fenGJ","./PostgrestBuilder":"bNa5A","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"auia4":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _postgrestQueryBuilder = require("./PostgrestQueryBuilder");
-var _postgrestQueryBuilderDefault = parcelHelpers.interopDefault(_postgrestQueryBuilder);
-var _postgrestFilterBuilder = require("./PostgrestFilterBuilder");
-var _postgrestFilterBuilderDefault = parcelHelpers.interopDefault(_postgrestFilterBuilder);
-var _constants = require("./constants");
-class PostgrestClient {
+},{"../cjs/index.js":"aYZdy","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"aYZdy":[function(require,module,exports) {
+"use strict";
+var __importDefault = this && this.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : {
+        "default": mod
+    };
+};
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.PostgrestError = exports.PostgrestBuilder = exports.PostgrestTransformBuilder = exports.PostgrestFilterBuilder = exports.PostgrestQueryBuilder = exports.PostgrestClient = void 0;
+// Always update wrapper.mjs when updating this file.
+const PostgrestClient_1 = __importDefault(require("f5e06a51982719bd"));
+exports.PostgrestClient = PostgrestClient_1.default;
+const PostgrestQueryBuilder_1 = __importDefault(require("df90e8e15649ad51"));
+exports.PostgrestQueryBuilder = PostgrestQueryBuilder_1.default;
+const PostgrestFilterBuilder_1 = __importDefault(require("599489c94cb82979"));
+exports.PostgrestFilterBuilder = PostgrestFilterBuilder_1.default;
+const PostgrestTransformBuilder_1 = __importDefault(require("f49dd89b70eda0a2"));
+exports.PostgrestTransformBuilder = PostgrestTransformBuilder_1.default;
+const PostgrestBuilder_1 = __importDefault(require("aab5557e345022fe"));
+exports.PostgrestBuilder = PostgrestBuilder_1.default;
+const PostgrestError_1 = __importDefault(require("79848042fc731b87"));
+exports.PostgrestError = PostgrestError_1.default;
+exports.default = {
+    PostgrestClient: PostgrestClient_1.default,
+    PostgrestQueryBuilder: PostgrestQueryBuilder_1.default,
+    PostgrestFilterBuilder: PostgrestFilterBuilder_1.default,
+    PostgrestTransformBuilder: PostgrestTransformBuilder_1.default,
+    PostgrestBuilder: PostgrestBuilder_1.default,
+    PostgrestError: PostgrestError_1.default
+};
+
+},{"f5e06a51982719bd":"3WKxe","df90e8e15649ad51":"1tKlz","599489c94cb82979":"3TOT2","f49dd89b70eda0a2":"3BTTd","aab5557e345022fe":"ksW6G","79848042fc731b87":"6BQVU"}],"3WKxe":[function(require,module,exports) {
+"use strict";
+var __importDefault = this && this.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : {
+        "default": mod
+    };
+};
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const PostgrestQueryBuilder_1 = __importDefault(require("46c45ba978d8f946"));
+const PostgrestFilterBuilder_1 = __importDefault(require("a418b29a37404612"));
+const constants_1 = require("56170df5c50b72a8");
+/**
+ * PostgREST client.
+ *
+ * @typeParam Database - Types for the schema from the [type
+ * generator](https://supabase.com/docs/reference/javascript/next/typescript-support)
+ *
+ * @typeParam SchemaName - Postgres schema to switch to. Must be a string
+ * literal, the same one passed to the constructor. If the schema is not
+ * `"public"`, this must be supplied manually.
+ */ class PostgrestClient {
     // TODO: Add back shouldThrowOnError once we figure out the typings
     /**
      * Creates a PostgREST client.
@@ -1455,7 +1285,7 @@ class PostgrestClient {
      * @param options.fetch - Custom fetch
      */ constructor(url, { headers = {}, schema, fetch } = {}){
         this.url = url;
-        this.headers = Object.assign(Object.assign({}, (0, _constants.DEFAULT_HEADERS)), headers);
+        this.headers = Object.assign(Object.assign({}, constants_1.DEFAULT_HEADERS), headers);
         this.schemaName = schema;
         this.fetch = fetch;
     }
@@ -1465,7 +1295,7 @@ class PostgrestClient {
      * @param relation - The table or view name to query
      */ from(relation) {
         const url = new URL(`${this.url}/${relation}`);
-        return new (0, _postgrestQueryBuilderDefault.default)(url, {
+        return new PostgrestQueryBuilder_1.default(url, {
             headers: Object.assign({}, this.headers),
             schema: this.schemaName,
             fetch: this.fetch
@@ -1492,6 +1322,8 @@ class PostgrestClient {
      * @param options - Named parameters
      * @param options.head - When set to `true`, `data` will not be returned.
      * Useful if you only need the count.
+     * @param options.get - When set to `true`, the function will be called with
+     * read-only access mode.
      * @param options.count - Count algorithm to use to count rows returned by the
      * function. Only applicable for [set-returning
      * functions](https://www.postgresql.org/docs/current/functions-srf.html).
@@ -1504,14 +1336,20 @@ class PostgrestClient {
      *
      * `"estimated"`: Uses exact count for low numbers and planned count for high
      * numbers.
-     */ rpc(fn, args = {}, { head = false, count } = {}) {
+     */ rpc(fn, args = {}, { head = false, get = false, count } = {}) {
         let method;
         const url = new URL(`${this.url}/rpc/${fn}`);
         let body;
-        if (head) {
-            method = "HEAD";
-            Object.entries(args).forEach(([name, value])=>{
-                url.searchParams.append(name, `${value}`);
+        if (head || get) {
+            method = head ? "HEAD" : "GET";
+            Object.entries(args)// params with undefined value needs to be filtered out, otherwise it'll
+            // show up as `?param=undefined`
+            .filter(([_, value])=>value !== undefined)// array values need special syntax
+            .map(([name, value])=>[
+                    name,
+                    Array.isArray(value) ? `{${value.join(",")}}` : `${value}`
+                ]).forEach(([name, value])=>{
+                url.searchParams.append(name, value);
             });
         } else {
             method = "POST";
@@ -1519,7 +1357,7 @@ class PostgrestClient {
         }
         const headers = Object.assign({}, this.headers);
         if (count) headers["Prefer"] = `count=${count}`;
-        return new (0, _postgrestFilterBuilderDefault.default)({
+        return new PostgrestFilterBuilder_1.default({
             method,
             url,
             headers,
@@ -1532,11 +1370,17 @@ class PostgrestClient {
 }
 exports.default = PostgrestClient;
 
-},{"./PostgrestQueryBuilder":"jwebE","./PostgrestFilterBuilder":"74Xif","./constants":"9Nukl","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jwebE":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _postgrestFilterBuilder = require("./PostgrestFilterBuilder");
-var _postgrestFilterBuilderDefault = parcelHelpers.interopDefault(_postgrestFilterBuilder);
+},{"46c45ba978d8f946":"1tKlz","a418b29a37404612":"3TOT2","56170df5c50b72a8":"2jZXN"}],"1tKlz":[function(require,module,exports) {
+"use strict";
+var __importDefault = this && this.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : {
+        "default": mod
+    };
+};
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const PostgrestFilterBuilder_1 = __importDefault(require("d92f25ea3845826e"));
 class PostgrestQueryBuilder {
     constructor(url, { headers = {}, schema, fetch }){
         this.url = url;
@@ -1575,7 +1419,7 @@ class PostgrestQueryBuilder {
         }).join("");
         this.url.searchParams.set("select", cleanedColumns);
         if (count) this.headers["Prefer"] = `count=${count}`;
-        return new (0, _postgrestFilterBuilderDefault.default)({
+        return new PostgrestFilterBuilder_1.default({
             method,
             url: this.url,
             headers: this.headers,
@@ -1625,7 +1469,7 @@ class PostgrestQueryBuilder {
                 this.url.searchParams.set("columns", uniqueColumns.join(","));
             }
         }
-        return new (0, _postgrestFilterBuilderDefault.default)({
+        return new PostgrestFilterBuilder_1.default({
             method,
             url: this.url,
             headers: this.headers,
@@ -1691,7 +1535,7 @@ class PostgrestQueryBuilder {
                 this.url.searchParams.set("columns", uniqueColumns.join(","));
             }
         }
-        return new (0, _postgrestFilterBuilderDefault.default)({
+        return new PostgrestFilterBuilder_1.default({
             method,
             url: this.url,
             headers: this.headers,
@@ -1727,7 +1571,7 @@ class PostgrestQueryBuilder {
         if (this.headers["Prefer"]) prefersHeaders.push(this.headers["Prefer"]);
         if (count) prefersHeaders.push(`count=${count}`);
         this.headers["Prefer"] = prefersHeaders.join(",");
-        return new (0, _postgrestFilterBuilderDefault.default)({
+        return new PostgrestFilterBuilder_1.default({
             method,
             url: this.url,
             headers: this.headers,
@@ -1761,7 +1605,7 @@ class PostgrestQueryBuilder {
         if (count) prefersHeaders.push(`count=${count}`);
         if (this.headers["Prefer"]) prefersHeaders.unshift(this.headers["Prefer"]);
         this.headers["Prefer"] = prefersHeaders.join(",");
-        return new (0, _postgrestFilterBuilderDefault.default)({
+        return new PostgrestFilterBuilder_1.default({
             method,
             url: this.url,
             headers: this.headers,
@@ -1773,12 +1617,18 @@ class PostgrestQueryBuilder {
 }
 exports.default = PostgrestQueryBuilder;
 
-},{"./PostgrestFilterBuilder":"74Xif","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"74Xif":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _postgrestTransformBuilder = require("./PostgrestTransformBuilder");
-var _postgrestTransformBuilderDefault = parcelHelpers.interopDefault(_postgrestTransformBuilder);
-class PostgrestFilterBuilder extends (0, _postgrestTransformBuilderDefault.default) {
+},{"d92f25ea3845826e":"3TOT2"}],"3TOT2":[function(require,module,exports) {
+"use strict";
+var __importDefault = this && this.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : {
+        "default": mod
+    };
+};
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const PostgrestTransformBuilder_1 = __importDefault(require("f4f4faf3c6f1b259"));
+class PostgrestFilterBuilder extends PostgrestTransformBuilder_1.default {
     /**
      * Match only rows where `column` is equal to `value`.
      *
@@ -1910,7 +1760,7 @@ class PostgrestFilterBuilder extends (0, _postgrestTransformBuilderDefault.defau
      * @param column - The column to filter on
      * @param values - The values array to filter with
      */ in(column, values) {
-        const cleanedValues = values.map((s)=>{
+        const cleanedValues = Array.from(new Set(values)).map((s)=>{
             // handle postgrest reserved characters
             // https://postgrest.org/en/v7.0.0/api.html#reserved-characters
             if (typeof s === "string" && new RegExp("[,()]").test(s)) return `"${s}"`;
@@ -2100,12 +1950,18 @@ class PostgrestFilterBuilder extends (0, _postgrestTransformBuilderDefault.defau
 }
 exports.default = PostgrestFilterBuilder;
 
-},{"./PostgrestTransformBuilder":"fenGJ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fenGJ":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _postgrestBuilder = require("./PostgrestBuilder");
-var _postgrestBuilderDefault = parcelHelpers.interopDefault(_postgrestBuilder);
-class PostgrestTransformBuilder extends (0, _postgrestBuilderDefault.default) {
+},{"f4f4faf3c6f1b259":"3BTTd"}],"3BTTd":[function(require,module,exports) {
+"use strict";
+var __importDefault = this && this.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : {
+        "default": mod
+    };
+};
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const PostgrestBuilder_1 = __importDefault(require("389721aef4055205"));
+class PostgrestTransformBuilder extends PostgrestBuilder_1.default {
     /**
      * Perform a SELECT on the query result.
      *
@@ -2165,7 +2021,7 @@ class PostgrestTransformBuilder extends (0, _postgrestBuilderDefault.default) {
         return this;
     }
     /**
-     * Limit the query result by starting at an offset (`from`) and ending at the offset (`from + to`).
+     * Limit the query result by starting at an offset `from` and ending at the offset `to`.
      * Only records within this range are returned.
      * This respects the query order and if there is no order clause the range could behave unexpectedly.
      * The `from` and `to` values are 0-based and inclusive: `range(1, 3)` will include the second, third
@@ -2281,20 +2137,26 @@ class PostgrestTransformBuilder extends (0, _postgrestBuilderDefault.default) {
      * Override the type of the returned `data`.
      *
      * @typeParam NewResult - The new result type to override with
+     * @deprecated Use overrideTypes<yourType, { merge: false }>() method at the end of your call chain instead
      */ returns() {
         return this;
     }
 }
 exports.default = PostgrestTransformBuilder;
 
-},{"./PostgrestBuilder":"bNa5A","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"bNa5A":[function(require,module,exports) {
+},{"389721aef4055205":"ksW6G"}],"ksW6G":[function(require,module,exports) {
+"use strict";
+var __importDefault = this && this.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : {
+        "default": mod
+    };
+};
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 // @ts-ignore
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _nodeFetch = require("@supabase/node-fetch");
-var _nodeFetchDefault = parcelHelpers.interopDefault(_nodeFetch);
-var _postgrestError = require("./PostgrestError");
-var _postgrestErrorDefault = parcelHelpers.interopDefault(_postgrestError);
+const node_fetch_1 = __importDefault(require("a07474f6bfb42ff0"));
+const PostgrestError_1 = __importDefault(require("d8f4708fc301a50"));
 class PostgrestBuilder {
     constructor(builder){
         this.shouldThrowOnError = false;
@@ -2307,7 +2169,7 @@ class PostgrestBuilder {
         this.signal = builder.signal;
         this.isMaybeSingle = builder.isMaybeSingle;
         if (builder.fetch) this.fetch = builder.fetch;
-        else if (typeof fetch === "undefined") this.fetch = (0, _nodeFetchDefault.default);
+        else if (typeof fetch === "undefined") this.fetch = node_fetch_1.default;
         else this.fetch = fetch;
     }
     /**
@@ -2317,6 +2179,13 @@ class PostgrestBuilder {
      * {@link https://github.com/supabase/supabase-js/issues/92}
      */ throwOnError() {
         this.shouldThrowOnError = true;
+        return this;
+    }
+    /**
+     * Set an HTTP header for the request.
+     */ setHeader(name, value) {
+        this.headers = Object.assign({}, this.headers);
+        this.headers[name] = value;
         return this;
     }
     then(onfulfilled, onrejected) {
@@ -2397,7 +2266,7 @@ class PostgrestBuilder {
                     status = 200;
                     statusText = "OK";
                 }
-                if (error && this.shouldThrowOnError) throw new (0, _postgrestErrorDefault.default)(error);
+                if (error && this.shouldThrowOnError) throw new PostgrestError_1.default(error);
             }
             const postgrestResponse = {
                 error,
@@ -2425,10 +2294,42 @@ class PostgrestBuilder {
         });
         return res.then(onfulfilled, onrejected);
     }
+    /**
+     * Override the type of the returned `data`.
+     *
+     * @typeParam NewResult - The new result type to override with
+     * @deprecated Use overrideTypes<yourType, { merge: false }>() method at the end of your call chain instead
+     */ returns() {
+        /* istanbul ignore next */ return this;
+    }
+    /**
+     * Override the type of the returned `data` field in the response.
+     *
+     * @typeParam NewResult - The new type to cast the response data to
+     * @typeParam Options - Optional type configuration (defaults to { merge: true })
+     * @typeParam Options.merge - When true, merges the new type with existing return type. When false, replaces the existing types entirely (defaults to true)
+     * @example
+     * ```typescript
+     * // Merge with existing types (default behavior)
+     * const query = supabase
+     *   .from('users')
+     *   .select()
+     *   .overrideTypes<{ custom_field: string }>()
+     *
+     * // Replace existing types completely
+     * const replaceQuery = supabase
+     *   .from('users')
+     *   .select()
+     *   .overrideTypes<{ id: number; name: string }, { merge: false }>()
+     * ```
+     * @returns A PostgrestBuilder instance with the new type
+     */ overrideTypes() {
+        return this;
+    }
 }
 exports.default = PostgrestBuilder;
 
-},{"@supabase/node-fetch":"9dHVQ","./PostgrestError":"9FOR6","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9dHVQ":[function(require,module,exports) {
+},{"a07474f6bfb42ff0":"9dHVQ","d8f4708fc301a50":"6BQVU"}],"9dHVQ":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "fetch", ()=>fetch);
@@ -2454,10 +2355,16 @@ const Headers = globalObject.Headers;
 const Request = globalObject.Request;
 const Response = globalObject.Response;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9FOR6":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-class PostgrestError extends Error {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6BQVU":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+/**
+ * Error format
+ *
+ * {@link https://postgrest.org/en/stable/api.html?highlight=options#errors-and-http-status-codes}
+ */ class PostgrestError extends Error {
     constructor(context){
         super(context.message);
         this.name = "PostgrestError";
@@ -2468,22 +2375,26 @@ class PostgrestError extends Error {
 }
 exports.default = PostgrestError;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9Nukl":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "DEFAULT_HEADERS", ()=>DEFAULT_HEADERS);
-var _version = require("./version");
-const DEFAULT_HEADERS = {
-    "X-Client-Info": `postgrest-js/${(0, _version.version)}`
+},{}],"2jZXN":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.DEFAULT_HEADERS = void 0;
+const version_1 = require("f6ef08da709cffa4");
+exports.DEFAULT_HEADERS = {
+    "X-Client-Info": `postgrest-js/${version_1.version}`
 };
 
-},{"./version":"01LBd","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"01LBd":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "version", ()=>version);
-const version = "1.9.2";
+},{"f6ef08da709cffa4":"dt910"}],"dt910":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.version = void 0;
+exports.version = "0.0.0-automated";
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"bPg7h":[function(require,module,exports) {
+},{}],"ii5aX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "RealtimePresence", ()=>(0, _realtimePresenceDefault.default));
@@ -2501,44 +2412,58 @@ var _realtimeChannelDefault = parcelHelpers.interopDefault(_realtimeChannel);
 var _realtimePresence = require("./RealtimePresence");
 var _realtimePresenceDefault = parcelHelpers.interopDefault(_realtimePresence);
 
-},{"./RealtimeClient":"9StQZ","./RealtimeChannel":"3y5oj","./RealtimePresence":"fyQCP","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9StQZ":[function(require,module,exports) {
+},{"./RealtimeClient":"40Ac7","./RealtimeChannel":"7VOkr","./RealtimePresence":"7hJI0","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"40Ac7":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
+var _webSocket = require("./WebSocket");
+var _webSocketDefault = parcelHelpers.interopDefault(_webSocket);
 var _constants = require("./lib/constants");
-var _timer = require("./lib/timer");
-var _timerDefault = parcelHelpers.interopDefault(_timer);
 var _serializer = require("./lib/serializer");
 var _serializerDefault = parcelHelpers.interopDefault(_serializer);
+var _timer = require("./lib/timer");
+var _timerDefault = parcelHelpers.interopDefault(_timer);
+var _transformers = require("./lib/transformers");
 var _realtimeChannel = require("./RealtimeChannel");
 var _realtimeChannelDefault = parcelHelpers.interopDefault(_realtimeChannel);
 const noop = ()=>{};
-const NATIVE_WEBSOCKET_AVAILABLE = typeof WebSocket !== "undefined";
+const WORKER_SCRIPT = `
+  addEventListener("message", (e) => {
+    if (e.data.event === "start") {
+      setInterval(() => postMessage({ event: "keepAlive" }), e.data.interval);
+    }
+  });`;
 class RealtimeClient {
     /**
      * Initializes the Socket.
      *
      * @param endPoint The string WebSocket endpoint, ie, "ws://example.com/socket", "wss://example.com", "/socket" (inherited host & protocol)
-     * @param options.transport The Websocket Transport, for example WebSocket.
+     * @param httpEndpoint The string HTTP endpoint, ie, "https://example.com", "/" (inherited host & protocol)
+     * @param options.transport The Websocket Transport, for example WebSocket. This can be a custom implementation
      * @param options.timeout The default timeout in milliseconds to trigger push timeouts.
      * @param options.params The optional params to pass when connecting.
      * @param options.headers The optional headers to pass when connecting.
      * @param options.heartbeatIntervalMs The millisec interval to send a heartbeat message.
      * @param options.logger The optional function for specialized logging, ie: logger: (kind, msg, data) => { console.log(`${kind}: ${msg}`, data) }
+     * @param options.logLevel Sets the log level for Realtime
      * @param options.encode The function to encode outgoing messages. Defaults to JSON: (payload, callback) => callback(JSON.stringify(payload))
      * @param options.decode The function to decode incoming messages. Defaults to Serializer's decode.
      * @param options.reconnectAfterMs he optional function that returns the millsec reconnect interval. Defaults to stepped backoff off.
+     * @param options.worker Use Web Worker to set a side flow. Defaults to false.
+     * @param options.workerUrl The URL of the worker script. Defaults to https://realtime.supabase.com/worker.js that includes a heartbeat event call to keep the connection alive.
      */ constructor(endPoint, options){
         var _a;
-        this.accessToken = null;
+        this.accessTokenValue = null;
         this.apiKey = null;
-        this.channels = [];
+        this.channels = new Array();
         this.endPoint = "";
+        this.httpEndpoint = "";
         this.headers = (0, _constants.DEFAULT_HEADERS);
         this.params = {};
         this.timeout = (0, _constants.DEFAULT_TIMEOUT);
-        this.heartbeatIntervalMs = 30000;
+        this.heartbeatIntervalMs = 25000;
         this.heartbeatTimer = undefined;
         this.pendingHeartbeatRef = null;
+        this.heartbeatCallback = noop;
         this.ref = 0;
         this.logger = noop;
         this.conn = null;
@@ -2550,6 +2475,7 @@ class RealtimeClient {
             error: [],
             message: []
         };
+        this.accessToken = null;
         /**
          * Use either custom fetch, if provided, or default fetch to make HTTP requests
          *
@@ -2557,22 +2483,29 @@ class RealtimeClient {
          */ this._resolveFetch = (customFetch)=>{
             let _fetch;
             if (customFetch) _fetch = customFetch;
-            else if (typeof fetch === "undefined") _fetch = (...args)=>require("686c165d9a4dadb8").then(({ default: fetch1 })=>fetch1(...args));
+            else if (typeof fetch === "undefined") _fetch = (...args)=>require("3ea8640035012c43").then(({ default: fetch1 })=>fetch1(...args));
             else _fetch = fetch;
             return (...args)=>_fetch(...args);
         };
         this.endPoint = `${endPoint}/${(0, _constants.TRANSPORTS).websocket}`;
+        this.httpEndpoint = (0, _transformers.httpEndpointURL)(endPoint);
         if (options === null || options === void 0 ? void 0 : options.transport) this.transport = options.transport;
         else this.transport = null;
         if (options === null || options === void 0 ? void 0 : options.params) this.params = options.params;
         if (options === null || options === void 0 ? void 0 : options.headers) this.headers = Object.assign(Object.assign({}, this.headers), options.headers);
         if (options === null || options === void 0 ? void 0 : options.timeout) this.timeout = options.timeout;
         if (options === null || options === void 0 ? void 0 : options.logger) this.logger = options.logger;
+        if ((options === null || options === void 0 ? void 0 : options.logLevel) || (options === null || options === void 0 ? void 0 : options.log_level)) {
+            this.logLevel = options.logLevel || options.log_level;
+            this.params = Object.assign(Object.assign({}, this.params), {
+                log_level: this.logLevel
+            });
+        }
         if (options === null || options === void 0 ? void 0 : options.heartbeatIntervalMs) this.heartbeatIntervalMs = options.heartbeatIntervalMs;
-        const accessToken = (_a = options === null || options === void 0 ? void 0 : options.params) === null || _a === void 0 ? void 0 : _a.apikey;
-        if (accessToken) {
-            this.accessToken = accessToken;
-            this.apiKey = accessToken;
+        const accessTokenValue = (_a = options === null || options === void 0 ? void 0 : options.params) === null || _a === void 0 ? void 0 : _a.apikey;
+        if (accessTokenValue) {
+            this.accessTokenValue = accessTokenValue;
+            this.apiKey = accessTokenValue;
         }
         this.reconnectAfterMs = (options === null || options === void 0 ? void 0 : options.reconnectAfterMs) ? options.reconnectAfterMs : (tries)=>{
             return [
@@ -2591,33 +2524,41 @@ class RealtimeClient {
             this.connect();
         }, this.reconnectAfterMs);
         this.fetch = this._resolveFetch(options === null || options === void 0 ? void 0 : options.fetch);
+        if (options === null || options === void 0 ? void 0 : options.worker) {
+            if (typeof window !== "undefined" && !window.Worker) throw new Error("Web Worker is not supported");
+            this.worker = (options === null || options === void 0 ? void 0 : options.worker) || false;
+            this.workerUrl = options === null || options === void 0 ? void 0 : options.workerUrl;
+        }
+        this.accessToken = (options === null || options === void 0 ? void 0 : options.accessToken) || null;
     }
     /**
      * Connects the socket, unless already connected.
      */ connect() {
         if (this.conn) return;
+        if (!this.transport) this.transport = (0, _webSocketDefault.default);
         if (this.transport) {
-            this.conn = new this.transport(this._endPointURL(), undefined, {
+            // Detect if using the native browser WebSocket
+            const isBrowser = typeof window !== "undefined" && this.transport === window.WebSocket;
+            if (isBrowser) this.conn = new this.transport(this.endpointURL());
+            else this.conn = new this.transport(this.endpointURL(), undefined, {
                 headers: this.headers
             });
-            return;
-        }
-        if (NATIVE_WEBSOCKET_AVAILABLE) {
-            this.conn = new WebSocket(this._endPointURL());
             this.setupConnection();
             return;
         }
-        this.conn = new WSWebSocketDummy(this._endPointURL(), undefined, {
+        this.conn = new WSWebSocketDummy(this.endpointURL(), undefined, {
             close: ()=>{
                 this.conn = null;
             }
         });
-        require("54b999c92533dd13").then(({ default: WS })=>{
-            this.conn = new WS(this._endPointURL(), undefined, {
-                headers: this.headers
-            });
-            this.setupConnection();
-        });
+    }
+    /**
+     * Returns the URL of the websocket.
+     * @returns string The URL of the websocket.
+     */ endpointURL() {
+        return this._appendParams(this.endPoint, Object.assign({}, this.params, {
+            vsn: (0, _constants.VSN)
+        }));
     }
     /**
      * Disconnects the socket.
@@ -2633,6 +2574,7 @@ class RealtimeClient {
             // remove open handles
             this.heartbeatTimer && clearInterval(this.heartbeatTimer);
             this.reconnectTimer.reset();
+            this.channels.forEach((channel)=>channel.teardown());
         }
     }
     /**
@@ -2645,6 +2587,7 @@ class RealtimeClient {
      * @param channel A RealtimeChannel instance
      */ async removeChannel(channel) {
         const status = await channel.unsubscribe();
+        this.channels = this.channels.filter((c)=>c._joinRef !== channel._joinRef);
         if (this.channels.length === 0) this.disconnect();
         return status;
     }
@@ -2652,6 +2595,7 @@ class RealtimeClient {
      * Unsubscribes and removes all channels
      */ async removeAllChannels() {
         const values_1 = await Promise.all(this.channels.map((channel)=>channel.unsubscribe()));
+        this.channels = [];
         this.disconnect();
         return values_1;
     }
@@ -2684,9 +2628,13 @@ class RealtimeClient {
     channel(topic, params = {
         config: {}
     }) {
-        const chan = new (0, _realtimeChannelDefault.default)(`realtime:${topic}`, params, this);
-        this.channels.push(chan);
-        return chan;
+        const realtimeTopic = `realtime:${topic}`;
+        const exists = this.getChannels().find((c)=>c.topic === realtimeTopic);
+        if (!exists) {
+            const chan = new (0, _realtimeChannelDefault.default)(`realtime:${topic}`, params, this);
+            this.channels.push(chan);
+            return chan;
+        } else return exists;
     }
     /**
      * Push out a message if the socket is connected.
@@ -2707,17 +2655,61 @@ class RealtimeClient {
     /**
      * Sets the JWT access token used for channel subscription authorization and Realtime RLS.
      *
-     * @param token A JWT string.
-     */ setAuth(token) {
-        this.accessToken = token;
-        this.channels.forEach((channel)=>{
-            token && channel.updateJoinPayload({
-                access_token: token
+     * If param is null it will use the `accessToken` callback function or the token set on the client.
+     *
+     * On callback used, it will set the value of the token internal to the client.
+     *
+     * @param token A JWT string to override the token set on the client.
+     */ async setAuth(token = null) {
+        let tokenToSend = token || this.accessToken && await this.accessToken() || this.accessTokenValue;
+        if (this.accessTokenValue != tokenToSend) {
+            this.accessTokenValue = tokenToSend;
+            this.channels.forEach((channel)=>{
+                tokenToSend && channel.updateJoinPayload({
+                    access_token: tokenToSend,
+                    version: this.headers && this.headers["X-Client-Info"]
+                });
+                if (channel.joinedOnce && channel._isJoined()) channel._push((0, _constants.CHANNEL_EVENTS).access_token, {
+                    access_token: tokenToSend
+                });
             });
-            if (channel.joinedOnce && channel._isJoined()) channel._push((0, _constants.CHANNEL_EVENTS).access_token, {
-                access_token: token
-            });
+        }
+    }
+    /**
+     * Sends a heartbeat message if the socket is connected.
+     */ async sendHeartbeat() {
+        var _a;
+        if (!this.isConnected()) {
+            this.heartbeatCallback("disconnected");
+            return;
+        }
+        if (this.pendingHeartbeatRef) {
+            this.pendingHeartbeatRef = null;
+            this.log("transport", "heartbeat timeout. Attempting to re-establish connection");
+            this.heartbeatCallback("timeout");
+            (_a = this.conn) === null || _a === void 0 || _a.close((0, _constants.WS_CLOSE_NORMAL), "hearbeat timeout");
+            return;
+        }
+        this.pendingHeartbeatRef = this._makeRef();
+        this.push({
+            topic: "phoenix",
+            event: "heartbeat",
+            payload: {},
+            ref: this.pendingHeartbeatRef
         });
+        this.heartbeatCallback("sent");
+        await this.setAuth();
+    }
+    onHeartbeat(callback) {
+        this.heartbeatCallback = callback;
+    }
+    /**
+     * Flushes send buffer
+     */ flushSendBuffer() {
+        if (this.isConnected() && this.sendBuffer.length > 0) {
+            this.sendBuffer.forEach((callback)=>callback());
+            this.sendBuffer = [];
+        }
     }
     /**
      * Return the next message ref, accounting for overflows
@@ -2747,7 +2739,7 @@ class RealtimeClient {
      *
      * @internal
      */ _remove(channel) {
-        this.channels = this.channels.filter((c)=>c._joinRef() !== channel._joinRef());
+        this.channels = this.channels.filter((c)=>c.topic !== channel.topic);
     }
     /**
      * Sets up connection handlers.
@@ -2762,30 +2754,40 @@ class RealtimeClient {
             this.conn.onclose = (event)=>this._onConnClose(event);
         }
     }
-    /**
-     * Returns the URL of the websocket.
-     *
-     * @internal
-     */ _endPointURL() {
-        return this._appendParams(this.endPoint, Object.assign({}, this.params, {
-            vsn: (0, _constants.VSN)
-        }));
-    }
     /** @internal */ _onConnMessage(rawMessage) {
         this.decode(rawMessage.data, (msg)=>{
             let { topic, event, payload, ref } = msg;
-            if (ref && ref === this.pendingHeartbeatRef || event === (payload === null || payload === void 0 ? void 0 : payload.type)) this.pendingHeartbeatRef = null;
+            if (topic === "phoenix" && event === "phx_reply") this.heartbeatCallback(msg.payload.status == "ok" ? "ok" : "error");
+            if (ref && ref === this.pendingHeartbeatRef) this.pendingHeartbeatRef = null;
             this.log("receive", `${payload.status || ""} ${topic} ${event} ${ref && "(" + ref + ")" || ""}`, payload);
-            this.channels.filter((channel)=>channel._isMember(topic)).forEach((channel)=>channel._trigger(event, payload, ref));
+            Array.from(this.channels).filter((channel)=>channel._isMember(topic)).forEach((channel)=>channel._trigger(event, payload, ref));
             this.stateChangeCallbacks.message.forEach((callback)=>callback(msg));
         });
     }
     /** @internal */ _onConnOpen() {
-        this.log("transport", `connected to ${this._endPointURL()}`);
-        this._flushSendBuffer();
+        this.log("transport", `connected to ${this.endpointURL()}`);
+        this.flushSendBuffer();
         this.reconnectTimer.reset();
-        this.heartbeatTimer && clearInterval(this.heartbeatTimer);
-        this.heartbeatTimer = setInterval(()=>this._sendHeartbeat(), this.heartbeatIntervalMs);
+        if (!this.worker) {
+            this.heartbeatTimer && clearInterval(this.heartbeatTimer);
+            this.heartbeatTimer = setInterval(()=>this.sendHeartbeat(), this.heartbeatIntervalMs);
+        } else {
+            if (this.workerUrl) this.log("worker", `starting worker for from ${this.workerUrl}`);
+            else this.log("worker", `starting default worker`);
+            const objectUrl = this._workerObjectUrl(this.workerUrl);
+            this.workerRef = new Worker(objectUrl);
+            this.workerRef.onerror = (error)=>{
+                this.log("worker", "worker error", error.message);
+                this.workerRef.terminate();
+            };
+            this.workerRef.onmessage = (event)=>{
+                if (event.data.event === "keepAlive") this.sendHeartbeat();
+            };
+            this.workerRef.postMessage({
+                event: "start",
+                interval: this.heartbeatIntervalMs
+            });
+        }
         this.stateChangeCallbacks.open.forEach((callback)=>callback());
     }
     /** @internal */ _onConnClose(event) {
@@ -2809,29 +2811,18 @@ class RealtimeClient {
         const query = new URLSearchParams(params);
         return `${url}${prefix}${query}`;
     }
-    /** @internal */ _flushSendBuffer() {
-        if (this.isConnected() && this.sendBuffer.length > 0) {
-            this.sendBuffer.forEach((callback)=>callback());
-            this.sendBuffer = [];
+    _workerObjectUrl(url) {
+        let result_url;
+        if (url) result_url = url;
+        else {
+            const blob = new Blob([
+                WORKER_SCRIPT
+            ], {
+                type: "application/javascript"
+            });
+            result_url = URL.createObjectURL(blob);
         }
-    }
-    /** @internal */ _sendHeartbeat() {
-        var _a;
-        if (!this.isConnected()) return;
-        if (this.pendingHeartbeatRef) {
-            this.pendingHeartbeatRef = null;
-            this.log("transport", "heartbeat timeout. Attempting to re-establish connection");
-            (_a = this.conn) === null || _a === void 0 || _a.close((0, _constants.WS_CLOSE_NORMAL), "hearbeat timeout");
-            return;
-        }
-        this.pendingHeartbeatRef = this._makeRef();
-        this.push({
-            topic: "phoenix",
-            event: "heartbeat",
-            payload: {},
-            ref: this.pendingHeartbeatRef
-        });
-        this.setAuth(this.accessToken);
+        return result_url;
     }
 }
 exports.default = RealtimeClient;
@@ -2850,11 +2841,30 @@ class WSWebSocketDummy {
     }
 }
 
-},{"./lib/constants":"baTvE","./lib/timer":"3jJ9E","./lib/serializer":"cawXs","./RealtimeChannel":"3y5oj","686c165d9a4dadb8":"43ht9","54b999c92533dd13":"izjQf","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"baTvE":[function(require,module,exports) {
+},{"./WebSocket":"ekMYD","./lib/constants":"jdaS4","./lib/serializer":"4eoeK","./lib/timer":"2kNsn","./lib/transformers":"iXNeD","./RealtimeChannel":"7VOkr","3ea8640035012c43":"43ht9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ekMYD":[function(require,module,exports) {
+// Node.js WebSocket entry point
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+let WebSocketImpl;
+if (typeof window === "undefined") // Node.js environment
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+WebSocketImpl = require("d1b242186eb9c967");
+else // Browser environment
+WebSocketImpl = window.WebSocket;
+exports.default = WebSocketImpl;
+
+},{"d1b242186eb9c967":"4OuWD","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4OuWD":[function(require,module,exports) {
+"use strict";
+module.exports = function() {
+    throw new Error("ws does not work in the browser. Browser clients must use the native WebSocket object");
+};
+
+},{}],"jdaS4":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "DEFAULT_HEADERS", ()=>DEFAULT_HEADERS);
 parcelHelpers.export(exports, "VSN", ()=>VSN);
+parcelHelpers.export(exports, "VERSION", ()=>VERSION);
 parcelHelpers.export(exports, "DEFAULT_TIMEOUT", ()=>DEFAULT_TIMEOUT);
 parcelHelpers.export(exports, "WS_CLOSE_NORMAL", ()=>WS_CLOSE_NORMAL);
 parcelHelpers.export(exports, "SOCKET_STATES", ()=>SOCKET_STATES);
@@ -2867,6 +2877,7 @@ const DEFAULT_HEADERS = {
     "X-Client-Info": `realtime-js/${(0, _version.version)}`
 };
 const VSN = "1.0.0";
+const VERSION = (0, _version.version);
 const DEFAULT_TIMEOUT = 10000;
 const WS_CLOSE_NORMAL = 1000;
 var SOCKET_STATES;
@@ -2905,51 +2916,13 @@ var CONNECTION_STATE;
     CONNECTION_STATE["Closed"] = "closed";
 })(CONNECTION_STATE || (CONNECTION_STATE = {}));
 
-},{"./version":"5ASfR","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"5ASfR":[function(require,module,exports) {
+},{"./version":"eUdX4","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"eUdX4":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "version", ()=>version);
-const version = "2.9.3";
+const version = "2.11.10";
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3jJ9E":[function(require,module,exports) {
-/**
- * Creates a timer that accepts a `timerCalc` function to perform calculated timeout retries, such as exponential backoff.
- *
- * @example
- *    let reconnectTimer = new Timer(() => this.connect(), function(tries){
- *      return [1000, 5000, 10000][tries - 1] || 10000
- *    })
- *    reconnectTimer.scheduleTimeout() // fires after 1000
- *    reconnectTimer.scheduleTimeout() // fires after 5000
- *    reconnectTimer.reset()
- *    reconnectTimer.scheduleTimeout() // fires after 1000
- */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-class Timer {
-    constructor(callback, timerCalc){
-        this.callback = callback;
-        this.timerCalc = timerCalc;
-        this.timer = undefined;
-        this.tries = 0;
-        this.callback = callback;
-        this.timerCalc = timerCalc;
-    }
-    reset() {
-        this.tries = 0;
-        clearTimeout(this.timer);
-    }
-    // Cancels any previous scheduleTimeout and schedules callback
-    scheduleTimeout() {
-        clearTimeout(this.timer);
-        this.timer = setTimeout(()=>{
-            this.tries = this.tries + 1;
-            this.callback();
-        }, this.timerCalc(this.tries + 1));
-    }
-}
-exports.default = Timer;
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cawXs":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4eoeK":[function(require,module,exports) {
 // This file draws heavily from https://github.com/phoenixframework/phoenix/commit/cf098e9cf7a44ee6479d31d911a97d3c7430c6fe
 // License: https://github.com/phoenixframework/phoenix/blob/master/LICENSE.md
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -2987,7 +2960,206 @@ class Serializer {
 }
 exports.default = Serializer;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3y5oj":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2kNsn":[function(require,module,exports) {
+/**
+ * Creates a timer that accepts a `timerCalc` function to perform calculated timeout retries, such as exponential backoff.
+ *
+ * @example
+ *    let reconnectTimer = new Timer(() => this.connect(), function(tries){
+ *      return [1000, 5000, 10000][tries - 1] || 10000
+ *    })
+ *    reconnectTimer.scheduleTimeout() // fires after 1000
+ *    reconnectTimer.scheduleTimeout() // fires after 5000
+ *    reconnectTimer.reset()
+ *    reconnectTimer.scheduleTimeout() // fires after 1000
+ */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+class Timer {
+    constructor(callback, timerCalc){
+        this.callback = callback;
+        this.timerCalc = timerCalc;
+        this.timer = undefined;
+        this.tries = 0;
+        this.callback = callback;
+        this.timerCalc = timerCalc;
+    }
+    reset() {
+        this.tries = 0;
+        clearTimeout(this.timer);
+    }
+    // Cancels any previous scheduleTimeout and schedules callback
+    scheduleTimeout() {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(()=>{
+            this.tries = this.tries + 1;
+            this.callback();
+        }, this.timerCalc(this.tries + 1));
+    }
+}
+exports.default = Timer;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"iXNeD":[function(require,module,exports) {
+/**
+ * Helpers to convert the change Payload into native JS types.
+ */ // Adapted from epgsql (src/epgsql_binary.erl), this module licensed under
+// 3-clause BSD found here: https://raw.githubusercontent.com/epgsql/epgsql/devel/LICENSE
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "PostgresTypes", ()=>PostgresTypes);
+parcelHelpers.export(exports, "convertChangeData", ()=>convertChangeData);
+parcelHelpers.export(exports, "convertColumn", ()=>convertColumn);
+parcelHelpers.export(exports, "convertCell", ()=>convertCell);
+parcelHelpers.export(exports, "toBoolean", ()=>toBoolean);
+parcelHelpers.export(exports, "toNumber", ()=>toNumber);
+parcelHelpers.export(exports, "toJson", ()=>toJson);
+parcelHelpers.export(exports, "toArray", ()=>toArray);
+parcelHelpers.export(exports, "toTimestampString", ()=>toTimestampString);
+parcelHelpers.export(exports, "httpEndpointURL", ()=>httpEndpointURL);
+var PostgresTypes;
+(function(PostgresTypes) {
+    PostgresTypes["abstime"] = "abstime";
+    PostgresTypes["bool"] = "bool";
+    PostgresTypes["date"] = "date";
+    PostgresTypes["daterange"] = "daterange";
+    PostgresTypes["float4"] = "float4";
+    PostgresTypes["float8"] = "float8";
+    PostgresTypes["int2"] = "int2";
+    PostgresTypes["int4"] = "int4";
+    PostgresTypes["int4range"] = "int4range";
+    PostgresTypes["int8"] = "int8";
+    PostgresTypes["int8range"] = "int8range";
+    PostgresTypes["json"] = "json";
+    PostgresTypes["jsonb"] = "jsonb";
+    PostgresTypes["money"] = "money";
+    PostgresTypes["numeric"] = "numeric";
+    PostgresTypes["oid"] = "oid";
+    PostgresTypes["reltime"] = "reltime";
+    PostgresTypes["text"] = "text";
+    PostgresTypes["time"] = "time";
+    PostgresTypes["timestamp"] = "timestamp";
+    PostgresTypes["timestamptz"] = "timestamptz";
+    PostgresTypes["timetz"] = "timetz";
+    PostgresTypes["tsrange"] = "tsrange";
+    PostgresTypes["tstzrange"] = "tstzrange";
+})(PostgresTypes || (PostgresTypes = {}));
+const convertChangeData = (columns, record, options = {})=>{
+    var _a;
+    const skipTypes = (_a = options.skipTypes) !== null && _a !== void 0 ? _a : [];
+    return Object.keys(record).reduce((acc, rec_key)=>{
+        acc[rec_key] = convertColumn(rec_key, columns, record, skipTypes);
+        return acc;
+    }, {});
+};
+const convertColumn = (columnName, columns, record, skipTypes)=>{
+    const column = columns.find((x)=>x.name === columnName);
+    const colType = column === null || column === void 0 ? void 0 : column.type;
+    const value = record[columnName];
+    if (colType && !skipTypes.includes(colType)) return convertCell(colType, value);
+    return noop(value);
+};
+const convertCell = (type, value)=>{
+    // if data type is an array
+    if (type.charAt(0) === "_") {
+        const dataType = type.slice(1, type.length);
+        return toArray(value, dataType);
+    }
+    // If not null, convert to correct type.
+    switch(type){
+        case PostgresTypes.bool:
+            return toBoolean(value);
+        case PostgresTypes.float4:
+        case PostgresTypes.float8:
+        case PostgresTypes.int2:
+        case PostgresTypes.int4:
+        case PostgresTypes.int8:
+        case PostgresTypes.numeric:
+        case PostgresTypes.oid:
+            return toNumber(value);
+        case PostgresTypes.json:
+        case PostgresTypes.jsonb:
+            return toJson(value);
+        case PostgresTypes.timestamp:
+            return toTimestampString(value); // Format to be consistent with PostgREST
+        case PostgresTypes.abstime:
+        case PostgresTypes.date:
+        case PostgresTypes.daterange:
+        case PostgresTypes.int4range:
+        case PostgresTypes.int8range:
+        case PostgresTypes.money:
+        case PostgresTypes.reltime:
+        case PostgresTypes.text:
+        case PostgresTypes.time:
+        case PostgresTypes.timestamptz:
+        case PostgresTypes.timetz:
+        case PostgresTypes.tsrange:
+        case PostgresTypes.tstzrange:
+            return noop(value);
+        default:
+            // Return the value for remaining types
+            return noop(value);
+    }
+};
+const noop = (value)=>{
+    return value;
+};
+const toBoolean = (value)=>{
+    switch(value){
+        case "t":
+            return true;
+        case "f":
+            return false;
+        default:
+            return value;
+    }
+};
+const toNumber = (value)=>{
+    if (typeof value === "string") {
+        const parsedValue = parseFloat(value);
+        if (!Number.isNaN(parsedValue)) return parsedValue;
+    }
+    return value;
+};
+const toJson = (value)=>{
+    if (typeof value === "string") try {
+        return JSON.parse(value);
+    } catch (error) {
+        console.log(`JSON parse error: ${error}`);
+        return value;
+    }
+    return value;
+};
+const toArray = (value, type)=>{
+    if (typeof value !== "string") return value;
+    const lastIdx = value.length - 1;
+    const closeBrace = value[lastIdx];
+    const openBrace = value[0];
+    // Confirm value is a Postgres array by checking curly brackets
+    if (openBrace === "{" && closeBrace === "}") {
+        let arr;
+        const valTrim = value.slice(1, lastIdx);
+        // TODO: find a better solution to separate Postgres array data
+        try {
+            arr = JSON.parse("[" + valTrim + "]");
+        } catch (_) {
+            // WARNING: splitting on comma does not cover all edge cases
+            arr = valTrim ? valTrim.split(",") : [];
+        }
+        return arr.map((val)=>convertCell(type, val));
+    }
+    return value;
+};
+const toTimestampString = (value)=>{
+    if (typeof value === "string") return value.replace(" ", "T");
+    return value;
+};
+const httpEndpointURL = (socketUrl)=>{
+    let url = socketUrl;
+    url = url.replace(/^ws/i, "http");
+    url = url.replace(/(\/socket\/websocket|\/socket|\/websocket)\/?$/i, "");
+    return url.replace(/\/+$/, "");
+};
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7VOkr":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "REALTIME_POSTGRES_CHANGES_LISTEN_EVENT", ()=>REALTIME_POSTGRES_CHANGES_LISTEN_EVENT);
@@ -3013,9 +3185,8 @@ var REALTIME_LISTEN_TYPES;
 (function(REALTIME_LISTEN_TYPES) {
     REALTIME_LISTEN_TYPES["BROADCAST"] = "broadcast";
     REALTIME_LISTEN_TYPES["PRESENCE"] = "presence";
-    /**
-     * listen to Postgres changes.
-     */ REALTIME_LISTEN_TYPES["POSTGRES_CHANGES"] = "postgres_changes";
+    REALTIME_LISTEN_TYPES["POSTGRES_CHANGES"] = "postgres_changes";
+    REALTIME_LISTEN_TYPES["SYSTEM"] = "system";
 })(REALTIME_LISTEN_TYPES || (REALTIME_LISTEN_TYPES = {}));
 var REALTIME_SUBSCRIBE_STATES;
 (function(REALTIME_SUBSCRIBE_STATES) {
@@ -3044,7 +3215,8 @@ class RealtimeChannel {
             },
             presence: {
                 key: ""
-            }
+            },
+            private: false
         }, params.config);
         this.timeout = this.socket.timeout;
         this.joinPush = new (0, _pushDefault.default)(this, (0, _constants.CHANNEL_EVENTS).join, this.params, this.timeout);
@@ -3077,33 +3249,35 @@ class RealtimeChannel {
             this._trigger(this._replyEventName(ref), payload);
         });
         this.presence = new (0, _realtimePresenceDefault.default)(this);
-        this.broadcastEndpointURL = this._broadcastEndpointURL();
+        this.broadcastEndpointURL = (0, _transformers.httpEndpointURL)(this.socket.endPoint) + "/api/broadcast";
+        this.private = this.params.config.private || false;
     }
     /** Subscribe registers your client with the server */ subscribe(callback, timeout = this.timeout) {
         var _a, _b;
         if (!this.socket.isConnected()) this.socket.connect();
         if (this.joinedOnce) throw `tried to subscribe multiple times. 'subscribe' can only be called a single time per channel instance`;
         else {
-            const { config: { broadcast, presence } } = this.params;
-            this._onError((e)=>callback && callback("CHANNEL_ERROR", e));
-            this._onClose(()=>callback && callback("CLOSED"));
+            const { config: { broadcast, presence, private: isPrivate } } = this.params;
+            this._onError((e)=>callback === null || callback === void 0 ? void 0 : callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, e));
+            this._onClose(()=>callback === null || callback === void 0 ? void 0 : callback(REALTIME_SUBSCRIBE_STATES.CLOSED));
             const accessTokenPayload = {};
             const config = {
                 broadcast,
                 presence,
-                postgres_changes: (_b = (_a = this.bindings.postgres_changes) === null || _a === void 0 ? void 0 : _a.map((r)=>r.filter)) !== null && _b !== void 0 ? _b : []
+                postgres_changes: (_b = (_a = this.bindings.postgres_changes) === null || _a === void 0 ? void 0 : _a.map((r)=>r.filter)) !== null && _b !== void 0 ? _b : [],
+                private: isPrivate
             };
-            if (this.socket.accessToken) accessTokenPayload.access_token = this.socket.accessToken;
+            if (this.socket.accessTokenValue) accessTokenPayload.access_token = this.socket.accessTokenValue;
             this.updateJoinPayload(Object.assign({
                 config
             }, accessTokenPayload));
             this.joinedOnce = true;
             this._rejoin(timeout);
-            this.joinPush.receive("ok", ({ postgres_changes: serverPostgresFilters })=>{
+            this.joinPush.receive("ok", async ({ postgres_changes })=>{
                 var _a;
-                this.socket.accessToken && this.socket.setAuth(this.socket.accessToken);
-                if (serverPostgresFilters === undefined) {
-                    callback && callback("SUBSCRIBED");
+                this.socket.setAuth();
+                if (postgres_changes === undefined) {
+                    callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.SUBSCRIBED);
                     return;
                 } else {
                     const clientPostgresBindings = this.bindings.postgres_changes;
@@ -3112,25 +3286,27 @@ class RealtimeChannel {
                     for(let i = 0; i < bindingsLen; i++){
                         const clientPostgresBinding = clientPostgresBindings[i];
                         const { filter: { event, schema, table, filter } } = clientPostgresBinding;
-                        const serverPostgresFilter = serverPostgresFilters && serverPostgresFilters[i];
+                        const serverPostgresFilter = postgres_changes && postgres_changes[i];
                         if (serverPostgresFilter && serverPostgresFilter.event === event && serverPostgresFilter.schema === schema && serverPostgresFilter.table === table && serverPostgresFilter.filter === filter) newPostgresBindings.push(Object.assign(Object.assign({}, clientPostgresBinding), {
                             id: serverPostgresFilter.id
                         }));
                         else {
                             this.unsubscribe();
-                            callback && callback("CHANNEL_ERROR", new Error("mismatch between server and client bindings for postgres changes"));
+                            this.state = (0, _constants.CHANNEL_STATES).errored;
+                            callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, new Error("mismatch between server and client bindings for postgres changes"));
                             return;
                         }
                     }
                     this.bindings.postgres_changes = newPostgresBindings;
-                    callback && callback("SUBSCRIBED");
+                    callback && callback(REALTIME_SUBSCRIBE_STATES.SUBSCRIBED);
                     return;
                 }
             }).receive("error", (error)=>{
-                callback && callback("CHANNEL_ERROR", new Error(JSON.stringify(Object.values(error).join(", ") || "error")));
+                this.state = (0, _constants.CHANNEL_STATES).errored;
+                callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, new Error(JSON.stringify(Object.values(error).join(", ") || "error")));
                 return;
             }).receive("timeout", ()=>{
-                callback && callback("TIMED_OUT");
+                callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.TIMED_OUT);
                 return;
             });
         }
@@ -3167,10 +3343,12 @@ class RealtimeChannel {
         var _a, _b;
         if (!this._canPush() && args.type === "broadcast") {
             const { event, payload: endpoint_payload } = args;
+            const authorization = this.socket.accessTokenValue ? `Bearer ${this.socket.accessTokenValue}` : "";
             const options = {
                 method: "POST",
                 headers: {
-                    apikey: (_a = this.socket.apiKey) !== null && _a !== void 0 ? _a : "",
+                    Authorization: authorization,
+                    apikey: this.socket.apiKey ? this.socket.apiKey : "",
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -3178,15 +3356,16 @@ class RealtimeChannel {
                         {
                             topic: this.subTopic,
                             event,
-                            payload: endpoint_payload
+                            payload: endpoint_payload,
+                            private: this.private
                         }
                     ]
                 })
             };
             try {
-                const response = await this._fetchWithTimeout(this.broadcastEndpointURL, options, (_b = opts.timeout) !== null && _b !== void 0 ? _b : this.timeout);
-                if (response.ok) return "ok";
-                else return "error";
+                const response = await this._fetchWithTimeout(this.broadcastEndpointURL, options, (_a = opts.timeout) !== null && _a !== void 0 ? _a : this.timeout);
+                await ((_b = response.body) === null || _b === void 0 ? void 0 : _b.cancel());
+                return response.ok ? "ok" : "error";
             } catch (error) {
                 if (error.name === "AbortError") return "timed out";
                 else return "error";
@@ -3196,6 +3375,7 @@ class RealtimeChannel {
             const push = this._push(args.type, args, opts.timeout || this.timeout);
             if (args.type === "broadcast" && !((_c = (_b = (_a = this.params) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.broadcast) === null || _c === void 0 ? void 0 : _c.ack)) resolve("ok");
             push.receive("ok", ()=>resolve("ok"));
+            push.receive("error", ()=>resolve("error"));
             push.receive("timeout", ()=>resolve("timed out"));
         });
     }
@@ -3216,8 +3396,6 @@ class RealtimeChannel {
             this.socket.log("channel", `leave ${this.topic}`);
             this._trigger((0, _constants.CHANNEL_EVENTS).close, "leave", this._joinRef());
         };
-        this.rejoinTimer.reset();
-        // Destroy joinPush to avoid connection timeouts during unscription phase
         this.joinPush.destroy();
         return new Promise((resolve)=>{
             const leavePush = new (0, _pushDefault.default)(this, (0, _constants.CHANNEL_EVENTS).leave, {}, timeout);
@@ -3234,13 +3412,16 @@ class RealtimeChannel {
             if (!this._canPush()) leavePush.trigger("ok", {});
         });
     }
-    /** @internal */ _broadcastEndpointURL() {
-        let url = this.socket.endPoint;
-        url = url.replace(/^ws/i, "http");
-        url = url.replace(/(\/socket\/websocket|\/socket|\/websocket)\/?$/i, "");
-        return url.replace(/\/+$/, "") + "/api/broadcast";
+    /**
+     * Teardown the channel.
+     *
+     * Destroys and stops related timers.
+     */ teardown() {
+        this.pushBuffer.forEach((push)=>push.destroy());
+        this.rejoinTimer && clearTimeout(this.rejoinTimer.timer);
+        this.joinPush.destroy();
     }
-    async _fetchWithTimeout(url, options, timeout) {
+    /** @internal */ async _fetchWithTimeout(url, options, timeout) {
         const controller = new AbortController();
         const id = setTimeout(()=>controller.abort(), timeout);
         const response = await this.socket.fetch(url, Object.assign(Object.assign({}, options), {
@@ -3416,7 +3597,7 @@ class RealtimeChannel {
 }
 exports.default = RealtimeChannel;
 
-},{"./lib/constants":"baTvE","./lib/push":"g5xOC","./lib/timer":"3jJ9E","./RealtimePresence":"fyQCP","./lib/transformers":"j1edV","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"g5xOC":[function(require,module,exports) {
+},{"./lib/constants":"jdaS4","./lib/push":"9YEgh","./lib/timer":"2kNsn","./RealtimePresence":"7hJI0","./lib/transformers":"iXNeD","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9YEgh":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _constants = require("../lib/constants");
@@ -3515,7 +3696,7 @@ class Push {
 }
 exports.default = Push;
 
-},{"../lib/constants":"baTvE","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fyQCP":[function(require,module,exports) {
+},{"../lib/constants":"jdaS4","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7hJI0":[function(require,module,exports) {
 /*
   This file draws heavily from https://github.com/phoenixframework/phoenix/blob/d344ec0a732ab4ee204215b31de69cf4be72e3bf/assets/js/phoenix/presence.js
   License: https://github.com/phoenixframework/phoenix/blob/d344ec0a732ab4ee204215b31de69cf4be72e3bf/LICENSE.md
@@ -3717,264 +3898,7 @@ class RealtimePresence {
 }
 exports.default = RealtimePresence;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"j1edV":[function(require,module,exports) {
-/**
- * Helpers to convert the change Payload into native JS types.
- */ // Adapted from epgsql (src/epgsql_binary.erl), this module licensed under
-// 3-clause BSD found here: https://raw.githubusercontent.com/epgsql/epgsql/devel/LICENSE
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "PostgresTypes", ()=>PostgresTypes);
-parcelHelpers.export(exports, "convertChangeData", ()=>convertChangeData);
-parcelHelpers.export(exports, "convertColumn", ()=>convertColumn);
-parcelHelpers.export(exports, "convertCell", ()=>convertCell);
-parcelHelpers.export(exports, "toBoolean", ()=>toBoolean);
-parcelHelpers.export(exports, "toNumber", ()=>toNumber);
-parcelHelpers.export(exports, "toJson", ()=>toJson);
-parcelHelpers.export(exports, "toArray", ()=>toArray);
-parcelHelpers.export(exports, "toTimestampString", ()=>toTimestampString);
-var PostgresTypes;
-(function(PostgresTypes) {
-    PostgresTypes["abstime"] = "abstime";
-    PostgresTypes["bool"] = "bool";
-    PostgresTypes["date"] = "date";
-    PostgresTypes["daterange"] = "daterange";
-    PostgresTypes["float4"] = "float4";
-    PostgresTypes["float8"] = "float8";
-    PostgresTypes["int2"] = "int2";
-    PostgresTypes["int4"] = "int4";
-    PostgresTypes["int4range"] = "int4range";
-    PostgresTypes["int8"] = "int8";
-    PostgresTypes["int8range"] = "int8range";
-    PostgresTypes["json"] = "json";
-    PostgresTypes["jsonb"] = "jsonb";
-    PostgresTypes["money"] = "money";
-    PostgresTypes["numeric"] = "numeric";
-    PostgresTypes["oid"] = "oid";
-    PostgresTypes["reltime"] = "reltime";
-    PostgresTypes["text"] = "text";
-    PostgresTypes["time"] = "time";
-    PostgresTypes["timestamp"] = "timestamp";
-    PostgresTypes["timestamptz"] = "timestamptz";
-    PostgresTypes["timetz"] = "timetz";
-    PostgresTypes["tsrange"] = "tsrange";
-    PostgresTypes["tstzrange"] = "tstzrange";
-})(PostgresTypes || (PostgresTypes = {}));
-const convertChangeData = (columns, record, options = {})=>{
-    var _a;
-    const skipTypes = (_a = options.skipTypes) !== null && _a !== void 0 ? _a : [];
-    return Object.keys(record).reduce((acc, rec_key)=>{
-        acc[rec_key] = convertColumn(rec_key, columns, record, skipTypes);
-        return acc;
-    }, {});
-};
-const convertColumn = (columnName, columns, record, skipTypes)=>{
-    const column = columns.find((x)=>x.name === columnName);
-    const colType = column === null || column === void 0 ? void 0 : column.type;
-    const value = record[columnName];
-    if (colType && !skipTypes.includes(colType)) return convertCell(colType, value);
-    return noop(value);
-};
-const convertCell = (type, value)=>{
-    // if data type is an array
-    if (type.charAt(0) === "_") {
-        const dataType = type.slice(1, type.length);
-        return toArray(value, dataType);
-    }
-    // If not null, convert to correct type.
-    switch(type){
-        case PostgresTypes.bool:
-            return toBoolean(value);
-        case PostgresTypes.float4:
-        case PostgresTypes.float8:
-        case PostgresTypes.int2:
-        case PostgresTypes.int4:
-        case PostgresTypes.int8:
-        case PostgresTypes.numeric:
-        case PostgresTypes.oid:
-            return toNumber(value);
-        case PostgresTypes.json:
-        case PostgresTypes.jsonb:
-            return toJson(value);
-        case PostgresTypes.timestamp:
-            return toTimestampString(value); // Format to be consistent with PostgREST
-        case PostgresTypes.abstime:
-        case PostgresTypes.date:
-        case PostgresTypes.daterange:
-        case PostgresTypes.int4range:
-        case PostgresTypes.int8range:
-        case PostgresTypes.money:
-        case PostgresTypes.reltime:
-        case PostgresTypes.text:
-        case PostgresTypes.time:
-        case PostgresTypes.timestamptz:
-        case PostgresTypes.timetz:
-        case PostgresTypes.tsrange:
-        case PostgresTypes.tstzrange:
-            return noop(value);
-        default:
-            // Return the value for remaining types
-            return noop(value);
-    }
-};
-const noop = (value)=>{
-    return value;
-};
-const toBoolean = (value)=>{
-    switch(value){
-        case "t":
-            return true;
-        case "f":
-            return false;
-        default:
-            return value;
-    }
-};
-const toNumber = (value)=>{
-    if (typeof value === "string") {
-        const parsedValue = parseFloat(value);
-        if (!Number.isNaN(parsedValue)) return parsedValue;
-    }
-    return value;
-};
-const toJson = (value)=>{
-    if (typeof value === "string") try {
-        return JSON.parse(value);
-    } catch (error) {
-        console.log(`JSON parse error: ${error}`);
-        return value;
-    }
-    return value;
-};
-const toArray = (value, type)=>{
-    if (typeof value !== "string") return value;
-    const lastIdx = value.length - 1;
-    const closeBrace = value[lastIdx];
-    const openBrace = value[0];
-    // Confirm value is a Postgres array by checking curly brackets
-    if (openBrace === "{" && closeBrace === "}") {
-        let arr;
-        const valTrim = value.slice(1, lastIdx);
-        // TODO: find a better solution to separate Postgres array data
-        try {
-            arr = JSON.parse("[" + valTrim + "]");
-        } catch (_) {
-            // WARNING: splitting on comma does not cover all edge cases
-            arr = valTrim ? valTrim.split(",") : [];
-        }
-        return arr.map((val)=>convertCell(type, val));
-    }
-    return value;
-};
-const toTimestampString = (value)=>{
-    if (typeof value === "string") return value.replace(" ", "T");
-    return value;
-};
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"izjQf":[function(require,module,exports) {
-module.exports = require("ef89156a0f6dcf3a")(require("727874d91c0ce2f6").getBundleURL("gnRNX") + "browser.7ada82ab.js" + "?" + Date.now()).catch((err)=>{
-    delete module.bundle.cache[module.id];
-    throw err;
-}).then(()=>module.bundle.root("4OuWD"));
-
-},{"ef89156a0f6dcf3a":"61B45","727874d91c0ce2f6":"lgJ39"}],"61B45":[function(require,module,exports) {
-"use strict";
-var cacheLoader = require("ca2a84f7fa4a3bb0");
-module.exports = cacheLoader(function(bundle) {
-    return new Promise(function(resolve, reject) {
-        // Don't insert the same script twice (e.g. if it was already in the HTML)
-        var existingScripts = document.getElementsByTagName("script");
-        if ([].concat(existingScripts).some(function isCurrentBundle(script) {
-            return script.src === bundle;
-        })) {
-            resolve();
-            return;
-        }
-        var preloadLink = document.createElement("link");
-        preloadLink.href = bundle;
-        preloadLink.rel = "preload";
-        preloadLink.as = "script";
-        document.head.appendChild(preloadLink);
-        var script = document.createElement("script");
-        script.async = true;
-        script.type = "text/javascript";
-        script.src = bundle;
-        script.onerror = function(e) {
-            var error = new TypeError("Failed to fetch dynamically imported module: ".concat(bundle, ". Error: ").concat(e.message));
-            script.onerror = script.onload = null;
-            script.remove();
-            reject(error);
-        };
-        script.onload = function() {
-            script.onerror = script.onload = null;
-            resolve();
-        };
-        document.getElementsByTagName("head")[0].appendChild(script);
-    });
-});
-
-},{"ca2a84f7fa4a3bb0":"j49pS"}],"j49pS":[function(require,module,exports) {
-"use strict";
-var cachedBundles = {};
-var cachedPreloads = {};
-var cachedPrefetches = {};
-function getCache(type) {
-    switch(type){
-        case "preload":
-            return cachedPreloads;
-        case "prefetch":
-            return cachedPrefetches;
-        default:
-            return cachedBundles;
-    }
-}
-module.exports = function(loader, type) {
-    return function(bundle) {
-        var cache = getCache(type);
-        if (cache[bundle]) return cache[bundle];
-        return cache[bundle] = loader.apply(null, arguments).catch(function(e) {
-            delete cache[bundle];
-            throw e;
-        });
-    };
-};
-
-},{}],"lgJ39":[function(require,module,exports) {
-"use strict";
-var bundleURL = {};
-function getBundleURLCached(id) {
-    var value = bundleURL[id];
-    if (!value) {
-        value = getBundleURL();
-        bundleURL[id] = value;
-    }
-    return value;
-}
-function getBundleURL() {
-    try {
-        throw new Error();
-    } catch (err) {
-        var matches = ("" + err.stack).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^)\n]+/g);
-        if (matches) // The first two stack frames will be this function and getBundleURLCached.
-        // Use the 3rd one, which will be a runtime in the original bundle.
-        return getBaseURL(matches[2]);
-    }
-    return "/";
-}
-function getBaseURL(url) {
-    return ("" + url).replace(/^((?:https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/.+)\/[^/]+$/, "$1") + "/";
-}
-// TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
-function getOrigin(url) {
-    var matches = ("" + url).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^/]+/);
-    if (!matches) throw new Error("Origin not found");
-    return matches[0];
-}
-exports.getBundleURL = getBundleURLCached;
-exports.getBaseURL = getBaseURL;
-exports.getOrigin = getOrigin;
-
-},{}],"8f7kf":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8f7kf":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "StorageClient", ()=>(0, _storageClient.StorageClient));
@@ -4011,6 +3935,7 @@ parcelHelpers.defineInteropFlag(exports);
 var _errors = require("../lib/errors");
 var _fetch = require("../lib/fetch");
 var _helpers = require("../lib/helpers");
+var Buffer = require("ebcf743ac8dd004a").Buffer;
 var __awaiter = undefined && undefined.__awaiter || function(thisArg, _arguments, P, generator) {
     function adopt(value) {
         return value instanceof P ? value : new P(function(resolve) {
@@ -4069,21 +3994,26 @@ class StorageFileApi {
             try {
                 let body;
                 const options = Object.assign(Object.assign({}, DEFAULT_FILE_OPTIONS), fileOptions);
-                const headers = Object.assign(Object.assign({}, this.headers), method === "POST" && {
+                let headers = Object.assign(Object.assign({}, this.headers), method === "POST" && {
                     "x-upsert": String(options.upsert)
                 });
+                const metadata = options.metadata;
                 if (typeof Blob !== "undefined" && fileBody instanceof Blob) {
                     body = new FormData();
                     body.append("cacheControl", options.cacheControl);
+                    if (metadata) body.append("metadata", this.encodeMetadata(metadata));
                     body.append("", fileBody);
                 } else if (typeof FormData !== "undefined" && fileBody instanceof FormData) {
                     body = fileBody;
                     body.append("cacheControl", options.cacheControl);
+                    if (metadata) body.append("metadata", this.encodeMetadata(metadata));
                 } else {
                     body = fileBody;
                     headers["cache-control"] = `max-age=${options.cacheControl}`;
                     headers["content-type"] = options.contentType;
+                    if (metadata) headers["x-metadata"] = this.toBase64(this.encodeMetadata(metadata));
                 }
+                if (fileOptions === null || fileOptions === void 0 ? void 0 : fileOptions.headers) headers = Object.assign(Object.assign({}, headers), fileOptions.headers);
                 const cleanPath = this._removeEmptyFolders(path);
                 const _path = this._getFinalPath(cleanPath);
                 const res = yield this.fetch(`${this.url}/object/${_path}`, Object.assign({
@@ -4193,12 +4123,15 @@ class StorageFileApi {
      * Signed upload URLs can be used to upload files to the bucket without further authentication.
      * They are valid for 2 hours.
      * @param path The file path, including the current file name. For example `folder/image.png`.
-     */ createSignedUploadUrl(path) {
+     * @param options.upsert If set to true, allows the file to be overwritten if it already exists.
+     */ createSignedUploadUrl(path, options) {
         return __awaiter(this, void 0, void 0, function*() {
             try {
                 let _path = this._getFinalPath(path);
+                const headers = Object.assign({}, this.headers);
+                if (options === null || options === void 0 ? void 0 : options.upsert) headers["x-upsert"] = "true";
                 const data = yield (0, _fetch.post)(this.fetch, `${this.url}/object/upload/sign/${_path}`, {}, {
-                    headers: this.headers
+                    headers
                 });
                 const url = new URL(this.url + data.url);
                 const token = url.searchParams.get("token");
@@ -4235,13 +4168,15 @@ class StorageFileApi {
      *
      * @param fromPath The original file path, including the current file name. For example `folder/image.png`.
      * @param toPath The new file path, including the new file name. For example `folder/image-new.png`.
-     */ move(fromPath, toPath) {
+     * @param options The destination options.
+     */ move(fromPath, toPath, options) {
         return __awaiter(this, void 0, void 0, function*() {
             try {
                 const data = yield (0, _fetch.post)(this.fetch, `${this.url}/object/move`, {
                     bucketId: this.bucketId,
                     sourceKey: fromPath,
-                    destinationKey: toPath
+                    destinationKey: toPath,
+                    destinationBucket: options === null || options === void 0 ? void 0 : options.destinationBucket
                 }, {
                     headers: this.headers
                 });
@@ -4263,13 +4198,15 @@ class StorageFileApi {
      *
      * @param fromPath The original file path, including the current file name. For example `folder/image.png`.
      * @param toPath The new file path, including the new file name. For example `folder/image-copy.png`.
-     */ copy(fromPath, toPath) {
+     * @param options The destination options.
+     */ copy(fromPath, toPath, options) {
         return __awaiter(this, void 0, void 0, function*() {
             try {
                 const data = yield (0, _fetch.post)(this.fetch, `${this.url}/object/copy`, {
                     bucketId: this.bucketId,
                     sourceKey: fromPath,
-                    destinationKey: toPath
+                    destinationKey: toPath,
+                    destinationBucket: options === null || options === void 0 ? void 0 : options.destinationBucket
                 }, {
                     headers: this.headers
                 });
@@ -4382,6 +4319,58 @@ class StorageFileApi {
                     data: null,
                     error
                 };
+                throw error;
+            }
+        });
+    }
+    /**
+     * Retrieves the details of an existing file.
+     * @param path
+     */ info(path) {
+        return __awaiter(this, void 0, void 0, function*() {
+            const _path = this._getFinalPath(path);
+            try {
+                const data = yield (0, _fetch.get)(this.fetch, `${this.url}/object/info/${_path}`, {
+                    headers: this.headers
+                });
+                return {
+                    data: (0, _helpers.recursiveToCamel)(data),
+                    error: null
+                };
+            } catch (error) {
+                if ((0, _errors.isStorageError)(error)) return {
+                    data: null,
+                    error
+                };
+                throw error;
+            }
+        });
+    }
+    /**
+     * Checks the existence of a file.
+     * @param path
+     */ exists(path) {
+        return __awaiter(this, void 0, void 0, function*() {
+            const _path = this._getFinalPath(path);
+            try {
+                yield (0, _fetch.head)(this.fetch, `${this.url}/object/${_path}`, {
+                    headers: this.headers
+                });
+                return {
+                    data: true,
+                    error: null
+                };
+            } catch (error) {
+                if ((0, _errors.isStorageError)(error) && error instanceof (0, _errors.StorageUnknownError)) {
+                    const originalError = error.originalError;
+                    if ([
+                        400,
+                        404
+                    ].includes(originalError === null || originalError === void 0 ? void 0 : originalError.status)) return {
+                        data: false,
+                        error
+                    };
+                }
                 throw error;
             }
         });
@@ -4517,6 +4506,13 @@ class StorageFileApi {
             }
         });
     }
+    encodeMetadata(metadata) {
+        return JSON.stringify(metadata);
+    }
+    toBase64(data) {
+        if (typeof Buffer !== "undefined") return Buffer.from(data).toString("base64");
+        return btoa(data);
+    }
     _getFinalPath(path) {
         return `${this.bucketId}/${path}`;
     }
@@ -4535,7 +4531,1603 @@ class StorageFileApi {
 }
 exports.default = StorageFileApi;
 
-},{"../lib/errors":"4rF0F","../lib/fetch":"ixSSW","../lib/helpers":"lqpHX","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4rF0F":[function(require,module,exports) {
+},{"ebcf743ac8dd004a":"fCgem","../lib/errors":"4rF0F","../lib/fetch":"ixSSW","../lib/helpers":"lqpHX","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fCgem":[function(require,module,exports) {
+/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <https://feross.org>
+ * @license  MIT
+ */ /* eslint-disable no-proto */ "use strict";
+const base64 = require("9c62938f1dccc73c");
+const ieee754 = require("aceacb6a4531a9d2");
+const customInspectSymbol = typeof Symbol === "function" && typeof Symbol["for"] === "function" // eslint-disable-line dot-notation
+ ? Symbol["for"]("nodejs.util.inspect.custom") // eslint-disable-line dot-notation
+ : null;
+exports.Buffer = Buffer;
+exports.SlowBuffer = SlowBuffer;
+exports.INSPECT_MAX_BYTES = 50;
+const K_MAX_LENGTH = 0x7fffffff;
+exports.kMaxLength = K_MAX_LENGTH;
+/**
+ * If `Buffer.TYPED_ARRAY_SUPPORT`:
+ *   === true    Use Uint8Array implementation (fastest)
+ *   === false   Print warning and recommend using `buffer` v4.x which has an Object
+ *               implementation (most compatible, even IE6)
+ *
+ * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
+ * Opera 11.6+, iOS 4.2+.
+ *
+ * We report that the browser does not support typed arrays if the are not subclassable
+ * using __proto__. Firefox 4-29 lacks support for adding new properties to `Uint8Array`
+ * (See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438). IE 10 lacks support
+ * for __proto__ and has a buggy typed array implementation.
+ */ Buffer.TYPED_ARRAY_SUPPORT = typedArraySupport();
+if (!Buffer.TYPED_ARRAY_SUPPORT && typeof console !== "undefined" && typeof console.error === "function") console.error("This browser lacks typed array (Uint8Array) support which is required by `buffer` v5.x. Use `buffer` v4.x if you require old browser support.");
+function typedArraySupport() {
+    // Can typed array instances can be augmented?
+    try {
+        const arr = new Uint8Array(1);
+        const proto = {
+            foo: function() {
+                return 42;
+            }
+        };
+        Object.setPrototypeOf(proto, Uint8Array.prototype);
+        Object.setPrototypeOf(arr, proto);
+        return arr.foo() === 42;
+    } catch (e) {
+        return false;
+    }
+}
+Object.defineProperty(Buffer.prototype, "parent", {
+    enumerable: true,
+    get: function() {
+        if (!Buffer.isBuffer(this)) return undefined;
+        return this.buffer;
+    }
+});
+Object.defineProperty(Buffer.prototype, "offset", {
+    enumerable: true,
+    get: function() {
+        if (!Buffer.isBuffer(this)) return undefined;
+        return this.byteOffset;
+    }
+});
+function createBuffer(length) {
+    if (length > K_MAX_LENGTH) throw new RangeError('The value "' + length + '" is invalid for option "size"');
+    // Return an augmented `Uint8Array` instance
+    const buf = new Uint8Array(length);
+    Object.setPrototypeOf(buf, Buffer.prototype);
+    return buf;
+}
+/**
+ * The Buffer constructor returns instances of `Uint8Array` that have their
+ * prototype changed to `Buffer.prototype`. Furthermore, `Buffer` is a subclass of
+ * `Uint8Array`, so the returned instances will have all the node `Buffer` methods
+ * and the `Uint8Array` methods. Square bracket notation works as expected -- it
+ * returns a single octet.
+ *
+ * The `Uint8Array` prototype remains unmodified.
+ */ function Buffer(arg, encodingOrOffset, length) {
+    // Common case.
+    if (typeof arg === "number") {
+        if (typeof encodingOrOffset === "string") throw new TypeError('The "string" argument must be of type string. Received type number');
+        return allocUnsafe(arg);
+    }
+    return from(arg, encodingOrOffset, length);
+}
+Buffer.poolSize = 8192 // not used by this implementation
+;
+function from(value, encodingOrOffset, length) {
+    if (typeof value === "string") return fromString(value, encodingOrOffset);
+    if (ArrayBuffer.isView(value)) return fromArrayView(value);
+    if (value == null) throw new TypeError("The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type " + typeof value);
+    if (isInstance(value, ArrayBuffer) || value && isInstance(value.buffer, ArrayBuffer)) return fromArrayBuffer(value, encodingOrOffset, length);
+    if (typeof SharedArrayBuffer !== "undefined" && (isInstance(value, SharedArrayBuffer) || value && isInstance(value.buffer, SharedArrayBuffer))) return fromArrayBuffer(value, encodingOrOffset, length);
+    if (typeof value === "number") throw new TypeError('The "value" argument must not be of type number. Received type number');
+    const valueOf = value.valueOf && value.valueOf();
+    if (valueOf != null && valueOf !== value) return Buffer.from(valueOf, encodingOrOffset, length);
+    const b = fromObject(value);
+    if (b) return b;
+    if (typeof Symbol !== "undefined" && Symbol.toPrimitive != null && typeof value[Symbol.toPrimitive] === "function") return Buffer.from(value[Symbol.toPrimitive]("string"), encodingOrOffset, length);
+    throw new TypeError("The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type " + typeof value);
+}
+/**
+ * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
+ * if value is a number.
+ * Buffer.from(str[, encoding])
+ * Buffer.from(array)
+ * Buffer.from(buffer)
+ * Buffer.from(arrayBuffer[, byteOffset[, length]])
+ **/ Buffer.from = function(value, encodingOrOffset, length) {
+    return from(value, encodingOrOffset, length);
+};
+// Note: Change prototype *after* Buffer.from is defined to workaround Chrome bug:
+// https://github.com/feross/buffer/pull/148
+Object.setPrototypeOf(Buffer.prototype, Uint8Array.prototype);
+Object.setPrototypeOf(Buffer, Uint8Array);
+function assertSize(size) {
+    if (typeof size !== "number") throw new TypeError('"size" argument must be of type number');
+    else if (size < 0) throw new RangeError('The value "' + size + '" is invalid for option "size"');
+}
+function alloc(size, fill, encoding) {
+    assertSize(size);
+    if (size <= 0) return createBuffer(size);
+    if (fill !== undefined) // Only pay attention to encoding if it's a string. This
+    // prevents accidentally sending in a number that would
+    // be interpreted as a start offset.
+    return typeof encoding === "string" ? createBuffer(size).fill(fill, encoding) : createBuffer(size).fill(fill);
+    return createBuffer(size);
+}
+/**
+ * Creates a new filled Buffer instance.
+ * alloc(size[, fill[, encoding]])
+ **/ Buffer.alloc = function(size, fill, encoding) {
+    return alloc(size, fill, encoding);
+};
+function allocUnsafe(size) {
+    assertSize(size);
+    return createBuffer(size < 0 ? 0 : checked(size) | 0);
+}
+/**
+ * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
+ * */ Buffer.allocUnsafe = function(size) {
+    return allocUnsafe(size);
+};
+/**
+ * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
+ */ Buffer.allocUnsafeSlow = function(size) {
+    return allocUnsafe(size);
+};
+function fromString(string, encoding) {
+    if (typeof encoding !== "string" || encoding === "") encoding = "utf8";
+    if (!Buffer.isEncoding(encoding)) throw new TypeError("Unknown encoding: " + encoding);
+    const length = byteLength(string, encoding) | 0;
+    let buf = createBuffer(length);
+    const actual = buf.write(string, encoding);
+    if (actual !== length) // Writing a hex string, for example, that contains invalid characters will
+    // cause everything after the first invalid character to be ignored. (e.g.
+    // 'abxxcd' will be treated as 'ab')
+    buf = buf.slice(0, actual);
+    return buf;
+}
+function fromArrayLike(array) {
+    const length = array.length < 0 ? 0 : checked(array.length) | 0;
+    const buf = createBuffer(length);
+    for(let i = 0; i < length; i += 1)buf[i] = array[i] & 255;
+    return buf;
+}
+function fromArrayView(arrayView) {
+    if (isInstance(arrayView, Uint8Array)) {
+        const copy = new Uint8Array(arrayView);
+        return fromArrayBuffer(copy.buffer, copy.byteOffset, copy.byteLength);
+    }
+    return fromArrayLike(arrayView);
+}
+function fromArrayBuffer(array, byteOffset, length) {
+    if (byteOffset < 0 || array.byteLength < byteOffset) throw new RangeError('"offset" is outside of buffer bounds');
+    if (array.byteLength < byteOffset + (length || 0)) throw new RangeError('"length" is outside of buffer bounds');
+    let buf;
+    if (byteOffset === undefined && length === undefined) buf = new Uint8Array(array);
+    else if (length === undefined) buf = new Uint8Array(array, byteOffset);
+    else buf = new Uint8Array(array, byteOffset, length);
+    // Return an augmented `Uint8Array` instance
+    Object.setPrototypeOf(buf, Buffer.prototype);
+    return buf;
+}
+function fromObject(obj) {
+    if (Buffer.isBuffer(obj)) {
+        const len = checked(obj.length) | 0;
+        const buf = createBuffer(len);
+        if (buf.length === 0) return buf;
+        obj.copy(buf, 0, 0, len);
+        return buf;
+    }
+    if (obj.length !== undefined) {
+        if (typeof obj.length !== "number" || numberIsNaN(obj.length)) return createBuffer(0);
+        return fromArrayLike(obj);
+    }
+    if (obj.type === "Buffer" && Array.isArray(obj.data)) return fromArrayLike(obj.data);
+}
+function checked(length) {
+    // Note: cannot use `length < K_MAX_LENGTH` here because that fails when
+    // length is NaN (which is otherwise coerced to zero.)
+    if (length >= K_MAX_LENGTH) throw new RangeError("Attempt to allocate Buffer larger than maximum size: 0x" + K_MAX_LENGTH.toString(16) + " bytes");
+    return length | 0;
+}
+function SlowBuffer(length) {
+    if (+length != length) length = 0;
+    return Buffer.alloc(+length);
+}
+Buffer.isBuffer = function isBuffer(b) {
+    return b != null && b._isBuffer === true && b !== Buffer.prototype // so Buffer.isBuffer(Buffer.prototype) will be false
+    ;
+};
+Buffer.compare = function compare(a, b) {
+    if (isInstance(a, Uint8Array)) a = Buffer.from(a, a.offset, a.byteLength);
+    if (isInstance(b, Uint8Array)) b = Buffer.from(b, b.offset, b.byteLength);
+    if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) throw new TypeError('The "buf1", "buf2" arguments must be one of type Buffer or Uint8Array');
+    if (a === b) return 0;
+    let x = a.length;
+    let y = b.length;
+    for(let i = 0, len = Math.min(x, y); i < len; ++i)if (a[i] !== b[i]) {
+        x = a[i];
+        y = b[i];
+        break;
+    }
+    if (x < y) return -1;
+    if (y < x) return 1;
+    return 0;
+};
+Buffer.isEncoding = function isEncoding(encoding) {
+    switch(String(encoding).toLowerCase()){
+        case "hex":
+        case "utf8":
+        case "utf-8":
+        case "ascii":
+        case "latin1":
+        case "binary":
+        case "base64":
+        case "ucs2":
+        case "ucs-2":
+        case "utf16le":
+        case "utf-16le":
+            return true;
+        default:
+            return false;
+    }
+};
+Buffer.concat = function concat(list, length) {
+    if (!Array.isArray(list)) throw new TypeError('"list" argument must be an Array of Buffers');
+    if (list.length === 0) return Buffer.alloc(0);
+    let i;
+    if (length === undefined) {
+        length = 0;
+        for(i = 0; i < list.length; ++i)length += list[i].length;
+    }
+    const buffer = Buffer.allocUnsafe(length);
+    let pos = 0;
+    for(i = 0; i < list.length; ++i){
+        let buf = list[i];
+        if (isInstance(buf, Uint8Array)) {
+            if (pos + buf.length > buffer.length) {
+                if (!Buffer.isBuffer(buf)) buf = Buffer.from(buf);
+                buf.copy(buffer, pos);
+            } else Uint8Array.prototype.set.call(buffer, buf, pos);
+        } else if (!Buffer.isBuffer(buf)) throw new TypeError('"list" argument must be an Array of Buffers');
+        else buf.copy(buffer, pos);
+        pos += buf.length;
+    }
+    return buffer;
+};
+function byteLength(string, encoding) {
+    if (Buffer.isBuffer(string)) return string.length;
+    if (ArrayBuffer.isView(string) || isInstance(string, ArrayBuffer)) return string.byteLength;
+    if (typeof string !== "string") throw new TypeError('The "string" argument must be one of type string, Buffer, or ArrayBuffer. Received type ' + typeof string);
+    const len = string.length;
+    const mustMatch = arguments.length > 2 && arguments[2] === true;
+    if (!mustMatch && len === 0) return 0;
+    // Use a for loop to avoid recursion
+    let loweredCase = false;
+    for(;;)switch(encoding){
+        case "ascii":
+        case "latin1":
+        case "binary":
+            return len;
+        case "utf8":
+        case "utf-8":
+            return utf8ToBytes(string).length;
+        case "ucs2":
+        case "ucs-2":
+        case "utf16le":
+        case "utf-16le":
+            return len * 2;
+        case "hex":
+            return len >>> 1;
+        case "base64":
+            return base64ToBytes(string).length;
+        default:
+            if (loweredCase) return mustMatch ? -1 : utf8ToBytes(string).length // assume utf8
+            ;
+            encoding = ("" + encoding).toLowerCase();
+            loweredCase = true;
+    }
+}
+Buffer.byteLength = byteLength;
+function slowToString(encoding, start, end) {
+    let loweredCase = false;
+    // No need to verify that "this.length <= MAX_UINT32" since it's a read-only
+    // property of a typed array.
+    // This behaves neither like String nor Uint8Array in that we set start/end
+    // to their upper/lower bounds if the value passed is out of range.
+    // undefined is handled specially as per ECMA-262 6th Edition,
+    // Section 13.3.3.7 Runtime Semantics: KeyedBindingInitialization.
+    if (start === undefined || start < 0) start = 0;
+    // Return early if start > this.length. Done here to prevent potential uint32
+    // coercion fail below.
+    if (start > this.length) return "";
+    if (end === undefined || end > this.length) end = this.length;
+    if (end <= 0) return "";
+    // Force coercion to uint32. This will also coerce falsey/NaN values to 0.
+    end >>>= 0;
+    start >>>= 0;
+    if (end <= start) return "";
+    if (!encoding) encoding = "utf8";
+    while(true)switch(encoding){
+        case "hex":
+            return hexSlice(this, start, end);
+        case "utf8":
+        case "utf-8":
+            return utf8Slice(this, start, end);
+        case "ascii":
+            return asciiSlice(this, start, end);
+        case "latin1":
+        case "binary":
+            return latin1Slice(this, start, end);
+        case "base64":
+            return base64Slice(this, start, end);
+        case "ucs2":
+        case "ucs-2":
+        case "utf16le":
+        case "utf-16le":
+            return utf16leSlice(this, start, end);
+        default:
+            if (loweredCase) throw new TypeError("Unknown encoding: " + encoding);
+            encoding = (encoding + "").toLowerCase();
+            loweredCase = true;
+    }
+}
+// This property is used by `Buffer.isBuffer` (and the `is-buffer` npm package)
+// to detect a Buffer instance. It's not possible to use `instanceof Buffer`
+// reliably in a browserify context because there could be multiple different
+// copies of the 'buffer' package in use. This method works even for Buffer
+// instances that were created from another copy of the `buffer` package.
+// See: https://github.com/feross/buffer/issues/154
+Buffer.prototype._isBuffer = true;
+function swap(b, n, m) {
+    const i = b[n];
+    b[n] = b[m];
+    b[m] = i;
+}
+Buffer.prototype.swap16 = function swap16() {
+    const len = this.length;
+    if (len % 2 !== 0) throw new RangeError("Buffer size must be a multiple of 16-bits");
+    for(let i = 0; i < len; i += 2)swap(this, i, i + 1);
+    return this;
+};
+Buffer.prototype.swap32 = function swap32() {
+    const len = this.length;
+    if (len % 4 !== 0) throw new RangeError("Buffer size must be a multiple of 32-bits");
+    for(let i = 0; i < len; i += 4){
+        swap(this, i, i + 3);
+        swap(this, i + 1, i + 2);
+    }
+    return this;
+};
+Buffer.prototype.swap64 = function swap64() {
+    const len = this.length;
+    if (len % 8 !== 0) throw new RangeError("Buffer size must be a multiple of 64-bits");
+    for(let i = 0; i < len; i += 8){
+        swap(this, i, i + 7);
+        swap(this, i + 1, i + 6);
+        swap(this, i + 2, i + 5);
+        swap(this, i + 3, i + 4);
+    }
+    return this;
+};
+Buffer.prototype.toString = function toString() {
+    const length = this.length;
+    if (length === 0) return "";
+    if (arguments.length === 0) return utf8Slice(this, 0, length);
+    return slowToString.apply(this, arguments);
+};
+Buffer.prototype.toLocaleString = Buffer.prototype.toString;
+Buffer.prototype.equals = function equals(b) {
+    if (!Buffer.isBuffer(b)) throw new TypeError("Argument must be a Buffer");
+    if (this === b) return true;
+    return Buffer.compare(this, b) === 0;
+};
+Buffer.prototype.inspect = function inspect() {
+    let str = "";
+    const max = exports.INSPECT_MAX_BYTES;
+    str = this.toString("hex", 0, max).replace(/(.{2})/g, "$1 ").trim();
+    if (this.length > max) str += " ... ";
+    return "<Buffer " + str + ">";
+};
+if (customInspectSymbol) Buffer.prototype[customInspectSymbol] = Buffer.prototype.inspect;
+Buffer.prototype.compare = function compare(target, start, end, thisStart, thisEnd) {
+    if (isInstance(target, Uint8Array)) target = Buffer.from(target, target.offset, target.byteLength);
+    if (!Buffer.isBuffer(target)) throw new TypeError('The "target" argument must be one of type Buffer or Uint8Array. Received type ' + typeof target);
+    if (start === undefined) start = 0;
+    if (end === undefined) end = target ? target.length : 0;
+    if (thisStart === undefined) thisStart = 0;
+    if (thisEnd === undefined) thisEnd = this.length;
+    if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) throw new RangeError("out of range index");
+    if (thisStart >= thisEnd && start >= end) return 0;
+    if (thisStart >= thisEnd) return -1;
+    if (start >= end) return 1;
+    start >>>= 0;
+    end >>>= 0;
+    thisStart >>>= 0;
+    thisEnd >>>= 0;
+    if (this === target) return 0;
+    let x = thisEnd - thisStart;
+    let y = end - start;
+    const len = Math.min(x, y);
+    const thisCopy = this.slice(thisStart, thisEnd);
+    const targetCopy = target.slice(start, end);
+    for(let i = 0; i < len; ++i)if (thisCopy[i] !== targetCopy[i]) {
+        x = thisCopy[i];
+        y = targetCopy[i];
+        break;
+    }
+    if (x < y) return -1;
+    if (y < x) return 1;
+    return 0;
+};
+// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
+// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
+//
+// Arguments:
+// - buffer - a Buffer to search
+// - val - a string, Buffer, or number
+// - byteOffset - an index into `buffer`; will be clamped to an int32
+// - encoding - an optional encoding, relevant is val is a string
+// - dir - true for indexOf, false for lastIndexOf
+function bidirectionalIndexOf(buffer, val, byteOffset, encoding, dir) {
+    // Empty buffer means no match
+    if (buffer.length === 0) return -1;
+    // Normalize byteOffset
+    if (typeof byteOffset === "string") {
+        encoding = byteOffset;
+        byteOffset = 0;
+    } else if (byteOffset > 0x7fffffff) byteOffset = 0x7fffffff;
+    else if (byteOffset < -2147483648) byteOffset = -2147483648;
+    byteOffset = +byteOffset // Coerce to Number.
+    ;
+    if (numberIsNaN(byteOffset)) // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
+    byteOffset = dir ? 0 : buffer.length - 1;
+    // Normalize byteOffset: negative offsets start from the end of the buffer
+    if (byteOffset < 0) byteOffset = buffer.length + byteOffset;
+    if (byteOffset >= buffer.length) {
+        if (dir) return -1;
+        else byteOffset = buffer.length - 1;
+    } else if (byteOffset < 0) {
+        if (dir) byteOffset = 0;
+        else return -1;
+    }
+    // Normalize val
+    if (typeof val === "string") val = Buffer.from(val, encoding);
+    // Finally, search either indexOf (if dir is true) or lastIndexOf
+    if (Buffer.isBuffer(val)) {
+        // Special case: looking for empty string/buffer always fails
+        if (val.length === 0) return -1;
+        return arrayIndexOf(buffer, val, byteOffset, encoding, dir);
+    } else if (typeof val === "number") {
+        val = val & 0xFF // Search for a byte value [0-255]
+        ;
+        if (typeof Uint8Array.prototype.indexOf === "function") {
+            if (dir) return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset);
+            else return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset);
+        }
+        return arrayIndexOf(buffer, [
+            val
+        ], byteOffset, encoding, dir);
+    }
+    throw new TypeError("val must be string, number or Buffer");
+}
+function arrayIndexOf(arr, val, byteOffset, encoding, dir) {
+    let indexSize = 1;
+    let arrLength = arr.length;
+    let valLength = val.length;
+    if (encoding !== undefined) {
+        encoding = String(encoding).toLowerCase();
+        if (encoding === "ucs2" || encoding === "ucs-2" || encoding === "utf16le" || encoding === "utf-16le") {
+            if (arr.length < 2 || val.length < 2) return -1;
+            indexSize = 2;
+            arrLength /= 2;
+            valLength /= 2;
+            byteOffset /= 2;
+        }
+    }
+    function read(buf, i) {
+        if (indexSize === 1) return buf[i];
+        else return buf.readUInt16BE(i * indexSize);
+    }
+    let i;
+    if (dir) {
+        let foundIndex = -1;
+        for(i = byteOffset; i < arrLength; i++)if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
+            if (foundIndex === -1) foundIndex = i;
+            if (i - foundIndex + 1 === valLength) return foundIndex * indexSize;
+        } else {
+            if (foundIndex !== -1) i -= i - foundIndex;
+            foundIndex = -1;
+        }
+    } else {
+        if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength;
+        for(i = byteOffset; i >= 0; i--){
+            let found = true;
+            for(let j = 0; j < valLength; j++)if (read(arr, i + j) !== read(val, j)) {
+                found = false;
+                break;
+            }
+            if (found) return i;
+        }
+    }
+    return -1;
+}
+Buffer.prototype.includes = function includes(val, byteOffset, encoding) {
+    return this.indexOf(val, byteOffset, encoding) !== -1;
+};
+Buffer.prototype.indexOf = function indexOf(val, byteOffset, encoding) {
+    return bidirectionalIndexOf(this, val, byteOffset, encoding, true);
+};
+Buffer.prototype.lastIndexOf = function lastIndexOf(val, byteOffset, encoding) {
+    return bidirectionalIndexOf(this, val, byteOffset, encoding, false);
+};
+function hexWrite(buf, string, offset, length) {
+    offset = Number(offset) || 0;
+    const remaining = buf.length - offset;
+    if (!length) length = remaining;
+    else {
+        length = Number(length);
+        if (length > remaining) length = remaining;
+    }
+    const strLen = string.length;
+    if (length > strLen / 2) length = strLen / 2;
+    let i;
+    for(i = 0; i < length; ++i){
+        const parsed = parseInt(string.substr(i * 2, 2), 16);
+        if (numberIsNaN(parsed)) return i;
+        buf[offset + i] = parsed;
+    }
+    return i;
+}
+function utf8Write(buf, string, offset, length) {
+    return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length);
+}
+function asciiWrite(buf, string, offset, length) {
+    return blitBuffer(asciiToBytes(string), buf, offset, length);
+}
+function base64Write(buf, string, offset, length) {
+    return blitBuffer(base64ToBytes(string), buf, offset, length);
+}
+function ucs2Write(buf, string, offset, length) {
+    return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length);
+}
+Buffer.prototype.write = function write(string, offset, length, encoding) {
+    // Buffer#write(string)
+    if (offset === undefined) {
+        encoding = "utf8";
+        length = this.length;
+        offset = 0;
+    // Buffer#write(string, encoding)
+    } else if (length === undefined && typeof offset === "string") {
+        encoding = offset;
+        length = this.length;
+        offset = 0;
+    // Buffer#write(string, offset[, length][, encoding])
+    } else if (isFinite(offset)) {
+        offset = offset >>> 0;
+        if (isFinite(length)) {
+            length = length >>> 0;
+            if (encoding === undefined) encoding = "utf8";
+        } else {
+            encoding = length;
+            length = undefined;
+        }
+    } else throw new Error("Buffer.write(string, encoding, offset[, length]) is no longer supported");
+    const remaining = this.length - offset;
+    if (length === undefined || length > remaining) length = remaining;
+    if (string.length > 0 && (length < 0 || offset < 0) || offset > this.length) throw new RangeError("Attempt to write outside buffer bounds");
+    if (!encoding) encoding = "utf8";
+    let loweredCase = false;
+    for(;;)switch(encoding){
+        case "hex":
+            return hexWrite(this, string, offset, length);
+        case "utf8":
+        case "utf-8":
+            return utf8Write(this, string, offset, length);
+        case "ascii":
+        case "latin1":
+        case "binary":
+            return asciiWrite(this, string, offset, length);
+        case "base64":
+            // Warning: maxLength not taken into account in base64Write
+            return base64Write(this, string, offset, length);
+        case "ucs2":
+        case "ucs-2":
+        case "utf16le":
+        case "utf-16le":
+            return ucs2Write(this, string, offset, length);
+        default:
+            if (loweredCase) throw new TypeError("Unknown encoding: " + encoding);
+            encoding = ("" + encoding).toLowerCase();
+            loweredCase = true;
+    }
+};
+Buffer.prototype.toJSON = function toJSON() {
+    return {
+        type: "Buffer",
+        data: Array.prototype.slice.call(this._arr || this, 0)
+    };
+};
+function base64Slice(buf, start, end) {
+    if (start === 0 && end === buf.length) return base64.fromByteArray(buf);
+    else return base64.fromByteArray(buf.slice(start, end));
+}
+function utf8Slice(buf, start, end) {
+    end = Math.min(buf.length, end);
+    const res = [];
+    let i = start;
+    while(i < end){
+        const firstByte = buf[i];
+        let codePoint = null;
+        let bytesPerSequence = firstByte > 0xEF ? 4 : firstByte > 0xDF ? 3 : firstByte > 0xBF ? 2 : 1;
+        if (i + bytesPerSequence <= end) {
+            let secondByte, thirdByte, fourthByte, tempCodePoint;
+            switch(bytesPerSequence){
+                case 1:
+                    if (firstByte < 0x80) codePoint = firstByte;
+                    break;
+                case 2:
+                    secondByte = buf[i + 1];
+                    if ((secondByte & 0xC0) === 0x80) {
+                        tempCodePoint = (firstByte & 0x1F) << 0x6 | secondByte & 0x3F;
+                        if (tempCodePoint > 0x7F) codePoint = tempCodePoint;
+                    }
+                    break;
+                case 3:
+                    secondByte = buf[i + 1];
+                    thirdByte = buf[i + 2];
+                    if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+                        tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | thirdByte & 0x3F;
+                        if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) codePoint = tempCodePoint;
+                    }
+                    break;
+                case 4:
+                    secondByte = buf[i + 1];
+                    thirdByte = buf[i + 2];
+                    fourthByte = buf[i + 3];
+                    if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+                        tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | fourthByte & 0x3F;
+                        if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) codePoint = tempCodePoint;
+                    }
+            }
+        }
+        if (codePoint === null) {
+            // we did not generate a valid codePoint so insert a
+            // replacement char (U+FFFD) and advance only 1 byte
+            codePoint = 0xFFFD;
+            bytesPerSequence = 1;
+        } else if (codePoint > 0xFFFF) {
+            // encode to utf16 (surrogate pair dance)
+            codePoint -= 0x10000;
+            res.push(codePoint >>> 10 & 0x3FF | 0xD800);
+            codePoint = 0xDC00 | codePoint & 0x3FF;
+        }
+        res.push(codePoint);
+        i += bytesPerSequence;
+    }
+    return decodeCodePointsArray(res);
+}
+// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+// the lowest limit is Chrome, with 0x10000 args.
+// We go 1 magnitude less, for safety
+const MAX_ARGUMENTS_LENGTH = 0x1000;
+function decodeCodePointsArray(codePoints) {
+    const len = codePoints.length;
+    if (len <= MAX_ARGUMENTS_LENGTH) return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+    ;
+    // Decode in chunks to avoid "call stack size exceeded".
+    let res = "";
+    let i = 0;
+    while(i < len)res += String.fromCharCode.apply(String, codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH));
+    return res;
+}
+function asciiSlice(buf, start, end) {
+    let ret = "";
+    end = Math.min(buf.length, end);
+    for(let i = start; i < end; ++i)ret += String.fromCharCode(buf[i] & 0x7F);
+    return ret;
+}
+function latin1Slice(buf, start, end) {
+    let ret = "";
+    end = Math.min(buf.length, end);
+    for(let i = start; i < end; ++i)ret += String.fromCharCode(buf[i]);
+    return ret;
+}
+function hexSlice(buf, start, end) {
+    const len = buf.length;
+    if (!start || start < 0) start = 0;
+    if (!end || end < 0 || end > len) end = len;
+    let out = "";
+    for(let i = start; i < end; ++i)out += hexSliceLookupTable[buf[i]];
+    return out;
+}
+function utf16leSlice(buf, start, end) {
+    const bytes = buf.slice(start, end);
+    let res = "";
+    // If bytes.length is odd, the last 8 bits must be ignored (same as node.js)
+    for(let i = 0; i < bytes.length - 1; i += 2)res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256);
+    return res;
+}
+Buffer.prototype.slice = function slice(start, end) {
+    const len = this.length;
+    start = ~~start;
+    end = end === undefined ? len : ~~end;
+    if (start < 0) {
+        start += len;
+        if (start < 0) start = 0;
+    } else if (start > len) start = len;
+    if (end < 0) {
+        end += len;
+        if (end < 0) end = 0;
+    } else if (end > len) end = len;
+    if (end < start) end = start;
+    const newBuf = this.subarray(start, end);
+    // Return an augmented `Uint8Array` instance
+    Object.setPrototypeOf(newBuf, Buffer.prototype);
+    return newBuf;
+};
+/*
+ * Need to make sure that buffer isn't trying to write out of bounds.
+ */ function checkOffset(offset, ext, length) {
+    if (offset % 1 !== 0 || offset < 0) throw new RangeError("offset is not uint");
+    if (offset + ext > length) throw new RangeError("Trying to access beyond buffer length");
+}
+Buffer.prototype.readUintLE = Buffer.prototype.readUIntLE = function readUIntLE(offset, byteLength, noAssert) {
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) checkOffset(offset, byteLength, this.length);
+    let val = this[offset];
+    let mul = 1;
+    let i = 0;
+    while(++i < byteLength && (mul *= 0x100))val += this[offset + i] * mul;
+    return val;
+};
+Buffer.prototype.readUintBE = Buffer.prototype.readUIntBE = function readUIntBE(offset, byteLength, noAssert) {
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) checkOffset(offset, byteLength, this.length);
+    let val = this[offset + --byteLength];
+    let mul = 1;
+    while(byteLength > 0 && (mul *= 0x100))val += this[offset + --byteLength] * mul;
+    return val;
+};
+Buffer.prototype.readUint8 = Buffer.prototype.readUInt8 = function readUInt8(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 1, this.length);
+    return this[offset];
+};
+Buffer.prototype.readUint16LE = Buffer.prototype.readUInt16LE = function readUInt16LE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 2, this.length);
+    return this[offset] | this[offset + 1] << 8;
+};
+Buffer.prototype.readUint16BE = Buffer.prototype.readUInt16BE = function readUInt16BE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 2, this.length);
+    return this[offset] << 8 | this[offset + 1];
+};
+Buffer.prototype.readUint32LE = Buffer.prototype.readUInt32LE = function readUInt32LE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 4, this.length);
+    return (this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16) + this[offset + 3] * 0x1000000;
+};
+Buffer.prototype.readUint32BE = Buffer.prototype.readUInt32BE = function readUInt32BE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 4, this.length);
+    return this[offset] * 0x1000000 + (this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3]);
+};
+Buffer.prototype.readBigUInt64LE = defineBigIntMethod(function readBigUInt64LE(offset) {
+    offset = offset >>> 0;
+    validateNumber(offset, "offset");
+    const first = this[offset];
+    const last = this[offset + 7];
+    if (first === undefined || last === undefined) boundsError(offset, this.length - 8);
+    const lo = first + this[++offset] * 256 + this[++offset] * 2 ** 16 + this[++offset] * 2 ** 24;
+    const hi = this[++offset] + this[++offset] * 256 + this[++offset] * 2 ** 16 + last * 2 ** 24;
+    return BigInt(lo) + (BigInt(hi) << BigInt(32));
+});
+Buffer.prototype.readBigUInt64BE = defineBigIntMethod(function readBigUInt64BE(offset) {
+    offset = offset >>> 0;
+    validateNumber(offset, "offset");
+    const first = this[offset];
+    const last = this[offset + 7];
+    if (first === undefined || last === undefined) boundsError(offset, this.length - 8);
+    const hi = first * 2 ** 24 + this[++offset] * 2 ** 16 + this[++offset] * 256 + this[++offset];
+    const lo = this[++offset] * 2 ** 24 + this[++offset] * 2 ** 16 + this[++offset] * 256 + last;
+    return (BigInt(hi) << BigInt(32)) + BigInt(lo);
+});
+Buffer.prototype.readIntLE = function readIntLE(offset, byteLength, noAssert) {
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) checkOffset(offset, byteLength, this.length);
+    let val = this[offset];
+    let mul = 1;
+    let i = 0;
+    while(++i < byteLength && (mul *= 0x100))val += this[offset + i] * mul;
+    mul *= 0x80;
+    if (val >= mul) val -= Math.pow(2, 8 * byteLength);
+    return val;
+};
+Buffer.prototype.readIntBE = function readIntBE(offset, byteLength, noAssert) {
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) checkOffset(offset, byteLength, this.length);
+    let i = byteLength;
+    let mul = 1;
+    let val = this[offset + --i];
+    while(i > 0 && (mul *= 0x100))val += this[offset + --i] * mul;
+    mul *= 0x80;
+    if (val >= mul) val -= Math.pow(2, 8 * byteLength);
+    return val;
+};
+Buffer.prototype.readInt8 = function readInt8(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 1, this.length);
+    if (!(this[offset] & 0x80)) return this[offset];
+    return (0xff - this[offset] + 1) * -1;
+};
+Buffer.prototype.readInt16LE = function readInt16LE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 2, this.length);
+    const val = this[offset] | this[offset + 1] << 8;
+    return val & 0x8000 ? val | 0xFFFF0000 : val;
+};
+Buffer.prototype.readInt16BE = function readInt16BE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 2, this.length);
+    const val = this[offset + 1] | this[offset] << 8;
+    return val & 0x8000 ? val | 0xFFFF0000 : val;
+};
+Buffer.prototype.readInt32LE = function readInt32LE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 4, this.length);
+    return this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16 | this[offset + 3] << 24;
+};
+Buffer.prototype.readInt32BE = function readInt32BE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 4, this.length);
+    return this[offset] << 24 | this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3];
+};
+Buffer.prototype.readBigInt64LE = defineBigIntMethod(function readBigInt64LE(offset) {
+    offset = offset >>> 0;
+    validateNumber(offset, "offset");
+    const first = this[offset];
+    const last = this[offset + 7];
+    if (first === undefined || last === undefined) boundsError(offset, this.length - 8);
+    const val = this[offset + 4] + this[offset + 5] * 256 + this[offset + 6] * 2 ** 16 + (last << 24 // Overflow
+    );
+    return (BigInt(val) << BigInt(32)) + BigInt(first + this[++offset] * 256 + this[++offset] * 2 ** 16 + this[++offset] * 2 ** 24);
+});
+Buffer.prototype.readBigInt64BE = defineBigIntMethod(function readBigInt64BE(offset) {
+    offset = offset >>> 0;
+    validateNumber(offset, "offset");
+    const first = this[offset];
+    const last = this[offset + 7];
+    if (first === undefined || last === undefined) boundsError(offset, this.length - 8);
+    const val = (first << 24) + // Overflow
+    this[++offset] * 2 ** 16 + this[++offset] * 256 + this[++offset];
+    return (BigInt(val) << BigInt(32)) + BigInt(this[++offset] * 2 ** 24 + this[++offset] * 2 ** 16 + this[++offset] * 256 + last);
+});
+Buffer.prototype.readFloatLE = function readFloatLE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 4, this.length);
+    return ieee754.read(this, offset, true, 23, 4);
+};
+Buffer.prototype.readFloatBE = function readFloatBE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 4, this.length);
+    return ieee754.read(this, offset, false, 23, 4);
+};
+Buffer.prototype.readDoubleLE = function readDoubleLE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 8, this.length);
+    return ieee754.read(this, offset, true, 52, 8);
+};
+Buffer.prototype.readDoubleBE = function readDoubleBE(offset, noAssert) {
+    offset = offset >>> 0;
+    if (!noAssert) checkOffset(offset, 8, this.length);
+    return ieee754.read(this, offset, false, 52, 8);
+};
+function checkInt(buf, value, offset, ext, max, min) {
+    if (!Buffer.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance');
+    if (value > max || value < min) throw new RangeError('"value" argument is out of bounds');
+    if (offset + ext > buf.length) throw new RangeError("Index out of range");
+}
+Buffer.prototype.writeUintLE = Buffer.prototype.writeUIntLE = function writeUIntLE(value, offset, byteLength, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) {
+        const maxBytes = Math.pow(2, 8 * byteLength) - 1;
+        checkInt(this, value, offset, byteLength, maxBytes, 0);
+    }
+    let mul = 1;
+    let i = 0;
+    this[offset] = value & 0xFF;
+    while(++i < byteLength && (mul *= 0x100))this[offset + i] = value / mul & 0xFF;
+    return offset + byteLength;
+};
+Buffer.prototype.writeUintBE = Buffer.prototype.writeUIntBE = function writeUIntBE(value, offset, byteLength, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) {
+        const maxBytes = Math.pow(2, 8 * byteLength) - 1;
+        checkInt(this, value, offset, byteLength, maxBytes, 0);
+    }
+    let i = byteLength - 1;
+    let mul = 1;
+    this[offset + i] = value & 0xFF;
+    while(--i >= 0 && (mul *= 0x100))this[offset + i] = value / mul & 0xFF;
+    return offset + byteLength;
+};
+Buffer.prototype.writeUint8 = Buffer.prototype.writeUInt8 = function writeUInt8(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0);
+    this[offset] = value & 0xff;
+    return offset + 1;
+};
+Buffer.prototype.writeUint16LE = Buffer.prototype.writeUInt16LE = function writeUInt16LE(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
+    this[offset] = value & 0xff;
+    this[offset + 1] = value >>> 8;
+    return offset + 2;
+};
+Buffer.prototype.writeUint16BE = Buffer.prototype.writeUInt16BE = function writeUInt16BE(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
+    this[offset] = value >>> 8;
+    this[offset + 1] = value & 0xff;
+    return offset + 2;
+};
+Buffer.prototype.writeUint32LE = Buffer.prototype.writeUInt32LE = function writeUInt32LE(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
+    this[offset + 3] = value >>> 24;
+    this[offset + 2] = value >>> 16;
+    this[offset + 1] = value >>> 8;
+    this[offset] = value & 0xff;
+    return offset + 4;
+};
+Buffer.prototype.writeUint32BE = Buffer.prototype.writeUInt32BE = function writeUInt32BE(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
+    this[offset] = value >>> 24;
+    this[offset + 1] = value >>> 16;
+    this[offset + 2] = value >>> 8;
+    this[offset + 3] = value & 0xff;
+    return offset + 4;
+};
+function wrtBigUInt64LE(buf, value, offset, min, max) {
+    checkIntBI(value, min, max, buf, offset, 7);
+    let lo = Number(value & BigInt(0xffffffff));
+    buf[offset++] = lo;
+    lo = lo >> 8;
+    buf[offset++] = lo;
+    lo = lo >> 8;
+    buf[offset++] = lo;
+    lo = lo >> 8;
+    buf[offset++] = lo;
+    let hi = Number(value >> BigInt(32) & BigInt(0xffffffff));
+    buf[offset++] = hi;
+    hi = hi >> 8;
+    buf[offset++] = hi;
+    hi = hi >> 8;
+    buf[offset++] = hi;
+    hi = hi >> 8;
+    buf[offset++] = hi;
+    return offset;
+}
+function wrtBigUInt64BE(buf, value, offset, min, max) {
+    checkIntBI(value, min, max, buf, offset, 7);
+    let lo = Number(value & BigInt(0xffffffff));
+    buf[offset + 7] = lo;
+    lo = lo >> 8;
+    buf[offset + 6] = lo;
+    lo = lo >> 8;
+    buf[offset + 5] = lo;
+    lo = lo >> 8;
+    buf[offset + 4] = lo;
+    let hi = Number(value >> BigInt(32) & BigInt(0xffffffff));
+    buf[offset + 3] = hi;
+    hi = hi >> 8;
+    buf[offset + 2] = hi;
+    hi = hi >> 8;
+    buf[offset + 1] = hi;
+    hi = hi >> 8;
+    buf[offset] = hi;
+    return offset + 8;
+}
+Buffer.prototype.writeBigUInt64LE = defineBigIntMethod(function writeBigUInt64LE(value, offset = 0) {
+    return wrtBigUInt64LE(this, value, offset, BigInt(0), BigInt("0xffffffffffffffff"));
+});
+Buffer.prototype.writeBigUInt64BE = defineBigIntMethod(function writeBigUInt64BE(value, offset = 0) {
+    return wrtBigUInt64BE(this, value, offset, BigInt(0), BigInt("0xffffffffffffffff"));
+});
+Buffer.prototype.writeIntLE = function writeIntLE(value, offset, byteLength, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) {
+        const limit = Math.pow(2, 8 * byteLength - 1);
+        checkInt(this, value, offset, byteLength, limit - 1, -limit);
+    }
+    let i = 0;
+    let mul = 1;
+    let sub = 0;
+    this[offset] = value & 0xFF;
+    while(++i < byteLength && (mul *= 0x100)){
+        if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) sub = 1;
+        this[offset + i] = (value / mul >> 0) - sub & 0xFF;
+    }
+    return offset + byteLength;
+};
+Buffer.prototype.writeIntBE = function writeIntBE(value, offset, byteLength, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) {
+        const limit = Math.pow(2, 8 * byteLength - 1);
+        checkInt(this, value, offset, byteLength, limit - 1, -limit);
+    }
+    let i = byteLength - 1;
+    let mul = 1;
+    let sub = 0;
+    this[offset + i] = value & 0xFF;
+    while(--i >= 0 && (mul *= 0x100)){
+        if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) sub = 1;
+        this[offset + i] = (value / mul >> 0) - sub & 0xFF;
+    }
+    return offset + byteLength;
+};
+Buffer.prototype.writeInt8 = function writeInt8(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -128);
+    if (value < 0) value = 0xff + value + 1;
+    this[offset] = value & 0xff;
+    return offset + 1;
+};
+Buffer.prototype.writeInt16LE = function writeInt16LE(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -32768);
+    this[offset] = value & 0xff;
+    this[offset + 1] = value >>> 8;
+    return offset + 2;
+};
+Buffer.prototype.writeInt16BE = function writeInt16BE(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -32768);
+    this[offset] = value >>> 8;
+    this[offset + 1] = value & 0xff;
+    return offset + 2;
+};
+Buffer.prototype.writeInt32LE = function writeInt32LE(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -2147483648);
+    this[offset] = value & 0xff;
+    this[offset + 1] = value >>> 8;
+    this[offset + 2] = value >>> 16;
+    this[offset + 3] = value >>> 24;
+    return offset + 4;
+};
+Buffer.prototype.writeInt32BE = function writeInt32BE(value, offset, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -2147483648);
+    if (value < 0) value = 0xffffffff + value + 1;
+    this[offset] = value >>> 24;
+    this[offset + 1] = value >>> 16;
+    this[offset + 2] = value >>> 8;
+    this[offset + 3] = value & 0xff;
+    return offset + 4;
+};
+Buffer.prototype.writeBigInt64LE = defineBigIntMethod(function writeBigInt64LE(value, offset = 0) {
+    return wrtBigUInt64LE(this, value, offset, -BigInt("0x8000000000000000"), BigInt("0x7fffffffffffffff"));
+});
+Buffer.prototype.writeBigInt64BE = defineBigIntMethod(function writeBigInt64BE(value, offset = 0) {
+    return wrtBigUInt64BE(this, value, offset, -BigInt("0x8000000000000000"), BigInt("0x7fffffffffffffff"));
+});
+function checkIEEE754(buf, value, offset, ext, max, min) {
+    if (offset + ext > buf.length) throw new RangeError("Index out of range");
+    if (offset < 0) throw new RangeError("Index out of range");
+}
+function writeFloat(buf, value, offset, littleEndian, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -340282346638528860000000000000000000000);
+    ieee754.write(buf, value, offset, littleEndian, 23, 4);
+    return offset + 4;
+}
+Buffer.prototype.writeFloatLE = function writeFloatLE(value, offset, noAssert) {
+    return writeFloat(this, value, offset, true, noAssert);
+};
+Buffer.prototype.writeFloatBE = function writeFloatBE(value, offset, noAssert) {
+    return writeFloat(this, value, offset, false, noAssert);
+};
+function writeDouble(buf, value, offset, littleEndian, noAssert) {
+    value = +value;
+    offset = offset >>> 0;
+    if (!noAssert) checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000);
+    ieee754.write(buf, value, offset, littleEndian, 52, 8);
+    return offset + 8;
+}
+Buffer.prototype.writeDoubleLE = function writeDoubleLE(value, offset, noAssert) {
+    return writeDouble(this, value, offset, true, noAssert);
+};
+Buffer.prototype.writeDoubleBE = function writeDoubleBE(value, offset, noAssert) {
+    return writeDouble(this, value, offset, false, noAssert);
+};
+// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
+Buffer.prototype.copy = function copy(target, targetStart, start, end) {
+    if (!Buffer.isBuffer(target)) throw new TypeError("argument should be a Buffer");
+    if (!start) start = 0;
+    if (!end && end !== 0) end = this.length;
+    if (targetStart >= target.length) targetStart = target.length;
+    if (!targetStart) targetStart = 0;
+    if (end > 0 && end < start) end = start;
+    // Copy 0 bytes; we're done
+    if (end === start) return 0;
+    if (target.length === 0 || this.length === 0) return 0;
+    // Fatal error conditions
+    if (targetStart < 0) throw new RangeError("targetStart out of bounds");
+    if (start < 0 || start >= this.length) throw new RangeError("Index out of range");
+    if (end < 0) throw new RangeError("sourceEnd out of bounds");
+    // Are we oob?
+    if (end > this.length) end = this.length;
+    if (target.length - targetStart < end - start) end = target.length - targetStart + start;
+    const len = end - start;
+    if (this === target && typeof Uint8Array.prototype.copyWithin === "function") // Use built-in when available, missing from IE11
+    this.copyWithin(targetStart, start, end);
+    else Uint8Array.prototype.set.call(target, this.subarray(start, end), targetStart);
+    return len;
+};
+// Usage:
+//    buffer.fill(number[, offset[, end]])
+//    buffer.fill(buffer[, offset[, end]])
+//    buffer.fill(string[, offset[, end]][, encoding])
+Buffer.prototype.fill = function fill(val, start, end, encoding) {
+    // Handle string cases:
+    if (typeof val === "string") {
+        if (typeof start === "string") {
+            encoding = start;
+            start = 0;
+            end = this.length;
+        } else if (typeof end === "string") {
+            encoding = end;
+            end = this.length;
+        }
+        if (encoding !== undefined && typeof encoding !== "string") throw new TypeError("encoding must be a string");
+        if (typeof encoding === "string" && !Buffer.isEncoding(encoding)) throw new TypeError("Unknown encoding: " + encoding);
+        if (val.length === 1) {
+            const code = val.charCodeAt(0);
+            if (encoding === "utf8" && code < 128 || encoding === "latin1") // Fast path: If `val` fits into a single byte, use that numeric value.
+            val = code;
+        }
+    } else if (typeof val === "number") val = val & 255;
+    else if (typeof val === "boolean") val = Number(val);
+    // Invalid ranges are not set to a default, so can range check early.
+    if (start < 0 || this.length < start || this.length < end) throw new RangeError("Out of range index");
+    if (end <= start) return this;
+    start = start >>> 0;
+    end = end === undefined ? this.length : end >>> 0;
+    if (!val) val = 0;
+    let i;
+    if (typeof val === "number") for(i = start; i < end; ++i)this[i] = val;
+    else {
+        const bytes = Buffer.isBuffer(val) ? val : Buffer.from(val, encoding);
+        const len = bytes.length;
+        if (len === 0) throw new TypeError('The value "' + val + '" is invalid for argument "value"');
+        for(i = 0; i < end - start; ++i)this[i + start] = bytes[i % len];
+    }
+    return this;
+};
+// CUSTOM ERRORS
+// =============
+// Simplified versions from Node, changed for Buffer-only usage
+const errors = {};
+function E(sym, getMessage, Base) {
+    errors[sym] = class NodeError extends Base {
+        constructor(){
+            super();
+            Object.defineProperty(this, "message", {
+                value: getMessage.apply(this, arguments),
+                writable: true,
+                configurable: true
+            });
+            // Add the error code to the name to include it in the stack trace.
+            this.name = `${this.name} [${sym}]`;
+            // Access the stack to generate the error message including the error code
+            // from the name.
+            this.stack // eslint-disable-line no-unused-expressions
+            ;
+            // Reset the name to the actual name.
+            delete this.name;
+        }
+        get code() {
+            return sym;
+        }
+        set code(value) {
+            Object.defineProperty(this, "code", {
+                configurable: true,
+                enumerable: true,
+                value,
+                writable: true
+            });
+        }
+        toString() {
+            return `${this.name} [${sym}]: ${this.message}`;
+        }
+    };
+}
+E("ERR_BUFFER_OUT_OF_BOUNDS", function(name) {
+    if (name) return `${name} is outside of buffer bounds`;
+    return "Attempt to access memory outside buffer bounds";
+}, RangeError);
+E("ERR_INVALID_ARG_TYPE", function(name, actual) {
+    return `The "${name}" argument must be of type number. Received type ${typeof actual}`;
+}, TypeError);
+E("ERR_OUT_OF_RANGE", function(str, range, input) {
+    let msg = `The value of "${str}" is out of range.`;
+    let received = input;
+    if (Number.isInteger(input) && Math.abs(input) > 2 ** 32) received = addNumericalSeparator(String(input));
+    else if (typeof input === "bigint") {
+        received = String(input);
+        if (input > BigInt(2) ** BigInt(32) || input < -(BigInt(2) ** BigInt(32))) received = addNumericalSeparator(received);
+        received += "n";
+    }
+    msg += ` It must be ${range}. Received ${received}`;
+    return msg;
+}, RangeError);
+function addNumericalSeparator(val) {
+    let res = "";
+    let i = val.length;
+    const start = val[0] === "-" ? 1 : 0;
+    for(; i >= start + 4; i -= 3)res = `_${val.slice(i - 3, i)}${res}`;
+    return `${val.slice(0, i)}${res}`;
+}
+// CHECK FUNCTIONS
+// ===============
+function checkBounds(buf, offset, byteLength) {
+    validateNumber(offset, "offset");
+    if (buf[offset] === undefined || buf[offset + byteLength] === undefined) boundsError(offset, buf.length - (byteLength + 1));
+}
+function checkIntBI(value, min, max, buf, offset, byteLength) {
+    if (value > max || value < min) {
+        const n = typeof min === "bigint" ? "n" : "";
+        let range;
+        if (byteLength > 3) {
+            if (min === 0 || min === BigInt(0)) range = `>= 0${n} and < 2${n} ** ${(byteLength + 1) * 8}${n}`;
+            else range = `>= -(2${n} ** ${(byteLength + 1) * 8 - 1}${n}) and < 2 ** ` + `${(byteLength + 1) * 8 - 1}${n}`;
+        } else range = `>= ${min}${n} and <= ${max}${n}`;
+        throw new errors.ERR_OUT_OF_RANGE("value", range, value);
+    }
+    checkBounds(buf, offset, byteLength);
+}
+function validateNumber(value, name) {
+    if (typeof value !== "number") throw new errors.ERR_INVALID_ARG_TYPE(name, "number", value);
+}
+function boundsError(value, length, type) {
+    if (Math.floor(value) !== value) {
+        validateNumber(value, type);
+        throw new errors.ERR_OUT_OF_RANGE(type || "offset", "an integer", value);
+    }
+    if (length < 0) throw new errors.ERR_BUFFER_OUT_OF_BOUNDS();
+    throw new errors.ERR_OUT_OF_RANGE(type || "offset", `>= ${type ? 1 : 0} and <= ${length}`, value);
+}
+// HELPER FUNCTIONS
+// ================
+const INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g;
+function base64clean(str) {
+    // Node takes equal signs as end of the Base64 encoding
+    str = str.split("=")[0];
+    // Node strips out invalid characters like \n and \t from the string, base64-js does not
+    str = str.trim().replace(INVALID_BASE64_RE, "");
+    // Node converts strings with length < 2 to ''
+    if (str.length < 2) return "";
+    // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
+    while(str.length % 4 !== 0)str = str + "=";
+    return str;
+}
+function utf8ToBytes(string, units) {
+    units = units || Infinity;
+    let codePoint;
+    const length = string.length;
+    let leadSurrogate = null;
+    const bytes = [];
+    for(let i = 0; i < length; ++i){
+        codePoint = string.charCodeAt(i);
+        // is surrogate component
+        if (codePoint > 0xD7FF && codePoint < 0xE000) {
+            // last char was a lead
+            if (!leadSurrogate) {
+                // no lead yet
+                if (codePoint > 0xDBFF) {
+                    // unexpected trail
+                    if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
+                    continue;
+                } else if (i + 1 === length) {
+                    // unpaired lead
+                    if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
+                    continue;
+                }
+                // valid lead
+                leadSurrogate = codePoint;
+                continue;
+            }
+            // 2 leads in a row
+            if (codePoint < 0xDC00) {
+                if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
+                leadSurrogate = codePoint;
+                continue;
+            }
+            // valid surrogate pair
+            codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000;
+        } else if (leadSurrogate) // valid bmp char, but last char was a lead
+        {
+            if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
+        }
+        leadSurrogate = null;
+        // encode utf8
+        if (codePoint < 0x80) {
+            if ((units -= 1) < 0) break;
+            bytes.push(codePoint);
+        } else if (codePoint < 0x800) {
+            if ((units -= 2) < 0) break;
+            bytes.push(codePoint >> 0x6 | 0xC0, codePoint & 0x3F | 0x80);
+        } else if (codePoint < 0x10000) {
+            if ((units -= 3) < 0) break;
+            bytes.push(codePoint >> 0xC | 0xE0, codePoint >> 0x6 & 0x3F | 0x80, codePoint & 0x3F | 0x80);
+        } else if (codePoint < 0x110000) {
+            if ((units -= 4) < 0) break;
+            bytes.push(codePoint >> 0x12 | 0xF0, codePoint >> 0xC & 0x3F | 0x80, codePoint >> 0x6 & 0x3F | 0x80, codePoint & 0x3F | 0x80);
+        } else throw new Error("Invalid code point");
+    }
+    return bytes;
+}
+function asciiToBytes(str) {
+    const byteArray = [];
+    for(let i = 0; i < str.length; ++i)// Node's code seems to be doing this and not & 0x7F..
+    byteArray.push(str.charCodeAt(i) & 0xFF);
+    return byteArray;
+}
+function utf16leToBytes(str, units) {
+    let c, hi, lo;
+    const byteArray = [];
+    for(let i = 0; i < str.length; ++i){
+        if ((units -= 2) < 0) break;
+        c = str.charCodeAt(i);
+        hi = c >> 8;
+        lo = c % 256;
+        byteArray.push(lo);
+        byteArray.push(hi);
+    }
+    return byteArray;
+}
+function base64ToBytes(str) {
+    return base64.toByteArray(base64clean(str));
+}
+function blitBuffer(src, dst, offset, length) {
+    let i;
+    for(i = 0; i < length; ++i){
+        if (i + offset >= dst.length || i >= src.length) break;
+        dst[i + offset] = src[i];
+    }
+    return i;
+}
+// ArrayBuffer or Uint8Array objects from other contexts (i.e. iframes) do not pass
+// the `instanceof` check but they should be treated as of that type.
+// See: https://github.com/feross/buffer/issues/166
+function isInstance(obj, type) {
+    return obj instanceof type || obj != null && obj.constructor != null && obj.constructor.name != null && obj.constructor.name === type.name;
+}
+function numberIsNaN(obj) {
+    // For IE11 support
+    return obj !== obj // eslint-disable-line no-self-compare
+    ;
+}
+// Create lookup table for `toString('hex')`
+// See: https://github.com/feross/buffer/issues/219
+const hexSliceLookupTable = function() {
+    const alphabet = "0123456789abcdef";
+    const table = new Array(256);
+    for(let i = 0; i < 16; ++i){
+        const i16 = i * 16;
+        for(let j = 0; j < 16; ++j)table[i16 + j] = alphabet[i] + alphabet[j];
+    }
+    return table;
+}();
+// Return not function with Error if BigInt not supported
+function defineBigIntMethod(fn) {
+    return typeof BigInt === "undefined" ? BufferBigIntNotDefined : fn;
+}
+function BufferBigIntNotDefined() {
+    throw new Error("BigInt not supported");
+}
+
+},{"9c62938f1dccc73c":"eIiSV","aceacb6a4531a9d2":"cO95r"}],"eIiSV":[function(require,module,exports) {
+"use strict";
+exports.byteLength = byteLength;
+exports.toByteArray = toByteArray;
+exports.fromByteArray = fromByteArray;
+var lookup = [];
+var revLookup = [];
+var Arr = typeof Uint8Array !== "undefined" ? Uint8Array : Array;
+var code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+for(var i = 0, len = code.length; i < len; ++i){
+    lookup[i] = code[i];
+    revLookup[code.charCodeAt(i)] = i;
+}
+// Support decoding URL-safe base64 strings, as Node.js does.
+// See: https://en.wikipedia.org/wiki/Base64#URL_applications
+revLookup["-".charCodeAt(0)] = 62;
+revLookup["_".charCodeAt(0)] = 63;
+function getLens(b64) {
+    var len = b64.length;
+    if (len % 4 > 0) throw new Error("Invalid string. Length must be a multiple of 4");
+    // Trim off extra bytes after placeholder bytes are found
+    // See: https://github.com/beatgammit/base64-js/issues/42
+    var validLen = b64.indexOf("=");
+    if (validLen === -1) validLen = len;
+    var placeHoldersLen = validLen === len ? 0 : 4 - validLen % 4;
+    return [
+        validLen,
+        placeHoldersLen
+    ];
+}
+// base64 is 4/3 + up to two characters of the original data
+function byteLength(b64) {
+    var lens = getLens(b64);
+    var validLen = lens[0];
+    var placeHoldersLen = lens[1];
+    return (validLen + placeHoldersLen) * 3 / 4 - placeHoldersLen;
+}
+function _byteLength(b64, validLen, placeHoldersLen) {
+    return (validLen + placeHoldersLen) * 3 / 4 - placeHoldersLen;
+}
+function toByteArray(b64) {
+    var tmp;
+    var lens = getLens(b64);
+    var validLen = lens[0];
+    var placeHoldersLen = lens[1];
+    var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen));
+    var curByte = 0;
+    // if there are placeholders, only get up to the last complete 4 chars
+    var len = placeHoldersLen > 0 ? validLen - 4 : validLen;
+    var i;
+    for(i = 0; i < len; i += 4){
+        tmp = revLookup[b64.charCodeAt(i)] << 18 | revLookup[b64.charCodeAt(i + 1)] << 12 | revLookup[b64.charCodeAt(i + 2)] << 6 | revLookup[b64.charCodeAt(i + 3)];
+        arr[curByte++] = tmp >> 16 & 0xFF;
+        arr[curByte++] = tmp >> 8 & 0xFF;
+        arr[curByte++] = tmp & 0xFF;
+    }
+    if (placeHoldersLen === 2) {
+        tmp = revLookup[b64.charCodeAt(i)] << 2 | revLookup[b64.charCodeAt(i + 1)] >> 4;
+        arr[curByte++] = tmp & 0xFF;
+    }
+    if (placeHoldersLen === 1) {
+        tmp = revLookup[b64.charCodeAt(i)] << 10 | revLookup[b64.charCodeAt(i + 1)] << 4 | revLookup[b64.charCodeAt(i + 2)] >> 2;
+        arr[curByte++] = tmp >> 8 & 0xFF;
+        arr[curByte++] = tmp & 0xFF;
+    }
+    return arr;
+}
+function tripletToBase64(num) {
+    return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F];
+}
+function encodeChunk(uint8, start, end) {
+    var tmp;
+    var output = [];
+    for(var i = start; i < end; i += 3){
+        tmp = (uint8[i] << 16 & 0xFF0000) + (uint8[i + 1] << 8 & 0xFF00) + (uint8[i + 2] & 0xFF);
+        output.push(tripletToBase64(tmp));
+    }
+    return output.join("");
+}
+function fromByteArray(uint8) {
+    var tmp;
+    var len = uint8.length;
+    var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
+    ;
+    var parts = [];
+    var maxChunkLength = 16383 // must be multiple of 3
+    ;
+    // go through the array every three bytes, we'll deal with trailing stuff later
+    for(var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength)parts.push(encodeChunk(uint8, i, i + maxChunkLength > len2 ? len2 : i + maxChunkLength));
+    // pad the end with zeros, but make sure to not forget the extra bytes
+    if (extraBytes === 1) {
+        tmp = uint8[len - 1];
+        parts.push(lookup[tmp >> 2] + lookup[tmp << 4 & 0x3F] + "==");
+    } else if (extraBytes === 2) {
+        tmp = (uint8[len - 2] << 8) + uint8[len - 1];
+        parts.push(lookup[tmp >> 10] + lookup[tmp >> 4 & 0x3F] + lookup[tmp << 2 & 0x3F] + "=");
+    }
+    return parts.join("");
+}
+
+},{}],"cO95r":[function(require,module,exports) {
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */ exports.read = function(buffer, offset, isLE, mLen, nBytes) {
+    var e, m;
+    var eLen = nBytes * 8 - mLen - 1;
+    var eMax = (1 << eLen) - 1;
+    var eBias = eMax >> 1;
+    var nBits = -7;
+    var i = isLE ? nBytes - 1 : 0;
+    var d = isLE ? -1 : 1;
+    var s = buffer[offset + i];
+    i += d;
+    e = s & (1 << -nBits) - 1;
+    s >>= -nBits;
+    nBits += eLen;
+    for(; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8);
+    m = e & (1 << -nBits) - 1;
+    e >>= -nBits;
+    nBits += mLen;
+    for(; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8);
+    if (e === 0) e = 1 - eBias;
+    else if (e === eMax) return m ? NaN : (s ? -1 : 1) * Infinity;
+    else {
+        m = m + Math.pow(2, mLen);
+        e = e - eBias;
+    }
+    return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
+};
+exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
+    var e, m, c;
+    var eLen = nBytes * 8 - mLen - 1;
+    var eMax = (1 << eLen) - 1;
+    var eBias = eMax >> 1;
+    var rt = mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0;
+    var i = isLE ? 0 : nBytes - 1;
+    var d = isLE ? 1 : -1;
+    var s = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0;
+    value = Math.abs(value);
+    if (isNaN(value) || value === Infinity) {
+        m = isNaN(value) ? 1 : 0;
+        e = eMax;
+    } else {
+        e = Math.floor(Math.log(value) / Math.LN2);
+        if (value * (c = Math.pow(2, -e)) < 1) {
+            e--;
+            c *= 2;
+        }
+        if (e + eBias >= 1) value += rt / c;
+        else value += rt * Math.pow(2, 1 - eBias);
+        if (value * c >= 2) {
+            e++;
+            c /= 2;
+        }
+        if (e + eBias >= eMax) {
+            m = 0;
+            e = eMax;
+        } else if (e + eBias >= 1) {
+            m = (value * c - 1) * Math.pow(2, mLen);
+            e = e + eBias;
+        } else {
+            m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+            e = 0;
+        }
+    }
+    for(; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8);
+    e = e << mLen | m;
+    eLen += mLen;
+    for(; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8);
+    buffer[offset + i - d] |= s * 128;
+};
+
+},{}],"4rF0F":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "StorageError", ()=>StorageError);
@@ -4580,6 +6172,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "get", ()=>get);
 parcelHelpers.export(exports, "post", ()=>post);
 parcelHelpers.export(exports, "put", ()=>put);
+parcelHelpers.export(exports, "head", ()=>head);
 parcelHelpers.export(exports, "remove", ()=>remove);
 var _errors = require("./errors");
 var _helpers = require("./helpers");
@@ -4611,9 +6204,9 @@ var __awaiter = undefined && undefined.__awaiter || function(thisArg, _arguments
     });
 };
 const _getErrorMessage = (err)=>err.msg || err.message || err.error_description || err.error || JSON.stringify(err);
-const handleError = (error, reject)=>__awaiter(void 0, void 0, void 0, function*() {
+const handleError = (error, reject, options)=>__awaiter(void 0, void 0, void 0, function*() {
         const Res = yield (0, _helpers.resolveResponse)();
-        if (error instanceof Res) error.json().then((err)=>{
+        if (error instanceof Res && !(options === null || options === void 0 ? void 0 : options.noResolveJson)) error.json().then((err)=>{
             reject(new (0, _errors.StorageApiError)(_getErrorMessage(err), error.status || 500));
         }).catch((err)=>{
             reject(new (0, _errors.StorageUnknownError)(_getErrorMessage(err), err));
@@ -4629,7 +6222,7 @@ const _getRequestParams = (method, options, parameters, body)=>{
     params.headers = Object.assign({
         "Content-Type": "application/json"
     }, options === null || options === void 0 ? void 0 : options.headers);
-    params.body = JSON.stringify(body);
+    if (body) params.body = JSON.stringify(body);
     return Object.assign(Object.assign({}, params), parameters);
 };
 function _handleRequest(fetcher, method, url, options, parameters, body) {
@@ -4639,7 +6232,7 @@ function _handleRequest(fetcher, method, url, options, parameters, body) {
                 if (!result.ok) throw result;
                 if (options === null || options === void 0 ? void 0 : options.noResolveJson) return result;
                 return result.json();
-            }).then((data)=>resolve(data)).catch((error)=>handleError(error, reject));
+            }).then((data)=>resolve(data)).catch((error)=>handleError(error, reject, options));
         });
     });
 }
@@ -4658,6 +6251,13 @@ function put(fetcher, url, body, options, parameters) {
         return _handleRequest(fetcher, "PUT", url, options, parameters, body);
     });
 }
+function head(fetcher, url, options, parameters) {
+    return __awaiter(this, void 0, void 0, function*() {
+        return _handleRequest(fetcher, "HEAD", url, Object.assign(Object.assign({}, options), {
+            noResolveJson: true
+        }), parameters);
+    });
+}
 function remove(fetcher, url, body, options, parameters) {
     return __awaiter(this, void 0, void 0, function*() {
         return _handleRequest(fetcher, "DELETE", url, options, parameters, body);
@@ -4669,6 +6269,7 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "resolveFetch", ()=>resolveFetch);
 parcelHelpers.export(exports, "resolveResponse", ()=>resolveResponse);
+parcelHelpers.export(exports, "recursiveToCamel", ()=>recursiveToCamel);
 var __awaiter = undefined && undefined.__awaiter || function(thisArg, _arguments, P, generator) {
     function adopt(value) {
         return value instanceof P ? value : new P(function(resolve) {
@@ -4708,6 +6309,16 @@ const resolveResponse = ()=>__awaiter(void 0, void 0, void 0, function*() {
         return (yield require("d0262cf6b6e3064e")).Response;
         return Response;
     });
+const recursiveToCamel = (item)=>{
+    if (Array.isArray(item)) return item.map((el)=>recursiveToCamel(el));
+    else if (typeof item === "function" || item !== Object(item)) return item;
+    const result = {};
+    Object.entries(item).forEach(([key, value])=>{
+        const newKey = key.replace(/([-_][a-z])/gi, (c)=>c.toUpperCase().replace(/[-_]/g, ""));
+        result[newKey] = recursiveToCamel(value);
+    });
+    return result;
+};
 
 },{"d0262cf6b6e3064e":"43ht9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"caYeW":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -4932,7 +6543,7 @@ const DEFAULT_HEADERS = {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "version", ()=>version);
-const version = "2.5.5";
+const version = "2.7.1";
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"17il3":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -4970,7 +6581,7 @@ const DEFAULT_REALTIME_OPTIONS = {};
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "version", ()=>version);
-const version = "2.39.4";
+const version = "2.50.0";
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8ZZRj":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -5038,47 +6649,85 @@ const fetchWithAuth = (supabaseKey, getAccessToken, customFetch)=>{
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "uuid", ()=>uuid);
-parcelHelpers.export(exports, "stripTrailingSlash", ()=>stripTrailingSlash);
+parcelHelpers.export(exports, "ensureTrailingSlash", ()=>ensureTrailingSlash);
 parcelHelpers.export(exports, "isBrowser", ()=>isBrowser);
 parcelHelpers.export(exports, "applySettingDefaults", ()=>applySettingDefaults);
+var __awaiter = undefined && undefined.__awaiter || function(thisArg, _arguments, P, generator) {
+    function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+            resolve(value);
+        });
+    }
+    return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+            try {
+                step(generator.next(value));
+            } catch (e) {
+                reject(e);
+            }
+        }
+        function rejected(value) {
+            try {
+                step(generator["throw"](value));
+            } catch (e) {
+                reject(e);
+            }
+        }
+        function step(result) {
+            result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 function uuid() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
         var r = Math.random() * 16 | 0, v = c == "x" ? r : r & 0x3 | 0x8;
         return v.toString(16);
     });
 }
-function stripTrailingSlash(url) {
-    return url.replace(/\/$/, "");
+function ensureTrailingSlash(url) {
+    return url.endsWith("/") ? url : url + "/";
 }
 const isBrowser = ()=>typeof window !== "undefined";
 function applySettingDefaults(options, defaults) {
+    var _a, _b;
     const { db: dbOptions, auth: authOptions, realtime: realtimeOptions, global: globalOptions } = options;
     const { db: DEFAULT_DB_OPTIONS, auth: DEFAULT_AUTH_OPTIONS, realtime: DEFAULT_REALTIME_OPTIONS, global: DEFAULT_GLOBAL_OPTIONS } = defaults;
-    return {
+    const result = {
         db: Object.assign(Object.assign({}, DEFAULT_DB_OPTIONS), dbOptions),
         auth: Object.assign(Object.assign({}, DEFAULT_AUTH_OPTIONS), authOptions),
         realtime: Object.assign(Object.assign({}, DEFAULT_REALTIME_OPTIONS), realtimeOptions),
-        global: Object.assign(Object.assign({}, DEFAULT_GLOBAL_OPTIONS), globalOptions)
+        global: Object.assign(Object.assign(Object.assign({}, DEFAULT_GLOBAL_OPTIONS), globalOptions), {
+            headers: Object.assign(Object.assign({}, (_a = DEFAULT_GLOBAL_OPTIONS === null || DEFAULT_GLOBAL_OPTIONS === void 0 ? void 0 : DEFAULT_GLOBAL_OPTIONS.headers) !== null && _a !== void 0 ? _a : {}), (_b = globalOptions === null || globalOptions === void 0 ? void 0 : globalOptions.headers) !== null && _b !== void 0 ? _b : {})
+        }),
+        accessToken: ()=>__awaiter(this, void 0, void 0, function*() {
+                return "";
+            })
     };
+    if (options.accessToken) result.accessToken = options.accessToken;
+    else // hack around Required<>
+    delete result.accessToken;
+    return result;
 }
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"bmkFW":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "SupabaseAuthClient", ()=>SupabaseAuthClient);
-var _gotrueJs = require("@supabase/gotrue-js");
-class SupabaseAuthClient extends (0, _gotrueJs.GoTrueClient) {
+var _authJs = require("@supabase/auth-js");
+class SupabaseAuthClient extends (0, _authJs.AuthClient) {
     constructor(options){
         super(options);
     }
 }
 
-},{"@supabase/gotrue-js":"26DbQ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"26DbQ":[function(require,module,exports) {
+},{"@supabase/auth-js":"7Q2lo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7Q2lo":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "navigatorLock", ()=>(0, _locks.navigatorLock));
 parcelHelpers.export(exports, "NavigatorLockAcquireTimeoutError", ()=>(0, _locks.NavigatorLockAcquireTimeoutError));
 parcelHelpers.export(exports, "lockInternals", ()=>(0, _locks.internals));
+parcelHelpers.export(exports, "processLock", ()=>(0, _locks.processLock));
 parcelHelpers.export(exports, "GoTrueAdminApi", ()=>(0, _goTrueAdminApiDefault.default));
 parcelHelpers.export(exports, "GoTrueClient", ()=>(0, _goTrueClientDefault.default));
 parcelHelpers.export(exports, "AuthAdminApi", ()=>(0, _authAdminApiDefault.default));
@@ -5097,11 +6746,12 @@ var _errors = require("./lib/errors");
 parcelHelpers.exportAll(_errors, exports);
 var _locks = require("./lib/locks");
 
-},{"./GoTrueAdminApi":"baL5s","./GoTrueClient":"26r9B","./AuthAdminApi":"8nRkI","./AuthClient":"fGGGl","./lib/types":"32h29","./lib/errors":"bDFnv","./lib/locks":"8UVF7","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"baL5s":[function(require,module,exports) {
+},{"./GoTrueAdminApi":"eBouV","./GoTrueClient":"san1E","./AuthAdminApi":"jiS2C","./AuthClient":"ka9HK","./lib/types":"4K6fZ","./lib/errors":"l4Miv","./lib/locks":"hJm2t","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"eBouV":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _fetch = require("./lib/fetch");
 var _helpers = require("./lib/helpers");
+var _types = require("./lib/types");
 var _errors = require("./lib/errors");
 var __rest = undefined && undefined.__rest || function(s, e) {
     var t = {};
@@ -5125,7 +6775,8 @@ class GoTrueAdminApi {
      * Removes a logged-in session.
      * @param jwt A valid, logged-in JWT.
      * @param scope The logout sope.
-     */ async signOut(jwt, scope = "global") {
+     */ async signOut(jwt, scope = (0, _types.SIGN_OUT_SCOPES)[0]) {
+        if ((0, _types.SIGN_OUT_SCOPES).indexOf(scope) < 0) throw new Error(`@supabase/auth-js: Parameter scope must be one of ${(0, _types.SIGN_OUT_SCOPES).join(", ")}`);
         try {
             await (0, _fetch._request)(this.fetch, "POST", `${this.url}/logout?scope=${scope}`, {
                 headers: this.headers,
@@ -5279,6 +6930,7 @@ class GoTrueAdminApi {
      *
      * This function should only be called on a server. Never expose your `service_role` key in the browser.
      */ async getUserById(uid) {
+        (0, _helpers.validateUUID)(uid);
         try {
             return await (0, _fetch._request)(this.fetch, "GET", `${this.url}/admin/users/${uid}`, {
                 headers: this.headers,
@@ -5301,6 +6953,7 @@ class GoTrueAdminApi {
      *
      * This function should only be called on a server. Never expose your `service_role` key in the browser.
      */ async updateUserById(uid, attributes) {
+        (0, _helpers.validateUUID)(uid);
         try {
             return await (0, _fetch._request)(this.fetch, "PUT", `${this.url}/admin/users/${uid}`, {
                 body: attributes,
@@ -5321,11 +6974,12 @@ class GoTrueAdminApi {
      * Delete a user. Requires a `service_role` key.
      *
      * @param id The user id you want to remove.
-     * @param shouldSoftDelete If true, then the user will be soft-deleted (setting `deleted_at` to the current timestamp and disabling their account while preserving their data) from the auth schema.
+     * @param shouldSoftDelete If true, then the user will be soft-deleted from the auth schema. Soft deletion allows user identification from the hashed user ID but is not reversible.
      * Defaults to false for backward compatibility.
      *
      * This function should only be called on a server. Never expose your `service_role` key in the browser.
      */ async deleteUser(id, shouldSoftDelete = false) {
+        (0, _helpers.validateUUID)(id);
         try {
             return await (0, _fetch._request)(this.fetch, "DELETE", `${this.url}/admin/users/${id}`, {
                 headers: this.headers,
@@ -5345,6 +6999,7 @@ class GoTrueAdminApi {
         }
     }
     async _listFactors(params) {
+        (0, _helpers.validateUUID)(params.userId);
         try {
             const { data, error } = await (0, _fetch._request)(this.fetch, "GET", `${this.url}/admin/users/${params.userId}/factors`, {
                 headers: this.headers,
@@ -5370,6 +7025,8 @@ class GoTrueAdminApi {
         }
     }
     async _deleteFactor(params) {
+        (0, _helpers.validateUUID)(params.userId);
+        (0, _helpers.validateUUID)(params.id);
         try {
             const data = await (0, _fetch._request)(this.fetch, "DELETE", `${this.url}/admin/users/${params.userId}/factors/${params.id}`, {
                 headers: this.headers
@@ -5389,9 +7046,10 @@ class GoTrueAdminApi {
 }
 exports.default = GoTrueAdminApi;
 
-},{"./lib/fetch":"4qm8y","./lib/helpers":"eALwT","./lib/errors":"bDFnv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4qm8y":[function(require,module,exports) {
+},{"./lib/fetch":"d3spS","./lib/helpers":"gVab2","./lib/types":"4K6fZ","./lib/errors":"l4Miv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"d3spS":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "handleError", ()=>handleError);
 parcelHelpers.export(exports, "_request", ()=>_request);
 parcelHelpers.export(exports, "_sessionResponse", ()=>_sessionResponse);
 parcelHelpers.export(exports, "_sessionResponsePassword", ()=>_sessionResponsePassword);
@@ -5399,6 +7057,7 @@ parcelHelpers.export(exports, "_userResponse", ()=>_userResponse);
 parcelHelpers.export(exports, "_ssoResponse", ()=>_ssoResponse);
 parcelHelpers.export(exports, "_generateLinkResponse", ()=>_generateLinkResponse);
 parcelHelpers.export(exports, "_noResolveJsonResponse", ()=>_noResolveJsonResponse);
+var _constants = require("./constants");
 var _helpers = require("./helpers");
 var _errors = require("./errors");
 var __rest = undefined && undefined.__rest || function(s, e) {
@@ -5416,6 +7075,7 @@ const NETWORK_ERROR_CODES = [
     504
 ];
 async function handleError(error) {
+    var _a;
     if (!(0, _helpers.looksLikeFetchResponse)(error)) throw new (0, _errors.AuthRetryableFetchError)(_getErrorMessage(error), 0);
     if (NETWORK_ERROR_CODES.includes(error.status)) // status in 500...599 range - server had an error, request might be retryed.
     throw new (0, _errors.AuthRetryableFetchError)(_getErrorMessage(error), error.status);
@@ -5425,8 +7085,19 @@ async function handleError(error) {
     } catch (e) {
         throw new (0, _errors.AuthUnknownError)(_getErrorMessage(e), e);
     }
-    if (typeof data === "object" && data && typeof data.weak_password === "object" && data.weak_password && Array.isArray(data.weak_password.reasons) && data.weak_password.reasons.length && data.weak_password.reasons.reduce((a, i)=>a && typeof i === "string", true)) throw new (0, _errors.AuthWeakPasswordError)(_getErrorMessage(data), error.status, data.weak_password.reasons);
-    throw new (0, _errors.AuthApiError)(_getErrorMessage(data), error.status || 500);
+    let errorCode = undefined;
+    const responseAPIVersion = (0, _helpers.parseResponseAPIVersion)(error);
+    if (responseAPIVersion && responseAPIVersion.getTime() >= (0, _constants.API_VERSIONS)["2024-01-01"].timestamp && typeof data === "object" && data && typeof data.code === "string") errorCode = data.code;
+    else if (typeof data === "object" && data && typeof data.error_code === "string") errorCode = data.error_code;
+    if (!errorCode) {
+        // Legacy support for weak password errors, when there were no error codes
+        if (typeof data === "object" && data && typeof data.weak_password === "object" && data.weak_password && Array.isArray(data.weak_password.reasons) && data.weak_password.reasons.length && data.weak_password.reasons.reduce((a, i)=>a && typeof i === "string", true)) throw new (0, _errors.AuthWeakPasswordError)(_getErrorMessage(data), error.status, data.weak_password.reasons);
+    } else if (errorCode === "weak_password") throw new (0, _errors.AuthWeakPasswordError)(_getErrorMessage(data), error.status, ((_a = data.weak_password) === null || _a === void 0 ? void 0 : _a.reasons) || []);
+    else if (errorCode === "session_not_found") // The `session_id` inside the JWT does not correspond to a row in the
+    // `sessions` table. This usually means the user has signed out, has been
+    // deleted, or their session has somehow been terminated.
+    throw new (0, _errors.AuthSessionMissingError)();
+    throw new (0, _errors.AuthApiError)(_getErrorMessage(data), error.status || 500, errorCode);
 }
 const _getRequestParams = (method, options, parameters, body)=>{
     const params = {
@@ -5443,6 +7114,7 @@ const _getRequestParams = (method, options, parameters, body)=>{
 async function _request(fetcher, method, url, options) {
     var _a;
     const headers = Object.assign({}, options === null || options === void 0 ? void 0 : options.headers);
+    if (!headers[0, _constants.API_VERSION_HEADER_NAME]) headers[0, _constants.API_VERSION_HEADER_NAME] = (0, _constants.API_VERSIONS)["2024-01-01"].name;
     if (options === null || options === void 0 ? void 0 : options.jwt) headers["Authorization"] = `Bearer ${options.jwt}`;
     const qs = (_a = options === null || options === void 0 ? void 0 : options.query) !== null && _a !== void 0 ? _a : {};
     if (options === null || options === void 0 ? void 0 : options.redirectTo) qs["redirect_to"] = options.redirectTo;
@@ -5460,7 +7132,7 @@ async function _handleRequest(fetcher, method, url, options, parameters, body) {
     const requestParams = _getRequestParams(method, options, parameters, body);
     let result;
     try {
-        result = await fetcher(url, requestParams);
+        result = await fetcher(url, Object.assign({}, requestParams));
     } catch (e) {
         console.error(e);
         // fetch failed, likely due to a network or CORS error
@@ -5546,7 +7218,52 @@ function _noResolveJsonResponse(data) {
     return data.access_token && data.refresh_token && data.expires_in;
 }
 
-},{"./helpers":"eALwT","./errors":"bDFnv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"eALwT":[function(require,module,exports) {
+},{"./constants":"kMUzl","./helpers":"gVab2","./errors":"l4Miv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kMUzl":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "AUTO_REFRESH_TICK_DURATION_MS", ()=>AUTO_REFRESH_TICK_DURATION_MS);
+parcelHelpers.export(exports, "AUTO_REFRESH_TICK_THRESHOLD", ()=>AUTO_REFRESH_TICK_THRESHOLD);
+parcelHelpers.export(exports, "EXPIRY_MARGIN_MS", ()=>EXPIRY_MARGIN_MS);
+parcelHelpers.export(exports, "GOTRUE_URL", ()=>GOTRUE_URL);
+parcelHelpers.export(exports, "STORAGE_KEY", ()=>STORAGE_KEY);
+parcelHelpers.export(exports, "AUDIENCE", ()=>AUDIENCE);
+parcelHelpers.export(exports, "DEFAULT_HEADERS", ()=>DEFAULT_HEADERS);
+parcelHelpers.export(exports, "NETWORK_FAILURE", ()=>NETWORK_FAILURE);
+parcelHelpers.export(exports, "API_VERSION_HEADER_NAME", ()=>API_VERSION_HEADER_NAME);
+parcelHelpers.export(exports, "API_VERSIONS", ()=>API_VERSIONS);
+parcelHelpers.export(exports, "BASE64URL_REGEX", ()=>BASE64URL_REGEX);
+parcelHelpers.export(exports, "JWKS_TTL", ()=>JWKS_TTL);
+var _version = require("./version");
+const AUTO_REFRESH_TICK_DURATION_MS = 30000;
+const AUTO_REFRESH_TICK_THRESHOLD = 3;
+const EXPIRY_MARGIN_MS = AUTO_REFRESH_TICK_THRESHOLD * AUTO_REFRESH_TICK_DURATION_MS;
+const GOTRUE_URL = "http://localhost:9999";
+const STORAGE_KEY = "supabase.auth.token";
+const AUDIENCE = "";
+const DEFAULT_HEADERS = {
+    "X-Client-Info": `gotrue-js/${(0, _version.version)}`
+};
+const NETWORK_FAILURE = {
+    MAX_RETRIES: 10,
+    RETRY_INTERVAL: 2
+};
+const API_VERSION_HEADER_NAME = "X-Supabase-Api-Version";
+const API_VERSIONS = {
+    "2024-01-01": {
+        timestamp: Date.parse("2024-01-01T00:00:00.0Z"),
+        name: "2024-01-01"
+    }
+};
+const BASE64URL_REGEX = /^([a-z0-9_-]{4})*($|[a-z0-9_-]{3}$|[a-z0-9_-]{2}$)$/i;
+const JWKS_TTL = 600000; // 10 minutes
+
+},{"./version":"03ZTv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"03ZTv":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "version", ()=>version);
+const version = "2.70.0";
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gVab2":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "expiresAt", ()=>expiresAt);
@@ -5561,14 +7278,12 @@ parcelHelpers.export(exports, "looksLikeFetchResponse", ()=>looksLikeFetchRespon
 parcelHelpers.export(exports, "setItemAsync", ()=>setItemAsync);
 parcelHelpers.export(exports, "getItemAsync", ()=>getItemAsync);
 parcelHelpers.export(exports, "removeItemAsync", ()=>removeItemAsync);
-parcelHelpers.export(exports, "decodeBase64URL", ()=>decodeBase64URL);
 /**
  * A deferred represents some asynchronous work that is not yet finished, which
  * may or may not culminate in a value.
  * Taken from: https://github.com/mike-north/types/blob/master/src/async.ts
  */ parcelHelpers.export(exports, "Deferred", ()=>Deferred);
-// Taken from: https://stackoverflow.com/questions/38552003/how-to-decode-jwt-token-in-javascript-without-using-a-library
-parcelHelpers.export(exports, "decodeJWTPayload", ()=>decodeJWTPayload);
+parcelHelpers.export(exports, "decodeJWT", ()=>decodeJWT);
 /**
  * Creates a promise that resolves to null after some time.
  */ parcelHelpers.export(exports, "sleep", ()=>sleep);
@@ -5580,6 +7295,14 @@ parcelHelpers.export(exports, "decodeJWTPayload", ()=>decodeJWTPayload);
 // Functions below taken from: https://stackoverflow.com/questions/63309409/creating-a-code-verifier-and-challenge-for-pkce-auth-on-spotify-api-in-reactjs
 parcelHelpers.export(exports, "generatePKCEVerifier", ()=>generatePKCEVerifier);
 parcelHelpers.export(exports, "generatePKCEChallenge", ()=>generatePKCEChallenge);
+parcelHelpers.export(exports, "getCodeChallengeAndMethod", ()=>getCodeChallengeAndMethod);
+parcelHelpers.export(exports, "parseResponseAPIVersion", ()=>parseResponseAPIVersion);
+parcelHelpers.export(exports, "validateExp", ()=>validateExp);
+parcelHelpers.export(exports, "getAlgorithm", ()=>getAlgorithm);
+parcelHelpers.export(exports, "validateUUID", ()=>validateUUID);
+var _constants = require("./constants");
+var _errors = require("./errors");
+var _base64Url = require("./base64url");
 function expiresAt(expiresIn) {
     const timeNow = Math.round(Date.now() / 1000);
     return timeNow + expiresIn;
@@ -5590,7 +7313,7 @@ function uuid() {
         return v.toString(16);
     });
 }
-const isBrowser = ()=>typeof document !== "undefined";
+const isBrowser = ()=>typeof window !== "undefined" && typeof document !== "undefined";
 const localStorageWriteTests = {
     tested: false,
     writable: false
@@ -5638,7 +7361,7 @@ function parseParametersFromURL(href) {
 const resolveFetch = (customFetch)=>{
     let _fetch;
     if (customFetch) _fetch = customFetch;
-    else if (typeof fetch === "undefined") _fetch = (...args)=>require("eb2b32f4516ef18f").then(({ default: fetch1 })=>fetch1(...args));
+    else if (typeof fetch === "undefined") _fetch = (...args)=>require("b14de0e012a619af").then(({ default: fetch1 })=>fetch1(...args));
     else _fetch = fetch;
     return (...args)=>_fetch(...args);
 };
@@ -5660,27 +7383,6 @@ const getItemAsync = async (storage, key)=>{
 const removeItemAsync = async (storage, key)=>{
     await storage.removeItem(key);
 };
-function decodeBase64URL(value) {
-    const key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    let base64 = "";
-    let chr1, chr2, chr3;
-    let enc1, enc2, enc3, enc4;
-    let i = 0;
-    value = value.replace("-", "+").replace("_", "/");
-    while(i < value.length){
-        enc1 = key.indexOf(value.charAt(i++));
-        enc2 = key.indexOf(value.charAt(i++));
-        enc3 = key.indexOf(value.charAt(i++));
-        enc4 = key.indexOf(value.charAt(i++));
-        chr1 = enc1 << 2 | enc2 >> 4;
-        chr2 = (enc2 & 15) << 4 | enc3 >> 2;
-        chr3 = (enc3 & 3) << 6 | enc4;
-        base64 = base64 + String.fromCharCode(chr1);
-        if (enc3 != 64 && chr2 != 0) base64 = base64 + String.fromCharCode(chr2);
-        if (enc4 != 64 && chr3 != 0) base64 = base64 + String.fromCharCode(chr3);
-    }
-    return base64;
-}
 class Deferred {
     constructor(){
         this.promise = new Deferred.promiseConstructor((res, rej)=>{
@@ -5690,14 +7392,24 @@ class Deferred {
     }
 }
 Deferred.promiseConstructor = Promise;
-function decodeJWTPayload(token) {
-    // Regex checks for base64url format
-    const base64UrlRegex = /^([a-z0-9_-]{4})*($|[a-z0-9_-]{3}=?$|[a-z0-9_-]{2}(==)?$)$/i;
+function decodeJWT(token) {
     const parts = token.split(".");
-    if (parts.length !== 3) throw new Error("JWT is not valid: not a JWT structure");
-    if (!base64UrlRegex.test(parts[1])) throw new Error("JWT is not valid: payload is not in base64url format");
-    const base64Url = parts[1];
-    return JSON.parse(decodeBase64URL(base64Url));
+    if (parts.length !== 3) throw new (0, _errors.AuthInvalidJwtError)("Invalid JWT structure");
+    // Regex checks for base64url format
+    for(let i = 0; i < parts.length; i++){
+        if (!(0, _constants.BASE64URL_REGEX).test(parts[i])) throw new (0, _errors.AuthInvalidJwtError)("JWT not in base64url format");
+    }
+    const data = {
+        // using base64url lib
+        header: JSON.parse((0, _base64Url.stringFromBase64URL)(parts[0])),
+        payload: JSON.parse((0, _base64Url.stringFromBase64URL)(parts[1])),
+        signature: (0, _base64Url.base64UrlToUint8Array)(parts[2]),
+        raw: {
+            header: parts[0],
+            payload: parts[1]
+        }
+    };
+    return data;
 }
 async function sleep(time) {
     return await new Promise((accept)=>{
@@ -5746,9 +7458,6 @@ async function sha256(randomString) {
     const bytes = new Uint8Array(hash);
     return Array.from(bytes).map((c)=>String.fromCharCode(c)).join("");
 }
-function base64urlencode(str) {
-    return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
 async function generatePKCEChallenge(verifier) {
     const hasCryptoSupport = typeof crypto !== "undefined" && typeof crypto.subtle !== "undefined" && typeof TextEncoder !== "undefined";
     if (!hasCryptoSupport) {
@@ -5756,10 +7465,64 @@ async function generatePKCEChallenge(verifier) {
         return verifier;
     }
     const hashed = await sha256(verifier);
-    return base64urlencode(hashed);
+    return btoa(hashed).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function getCodeChallengeAndMethod(storage, storageKey, isPasswordRecovery = false) {
+    const codeVerifier = generatePKCEVerifier();
+    let storedCodeVerifier = codeVerifier;
+    if (isPasswordRecovery) storedCodeVerifier += "/PASSWORD_RECOVERY";
+    await setItemAsync(storage, `${storageKey}-code-verifier`, storedCodeVerifier);
+    const codeChallenge = await generatePKCEChallenge(codeVerifier);
+    const codeChallengeMethod = codeVerifier === codeChallenge ? "plain" : "s256";
+    return [
+        codeChallenge,
+        codeChallengeMethod
+    ];
+}
+/** Parses the API version which is 2YYY-MM-DD. */ const API_VERSION_REGEX = /^2[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|1[0-9]|2[0-9]|3[0-1])$/i;
+function parseResponseAPIVersion(response) {
+    const apiVersion = response.headers.get((0, _constants.API_VERSION_HEADER_NAME));
+    if (!apiVersion) return null;
+    if (!apiVersion.match(API_VERSION_REGEX)) return null;
+    try {
+        const date = new Date(`${apiVersion}T00:00:00.0Z`);
+        return date;
+    } catch (e) {
+        return null;
+    }
+}
+function validateExp(exp) {
+    if (!exp) throw new Error("Missing exp claim");
+    const timeNow = Math.floor(Date.now() / 1000);
+    if (exp <= timeNow) throw new Error("JWT has expired");
+}
+function getAlgorithm(alg) {
+    switch(alg){
+        case "RS256":
+            return {
+                name: "RSASSA-PKCS1-v1_5",
+                hash: {
+                    name: "SHA-256"
+                }
+            };
+        case "ES256":
+            return {
+                name: "ECDSA",
+                namedCurve: "P-256",
+                hash: {
+                    name: "SHA-256"
+                }
+            };
+        default:
+            throw new Error("Invalid alg claim");
+    }
+}
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+function validateUUID(str) {
+    if (!UUID_REGEX.test(str)) throw new Error("@supabase/auth-js: Expected parameter to be UUID but is not");
 }
 
-},{"eb2b32f4516ef18f":"43ht9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"bDFnv":[function(require,module,exports) {
+},{"./constants":"kMUzl","./errors":"l4Miv","./base64url":"c5cyB","b14de0e012a619af":"43ht9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"l4Miv":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "AuthError", ()=>AuthError);
@@ -5769,9 +7532,11 @@ parcelHelpers.export(exports, "isAuthApiError", ()=>isAuthApiError);
 parcelHelpers.export(exports, "AuthUnknownError", ()=>AuthUnknownError);
 parcelHelpers.export(exports, "CustomAuthError", ()=>CustomAuthError);
 parcelHelpers.export(exports, "AuthSessionMissingError", ()=>AuthSessionMissingError);
+parcelHelpers.export(exports, "isAuthSessionMissingError", ()=>isAuthSessionMissingError);
 parcelHelpers.export(exports, "AuthInvalidTokenResponseError", ()=>AuthInvalidTokenResponseError);
 parcelHelpers.export(exports, "AuthInvalidCredentialsError", ()=>AuthInvalidCredentialsError);
 parcelHelpers.export(exports, "AuthImplicitGrantRedirectError", ()=>AuthImplicitGrantRedirectError);
+parcelHelpers.export(exports, "isAuthImplicitGrantRedirectError", ()=>isAuthImplicitGrantRedirectError);
 parcelHelpers.export(exports, "AuthPKCEGrantCodeExchangeError", ()=>AuthPKCEGrantCodeExchangeError);
 parcelHelpers.export(exports, "AuthRetryableFetchError", ()=>AuthRetryableFetchError);
 parcelHelpers.export(exports, "isAuthRetryableFetchError", ()=>isAuthRetryableFetchError);
@@ -5781,29 +7546,25 @@ parcelHelpers.export(exports, "isAuthRetryableFetchError", ()=>isAuthRetryableFe
  * inadequate.
  */ parcelHelpers.export(exports, "AuthWeakPasswordError", ()=>AuthWeakPasswordError);
 parcelHelpers.export(exports, "isAuthWeakPasswordError", ()=>isAuthWeakPasswordError);
+parcelHelpers.export(exports, "AuthInvalidJwtError", ()=>AuthInvalidJwtError);
 class AuthError extends Error {
-    constructor(message, status){
+    constructor(message, status, code){
         super(message);
         this.__isAuthError = true;
         this.name = "AuthError";
         this.status = status;
+        this.code = code;
     }
 }
 function isAuthError(error) {
     return typeof error === "object" && error !== null && "__isAuthError" in error;
 }
 class AuthApiError extends AuthError {
-    constructor(message, status){
-        super(message, status);
+    constructor(message, status, code){
+        super(message, status, code);
         this.name = "AuthApiError";
         this.status = status;
-    }
-    toJSON() {
-        return {
-            name: this.name,
-            message: this.message,
-            status: this.status
-        };
+        this.code = code;
     }
 }
 function isAuthApiError(error) {
@@ -5817,37 +7578,33 @@ class AuthUnknownError extends AuthError {
     }
 }
 class CustomAuthError extends AuthError {
-    constructor(message, name, status){
-        super(message);
+    constructor(message, name, status, code){
+        super(message, status, code);
         this.name = name;
         this.status = status;
-    }
-    toJSON() {
-        return {
-            name: this.name,
-            message: this.message,
-            status: this.status
-        };
     }
 }
 class AuthSessionMissingError extends CustomAuthError {
     constructor(){
-        super("Auth session missing!", "AuthSessionMissingError", 400);
+        super("Auth session missing!", "AuthSessionMissingError", 400, undefined);
     }
+}
+function isAuthSessionMissingError(error) {
+    return isAuthError(error) && error.name === "AuthSessionMissingError";
 }
 class AuthInvalidTokenResponseError extends CustomAuthError {
     constructor(){
-        super("Auth session or user missing", "AuthInvalidTokenResponseError", 500);
+        super("Auth session or user missing", "AuthInvalidTokenResponseError", 500, undefined);
     }
 }
 class AuthInvalidCredentialsError extends CustomAuthError {
     constructor(message){
-        super(message, "AuthInvalidCredentialsError", 400);
+        super(message, "AuthInvalidCredentialsError", 400, undefined);
     }
 }
 class AuthImplicitGrantRedirectError extends CustomAuthError {
     constructor(message, details = null){
-        super(message, "AuthImplicitGrantRedirectError", 500);
+        super(message, "AuthImplicitGrantRedirectError", 500, undefined);
         this.details = null;
         this.details = details;
     }
@@ -5860,9 +7617,12 @@ class AuthImplicitGrantRedirectError extends CustomAuthError {
         };
     }
 }
+function isAuthImplicitGrantRedirectError(error) {
+    return isAuthError(error) && error.name === "AuthImplicitGrantRedirectError";
+}
 class AuthPKCEGrantCodeExchangeError extends CustomAuthError {
     constructor(message, details = null){
-        super(message, "AuthPKCEGrantCodeExchangeError", 500);
+        super(message, "AuthPKCEGrantCodeExchangeError", 500, undefined);
         this.details = null;
         this.details = details;
     }
@@ -5877,7 +7637,7 @@ class AuthPKCEGrantCodeExchangeError extends CustomAuthError {
 }
 class AuthRetryableFetchError extends CustomAuthError {
     constructor(message, status){
-        super(message, "AuthRetryableFetchError", status);
+        super(message, "AuthRetryableFetchError", status, undefined);
     }
 }
 function isAuthRetryableFetchError(error) {
@@ -5885,15 +7645,266 @@ function isAuthRetryableFetchError(error) {
 }
 class AuthWeakPasswordError extends CustomAuthError {
     constructor(message, status, reasons){
-        super(message, "AuthWeakPasswordError", status);
+        super(message, "AuthWeakPasswordError", status, "weak_password");
         this.reasons = reasons;
     }
 }
 function isAuthWeakPasswordError(error) {
     return isAuthError(error) && error.name === "AuthWeakPasswordError";
 }
+class AuthInvalidJwtError extends CustomAuthError {
+    constructor(message){
+        super(message, "AuthInvalidJwtError", 400, "invalid_jwt");
+    }
+}
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"26r9B":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"c5cyB":[function(require,module,exports) {
+/**
+ * Avoid modifying this file. It's part of
+ * https://github.com/supabase-community/base64url-js.  Submit all fixes on
+ * that repo!
+ */ /**
+ * An array of characters that encode 6 bits into a Base64-URL alphabet
+ * character.
+ */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+/**
+ * Converts a byte to a Base64-URL string.
+ *
+ * @param byte The byte to convert, or null to flush at the end of the byte sequence.
+ * @param state The Base64 conversion state. Pass an initial value of `{ queue: 0, queuedBits: 0 }`.
+ * @param emit A function called with the next Base64 character when ready.
+ */ parcelHelpers.export(exports, "byteToBase64URL", ()=>byteToBase64URL);
+/**
+ * Converts a String char code (extracted using `string.charCodeAt(position)`) to a sequence of Base64-URL characters.
+ *
+ * @param charCode The char code of the JavaScript string.
+ * @param state The Base64 state. Pass an initial value of `{ queue: 0, queuedBits: 0 }`.
+ * @param emit A function called with the next byte.
+ */ parcelHelpers.export(exports, "byteFromBase64URL", ()=>byteFromBase64URL);
+/**
+ * Converts a JavaScript string (which may include any valid character) into a
+ * Base64-URL encoded string. The string is first encoded in UTF-8 which is
+ * then encoded as Base64-URL.
+ *
+ * @param str The string to convert.
+ */ parcelHelpers.export(exports, "stringToBase64URL", ()=>stringToBase64URL);
+/**
+ * Converts a Base64-URL encoded string into a JavaScript string. It is assumed
+ * that the underlying string has been encoded as UTF-8.
+ *
+ * @param str The Base64-URL encoded string.
+ */ parcelHelpers.export(exports, "stringFromBase64URL", ()=>stringFromBase64URL);
+/**
+ * Converts a Unicode codepoint to a multi-byte UTF-8 sequence.
+ *
+ * @param codepoint The Unicode codepoint.
+ * @param emit      Function which will be called for each UTF-8 byte that represents the codepoint.
+ */ parcelHelpers.export(exports, "codepointToUTF8", ()=>codepointToUTF8);
+/**
+ * Converts a JavaScript string to a sequence of UTF-8 bytes.
+ *
+ * @param str  The string to convert to UTF-8.
+ * @param emit Function which will be called for each UTF-8 byte of the string.
+ */ parcelHelpers.export(exports, "stringToUTF8", ()=>stringToUTF8);
+/**
+ * Converts a UTF-8 byte to a Unicode codepoint.
+ *
+ * @param byte  The UTF-8 byte next in the sequence.
+ * @param state The shared state between consecutive UTF-8 bytes in the
+ *              sequence, an object with the shape `{ utf8seq: 0, codepoint: 0 }`.
+ * @param emit  Function which will be called for each codepoint.
+ */ parcelHelpers.export(exports, "stringFromUTF8", ()=>stringFromUTF8);
+/**
+ * Helper functions to convert different types of strings to Uint8Array
+ */ parcelHelpers.export(exports, "base64UrlToUint8Array", ()=>base64UrlToUint8Array);
+parcelHelpers.export(exports, "stringToUint8Array", ()=>stringToUint8Array);
+parcelHelpers.export(exports, "bytesToBase64URL", ()=>bytesToBase64URL);
+const TO_BASE64URL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".split("");
+/**
+ * An array of characters that can appear in a Base64-URL encoded string but
+ * should be ignored.
+ */ const IGNORE_BASE64URL = " 	\n\r=".split("");
+/**
+ * An array of 128 numbers that map a Base64-URL character to 6 bits, or if -2
+ * used to skip the character, or if -1 used to error out.
+ */ const FROM_BASE64URL = (()=>{
+    const charMap = new Array(128);
+    for(let i = 0; i < charMap.length; i += 1)charMap[i] = -1;
+    for(let i = 0; i < IGNORE_BASE64URL.length; i += 1)charMap[IGNORE_BASE64URL[i].charCodeAt(0)] = -2;
+    for(let i = 0; i < TO_BASE64URL.length; i += 1)charMap[TO_BASE64URL[i].charCodeAt(0)] = i;
+    return charMap;
+})();
+function byteToBase64URL(byte, state, emit) {
+    if (byte !== null) {
+        state.queue = state.queue << 8 | byte;
+        state.queuedBits += 8;
+        while(state.queuedBits >= 6){
+            const pos = state.queue >> state.queuedBits - 6 & 63;
+            emit(TO_BASE64URL[pos]);
+            state.queuedBits -= 6;
+        }
+    } else if (state.queuedBits > 0) {
+        state.queue = state.queue << 6 - state.queuedBits;
+        state.queuedBits = 6;
+        while(state.queuedBits >= 6){
+            const pos = state.queue >> state.queuedBits - 6 & 63;
+            emit(TO_BASE64URL[pos]);
+            state.queuedBits -= 6;
+        }
+    }
+}
+function byteFromBase64URL(charCode, state, emit) {
+    const bits = FROM_BASE64URL[charCode];
+    if (bits > -1) {
+        // valid Base64-URL character
+        state.queue = state.queue << 6 | bits;
+        state.queuedBits += 6;
+        while(state.queuedBits >= 8){
+            emit(state.queue >> state.queuedBits - 8 & 0xff);
+            state.queuedBits -= 8;
+        }
+    } else if (bits === -2) // ignore spaces, tabs, newlines, =
+    return;
+    else throw new Error(`Invalid Base64-URL character "${String.fromCharCode(charCode)}"`);
+}
+function stringToBase64URL(str) {
+    const base64 = [];
+    const emitter = (char)=>{
+        base64.push(char);
+    };
+    const state = {
+        queue: 0,
+        queuedBits: 0
+    };
+    stringToUTF8(str, (byte)=>{
+        byteToBase64URL(byte, state, emitter);
+    });
+    byteToBase64URL(null, state, emitter);
+    return base64.join("");
+}
+function stringFromBase64URL(str) {
+    const conv = [];
+    const utf8Emit = (codepoint)=>{
+        conv.push(String.fromCodePoint(codepoint));
+    };
+    const utf8State = {
+        utf8seq: 0,
+        codepoint: 0
+    };
+    const b64State = {
+        queue: 0,
+        queuedBits: 0
+    };
+    const byteEmit = (byte)=>{
+        stringFromUTF8(byte, utf8State, utf8Emit);
+    };
+    for(let i = 0; i < str.length; i += 1)byteFromBase64URL(str.charCodeAt(i), b64State, byteEmit);
+    return conv.join("");
+}
+function codepointToUTF8(codepoint, emit) {
+    if (codepoint <= 0x7f) {
+        emit(codepoint);
+        return;
+    } else if (codepoint <= 0x7ff) {
+        emit(0xc0 | codepoint >> 6);
+        emit(0x80 | codepoint & 0x3f);
+        return;
+    } else if (codepoint <= 0xffff) {
+        emit(0xe0 | codepoint >> 12);
+        emit(0x80 | codepoint >> 6 & 0x3f);
+        emit(0x80 | codepoint & 0x3f);
+        return;
+    } else if (codepoint <= 0x10ffff) {
+        emit(0xf0 | codepoint >> 18);
+        emit(0x80 | codepoint >> 12 & 0x3f);
+        emit(0x80 | codepoint >> 6 & 0x3f);
+        emit(0x80 | codepoint & 0x3f);
+        return;
+    }
+    throw new Error(`Unrecognized Unicode codepoint: ${codepoint.toString(16)}`);
+}
+function stringToUTF8(str, emit) {
+    for(let i = 0; i < str.length; i += 1){
+        let codepoint = str.charCodeAt(i);
+        if (codepoint > 0xd7ff && codepoint <= 0xdbff) {
+            // most UTF-16 codepoints are Unicode codepoints, except values in this
+            // range where the next UTF-16 codepoint needs to be combined with the
+            // current one to get the Unicode codepoint
+            const highSurrogate = (codepoint - 0xd800) * 0x400 & 0xffff;
+            const lowSurrogate = str.charCodeAt(i + 1) - 0xdc00 & 0xffff;
+            codepoint = (lowSurrogate | highSurrogate) + 0x10000;
+            i += 1;
+        }
+        codepointToUTF8(codepoint, emit);
+    }
+}
+function stringFromUTF8(byte, state, emit) {
+    if (state.utf8seq === 0) {
+        if (byte <= 0x7f) {
+            emit(byte);
+            return;
+        }
+        // count the number of 1 leading bits until you reach 0
+        for(let leadingBit = 1; leadingBit < 6; leadingBit += 1)if ((byte >> 7 - leadingBit & 1) === 0) {
+            state.utf8seq = leadingBit;
+            break;
+        }
+        if (state.utf8seq === 2) state.codepoint = byte & 31;
+        else if (state.utf8seq === 3) state.codepoint = byte & 15;
+        else if (state.utf8seq === 4) state.codepoint = byte & 7;
+        else throw new Error("Invalid UTF-8 sequence");
+        state.utf8seq -= 1;
+    } else if (state.utf8seq > 0) {
+        if (byte <= 0x7f) throw new Error("Invalid UTF-8 sequence");
+        state.codepoint = state.codepoint << 6 | byte & 63;
+        state.utf8seq -= 1;
+        if (state.utf8seq === 0) emit(state.codepoint);
+    }
+}
+function base64UrlToUint8Array(str) {
+    const result = [];
+    const state = {
+        queue: 0,
+        queuedBits: 0
+    };
+    const onByte = (byte)=>{
+        result.push(byte);
+    };
+    for(let i = 0; i < str.length; i += 1)byteFromBase64URL(str.charCodeAt(i), state, onByte);
+    return new Uint8Array(result);
+}
+function stringToUint8Array(str) {
+    const result = [];
+    stringToUTF8(str, (byte)=>result.push(byte));
+    return new Uint8Array(result);
+}
+function bytesToBase64URL(bytes) {
+    const result = [];
+    const state = {
+        queue: 0,
+        queuedBits: 0
+    };
+    const onChar = (char)=>{
+        result.push(char);
+    };
+    bytes.forEach((byte)=>byteToBase64URL(byte, state, onChar));
+    // always call with `null` after processing all bytes
+    byteToBase64URL(null, state, onChar);
+    return result.join("");
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4K6fZ":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "SIGN_OUT_SCOPES", ()=>SIGN_OUT_SCOPES);
+const SIGN_OUT_SCOPES = [
+    "global",
+    "local",
+    "others"
+];
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"san1E":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _goTrueAdminApi = require("./GoTrueAdminApi");
@@ -5906,6 +7917,7 @@ var _localStorage = require("./lib/local-storage");
 var _polyfills = require("./lib/polyfills");
 var _version = require("./lib/version");
 var _locks = require("./lib/locks");
+var _base64Url = require("./lib/base64url");
 (0, _polyfills.polyfillGlobalThis)(); // Make "globalThis" available
 const DEFAULT_OPTIONS = {
     url: (0, _constants.GOTRUE_URL),
@@ -5915,11 +7927,9 @@ const DEFAULT_OPTIONS = {
     detectSessionInUrl: true,
     headers: (0, _constants.DEFAULT_HEADERS),
     flowType: "implicit",
-    debug: false
+    debug: false,
+    hasCustomAuthorizationHeader: false
 };
-/** Current session will be checked for refresh at this interval. */ const AUTO_REFRESH_TICK_DURATION = 30000;
-/**
- * A token refresh will be attempted this many ticks before the current session expires. */ const AUTO_REFRESH_TICK_THRESHOLD = 3;
 async function lockNoOp(name, acquireTimeout, fn) {
     return await fn();
 }
@@ -5940,6 +7950,8 @@ class GoTrueClient {
          * Keep extra care to never reject or throw uncaught errors
          */ this.initializePromise = null;
         this.detectSessionInUrl = true;
+        this.hasCustomAuthorizationHeader = false;
+        this.suppressGetSessionWarning = false;
         this.lockAcquired = false;
         this.pendingInLock = [];
         /**
@@ -5966,9 +7978,14 @@ class GoTrueClient {
         this.lock = settings.lock || lockNoOp;
         this.detectSessionInUrl = settings.detectSessionInUrl;
         this.flowType = settings.flowType;
+        this.hasCustomAuthorizationHeader = settings.hasCustomAuthorizationHeader;
         if (settings.lock) this.lock = settings.lock;
         else if ((0, _helpers.isBrowser)() && ((_a = globalThis === null || globalThis === void 0 ? void 0 : globalThis.navigator) === null || _a === void 0 ? void 0 : _a.locks)) this.lock = (0, _locks.navigatorLock);
         else this.lock = lockNoOp;
+        this.jwks = {
+            keys: []
+        };
+        this.jwks_cached_at = Number.MIN_SAFE_INTEGER;
         this.mfa = {
             verify: this._verify.bind(this),
             enroll: this._enroll.bind(this),
@@ -6025,18 +8042,27 @@ class GoTrueClient {
      * 2. Never return a session from this method as it would be cached over
      *    the whole lifetime of the client
      */ async _initialize() {
+        var _a;
         try {
-            const isPKCEFlow = (0, _helpers.isBrowser)() ? await this._isPKCEFlow() : false;
-            this._debug("#_initialize()", "begin", "is PKCE flow", isPKCEFlow);
-            if (isPKCEFlow || this.detectSessionInUrl && this._isImplicitGrantFlow()) {
-                const { data, error } = await this._getSessionFromURL(isPKCEFlow);
+            const params = (0, _helpers.parseParametersFromURL)(window.location.href);
+            let callbackUrlType = "none";
+            if (this._isImplicitGrantCallback(params)) callbackUrlType = "implicit";
+            else if (await this._isPKCECallback(params)) callbackUrlType = "pkce";
+            /**
+             * Attempt to get the session from the URL only if these conditions are fulfilled
+             *
+             * Note: If the URL isn't one of the callback url types (implicit or pkce),
+             * then there could be an existing session so we don't want to prematurely remove it
+             */ if ((0, _helpers.isBrowser)() && this.detectSessionInUrl && callbackUrlType !== "none") {
+                const { data, error } = await this._getSessionFromURL(params, callbackUrlType);
                 if (error) {
                     this._debug("#_initialize()", "error detecting session from URL", error);
-                    // hacky workaround to keep the existing session if there's an error returned from identity linking
-                    // TODO: once error codes are ready, we should match against it instead of the message
-                    if ((error === null || error === void 0 ? void 0 : error.message) === "Identity is already linked" || (error === null || error === void 0 ? void 0 : error.message) === "Identity is already linked to another user") return {
-                        error
-                    };
+                    if ((0, _errors.isAuthImplicitGrantRedirectError)(error)) {
+                        const errorCode = (_a = error.details) === null || _a === void 0 ? void 0 : _a.code;
+                        if (errorCode === "identity_already_exists" || errorCode === "identity_not_found" || errorCode === "single_identity_not_deletable") return {
+                            error
+                        };
+                    }
                     // failed login attempt via url,
                     // remove old session as in verifyOtp, signUp and signInWith*
                     await this._removeSession();
@@ -6073,6 +8099,55 @@ class GoTrueClient {
         }
     }
     /**
+     * Creates a new anonymous user.
+     *
+     * @returns A session where the is_anonymous claim in the access token JWT set to true
+     */ async signInAnonymously(credentials) {
+        var _a, _b, _c;
+        try {
+            const res = await (0, _fetch._request)(this.fetch, "POST", `${this.url}/signup`, {
+                headers: this.headers,
+                body: {
+                    data: (_b = (_a = credentials === null || credentials === void 0 ? void 0 : credentials.options) === null || _a === void 0 ? void 0 : _a.data) !== null && _b !== void 0 ? _b : {},
+                    gotrue_meta_security: {
+                        captcha_token: (_c = credentials === null || credentials === void 0 ? void 0 : credentials.options) === null || _c === void 0 ? void 0 : _c.captchaToken
+                    }
+                },
+                xform: (0, _fetch._sessionResponse)
+            });
+            const { data, error } = res;
+            if (error || !data) return {
+                data: {
+                    user: null,
+                    session: null
+                },
+                error: error
+            };
+            const session = data.session;
+            const user = data.user;
+            if (data.session) {
+                await this._saveSession(data.session);
+                await this._notifyAllSubscribers("SIGNED_IN", session);
+            }
+            return {
+                data: {
+                    user,
+                    session
+                },
+                error: null
+            };
+        } catch (error) {
+            if ((0, _errors.isAuthError)(error)) return {
+                data: {
+                    user: null,
+                    session: null
+                },
+                error
+            };
+            throw error;
+        }
+    }
+    /**
      * Creates a new user.
      *
      * Be aware that if a user account exists in the system you may get back an
@@ -6084,18 +8159,12 @@ class GoTrueClient {
      */ async signUp(credentials) {
         var _a, _b, _c;
         try {
-            await this._removeSession();
             let res;
             if ("email" in credentials) {
                 const { email, password, options } = credentials;
                 let codeChallenge = null;
                 let codeChallengeMethod = null;
-                if (this.flowType === "pkce") {
-                    const codeVerifier = (0, _helpers.generatePKCEVerifier)();
-                    await (0, _helpers.setItemAsync)(this.storage, `${this.storageKey}-code-verifier`, codeVerifier);
-                    codeChallenge = await (0, _helpers.generatePKCEChallenge)(codeVerifier);
-                    codeChallengeMethod = codeVerifier === codeChallenge ? "plain" : "s256";
-                }
+                if (this.flowType === "pkce") [codeChallenge, codeChallengeMethod] = await (0, _helpers.getCodeChallengeAndMethod)(this.storage, this.storageKey);
                 res = await (0, _fetch._request)(this.fetch, "POST", `${this.url}/signup`, {
                     headers: this.headers,
                     redirectTo: options === null || options === void 0 ? void 0 : options.emailRedirectTo,
@@ -6168,7 +8237,6 @@ class GoTrueClient {
      * be accessed via social login.
      */ async signInWithPassword(credentials) {
         try {
-            await this._removeSession();
             let res;
             if ("email" in credentials) {
                 const { email, password, options } = credentials;
@@ -6241,7 +8309,6 @@ class GoTrueClient {
      * This method supports the PKCE flow.
      */ async signInWithOAuth(credentials) {
         var _a, _b, _c, _d;
-        await this._removeSession();
         return await this._handleProviderSignIn(credentials.provider, {
             redirectTo: (_a = credentials.options) === null || _a === void 0 ? void 0 : _a.redirectTo,
             scopes: (_b = credentials.options) === null || _b === void 0 ? void 0 : _b.scopes,
@@ -6257,50 +8324,182 @@ class GoTrueClient {
             return this._exchangeCodeForSession(authCode);
         });
     }
+    /**
+     * Signs in a user by verifying a message signed by the user's private key.
+     * Only Solana supported at this time, using the Sign in with Solana standard.
+     */ async signInWithWeb3(credentials) {
+        const { chain } = credentials;
+        if (chain === "solana") return await this.signInWithSolana(credentials);
+        throw new Error(`@supabase/auth-js: Unsupported chain "${chain}"`);
+    }
+    async signInWithSolana(credentials) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        let message;
+        let signature;
+        if ("message" in credentials) {
+            message = credentials.message;
+            signature = credentials.signature;
+        } else {
+            const { chain, wallet, statement, options } = credentials;
+            let resolvedWallet;
+            if (!(0, _helpers.isBrowser)()) {
+                if (typeof wallet !== "object" || !(options === null || options === void 0 ? void 0 : options.url)) throw new Error("@supabase/auth-js: Both wallet and url must be specified in non-browser environments.");
+                resolvedWallet = wallet;
+            } else if (typeof wallet === "object") resolvedWallet = wallet;
+            else {
+                const windowAny = window;
+                if ("solana" in windowAny && typeof windowAny.solana === "object" && ("signIn" in windowAny.solana && typeof windowAny.solana.signIn === "function" || "signMessage" in windowAny.solana && typeof windowAny.solana.signMessage === "function")) resolvedWallet = windowAny.solana;
+                else throw new Error(`@supabase/auth-js: No compatible Solana wallet interface on the window object (window.solana) detected. Make sure the user already has a wallet installed and connected for this app. Prefer passing the wallet interface object directly to signInWithWeb3({ chain: 'solana', wallet: resolvedUserWallet }) instead.`);
+            }
+            const url = new URL((_a = options === null || options === void 0 ? void 0 : options.url) !== null && _a !== void 0 ? _a : window.location.href);
+            if ("signIn" in resolvedWallet && resolvedWallet.signIn) {
+                const output = await resolvedWallet.signIn(Object.assign(Object.assign(Object.assign({
+                    issuedAt: new Date().toISOString()
+                }, options === null || options === void 0 ? void 0 : options.signInWithSolana), {
+                    // non-overridable properties
+                    version: "1",
+                    domain: url.host,
+                    uri: url.href
+                }), statement ? {
+                    statement
+                } : null));
+                let outputToProcess;
+                if (Array.isArray(output) && output[0] && typeof output[0] === "object") outputToProcess = output[0];
+                else if (output && typeof output === "object" && "signedMessage" in output && "signature" in output) outputToProcess = output;
+                else throw new Error("@supabase/auth-js: Wallet method signIn() returned unrecognized value");
+                if ("signedMessage" in outputToProcess && "signature" in outputToProcess && (typeof outputToProcess.signedMessage === "string" || outputToProcess.signedMessage instanceof Uint8Array) && outputToProcess.signature instanceof Uint8Array) {
+                    message = typeof outputToProcess.signedMessage === "string" ? outputToProcess.signedMessage : new TextDecoder().decode(outputToProcess.signedMessage);
+                    signature = outputToProcess.signature;
+                } else throw new Error("@supabase/auth-js: Wallet method signIn() API returned object without signedMessage and signature fields");
+            } else {
+                if (!("signMessage" in resolvedWallet) || typeof resolvedWallet.signMessage !== "function" || !("publicKey" in resolvedWallet) || typeof resolvedWallet !== "object" || !resolvedWallet.publicKey || !("toBase58" in resolvedWallet.publicKey) || typeof resolvedWallet.publicKey.toBase58 !== "function") throw new Error("@supabase/auth-js: Wallet does not have a compatible signMessage() and publicKey.toBase58() API");
+                message = [
+                    `${url.host} wants you to sign in with your Solana account:`,
+                    resolvedWallet.publicKey.toBase58(),
+                    ...statement ? [
+                        "",
+                        statement,
+                        ""
+                    ] : [
+                        ""
+                    ],
+                    "Version: 1",
+                    `URI: ${url.href}`,
+                    `Issued At: ${(_c = (_b = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _b === void 0 ? void 0 : _b.issuedAt) !== null && _c !== void 0 ? _c : new Date().toISOString()}`,
+                    ...((_d = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _d === void 0 ? void 0 : _d.notBefore) ? [
+                        `Not Before: ${options.signInWithSolana.notBefore}`
+                    ] : [],
+                    ...((_e = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _e === void 0 ? void 0 : _e.expirationTime) ? [
+                        `Expiration Time: ${options.signInWithSolana.expirationTime}`
+                    ] : [],
+                    ...((_f = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _f === void 0 ? void 0 : _f.chainId) ? [
+                        `Chain ID: ${options.signInWithSolana.chainId}`
+                    ] : [],
+                    ...((_g = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _g === void 0 ? void 0 : _g.nonce) ? [
+                        `Nonce: ${options.signInWithSolana.nonce}`
+                    ] : [],
+                    ...((_h = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _h === void 0 ? void 0 : _h.requestId) ? [
+                        `Request ID: ${options.signInWithSolana.requestId}`
+                    ] : [],
+                    ...((_k = (_j = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _j === void 0 ? void 0 : _j.resources) === null || _k === void 0 ? void 0 : _k.length) ? [
+                        "Resources",
+                        ...options.signInWithSolana.resources.map((resource)=>`- ${resource}`)
+                    ] : []
+                ].join("\n");
+                const maybeSignature = await resolvedWallet.signMessage(new TextEncoder().encode(message), "utf8");
+                if (!maybeSignature || !(maybeSignature instanceof Uint8Array)) throw new Error("@supabase/auth-js: Wallet signMessage() API returned an recognized value");
+                signature = maybeSignature;
+            }
+        }
+        try {
+            const { data, error } = await (0, _fetch._request)(this.fetch, "POST", `${this.url}/token?grant_type=web3`, {
+                headers: this.headers,
+                body: Object.assign({
+                    chain: "solana",
+                    message,
+                    signature: (0, _base64Url.bytesToBase64URL)(signature)
+                }, ((_l = credentials.options) === null || _l === void 0 ? void 0 : _l.captchaToken) ? {
+                    gotrue_meta_security: {
+                        captcha_token: (_m = credentials.options) === null || _m === void 0 ? void 0 : _m.captchaToken
+                    }
+                } : null),
+                xform: (0, _fetch._sessionResponse)
+            });
+            if (error) throw error;
+            if (!data || !data.session || !data.user) return {
+                data: {
+                    user: null,
+                    session: null
+                },
+                error: new (0, _errors.AuthInvalidTokenResponseError)()
+            };
+            if (data.session) {
+                await this._saveSession(data.session);
+                await this._notifyAllSubscribers("SIGNED_IN", data.session);
+            }
+            return {
+                data: Object.assign({}, data),
+                error
+            };
+        } catch (error) {
+            if ((0, _errors.isAuthError)(error)) return {
+                data: {
+                    user: null,
+                    session: null
+                },
+                error
+            };
+            throw error;
+        }
+    }
     async _exchangeCodeForSession(authCode) {
         const storageItem = await (0, _helpers.getItemAsync)(this.storage, `${this.storageKey}-code-verifier`);
         const [codeVerifier, redirectType] = (storageItem !== null && storageItem !== void 0 ? storageItem : "").split("/");
-        const { data, error } = await (0, _fetch._request)(this.fetch, "POST", `${this.url}/token?grant_type=pkce`, {
-            headers: this.headers,
-            body: {
-                auth_code: authCode,
-                code_verifier: codeVerifier
-            },
-            xform: (0, _fetch._sessionResponse)
-        });
-        await (0, _helpers.removeItemAsync)(this.storage, `${this.storageKey}-code-verifier`);
-        if (error) return {
-            data: {
-                user: null,
-                session: null,
-                redirectType: null
-            },
-            error
-        };
-        else if (!data || !data.session || !data.user) return {
-            data: {
-                user: null,
-                session: null,
-                redirectType: null
-            },
-            error: new (0, _errors.AuthInvalidTokenResponseError)()
-        };
-        if (data.session) {
-            await this._saveSession(data.session);
-            await this._notifyAllSubscribers("SIGNED_IN", data.session);
+        try {
+            const { data, error } = await (0, _fetch._request)(this.fetch, "POST", `${this.url}/token?grant_type=pkce`, {
+                headers: this.headers,
+                body: {
+                    auth_code: authCode,
+                    code_verifier: codeVerifier
+                },
+                xform: (0, _fetch._sessionResponse)
+            });
+            await (0, _helpers.removeItemAsync)(this.storage, `${this.storageKey}-code-verifier`);
+            if (error) throw error;
+            if (!data || !data.session || !data.user) return {
+                data: {
+                    user: null,
+                    session: null,
+                    redirectType: null
+                },
+                error: new (0, _errors.AuthInvalidTokenResponseError)()
+            };
+            if (data.session) {
+                await this._saveSession(data.session);
+                await this._notifyAllSubscribers("SIGNED_IN", data.session);
+            }
+            return {
+                data: Object.assign(Object.assign({}, data), {
+                    redirectType: redirectType !== null && redirectType !== void 0 ? redirectType : null
+                }),
+                error
+            };
+        } catch (error) {
+            if ((0, _errors.isAuthError)(error)) return {
+                data: {
+                    user: null,
+                    session: null,
+                    redirectType: null
+                },
+                error
+            };
+            throw error;
         }
-        return {
-            data: Object.assign(Object.assign({}, data), {
-                redirectType: redirectType !== null && redirectType !== void 0 ? redirectType : null
-            }),
-            error
-        };
     }
     /**
      * Allows signing in with an OIDC ID token. The authentication provider used
      * should be enabled and configured.
      */ async signInWithIdToken(credentials) {
-        await this._removeSession();
         try {
             const { options, provider, token, access_token, nonce } = credentials;
             const res = await (0, _fetch._request)(this.fetch, "POST", `${this.url}/token?grant_type=id_token`, {
@@ -6369,17 +8568,11 @@ class GoTrueClient {
      */ async signInWithOtp(credentials) {
         var _a, _b, _c, _d, _e;
         try {
-            await this._removeSession();
             if ("email" in credentials) {
                 const { email, options } = credentials;
                 let codeChallenge = null;
                 let codeChallengeMethod = null;
-                if (this.flowType === "pkce") {
-                    const codeVerifier = (0, _helpers.generatePKCEVerifier)();
-                    await (0, _helpers.setItemAsync)(this.storage, `${this.storageKey}-code-verifier`, codeVerifier);
-                    codeChallenge = await (0, _helpers.generatePKCEChallenge)(codeVerifier);
-                    codeChallengeMethod = codeVerifier === codeChallenge ? "plain" : "s256";
-                }
+                if (this.flowType === "pkce") [codeChallenge, codeChallengeMethod] = await (0, _helpers.getCodeChallengeAndMethod)(this.storage, this.storageKey);
                 const { error } = await (0, _fetch._request)(this.fetch, "POST", `${this.url}/otp`, {
                     headers: this.headers,
                     body: {
@@ -6442,8 +8635,6 @@ class GoTrueClient {
      */ async verifyOtp(params) {
         var _a, _b;
         try {
-            if (params.type !== "email_change" && params.type !== "phone_change") // we don't want to remove the authenticated session if the user is performing an email_change or phone_change verification
-            await this._removeSession();
             let redirectTo = undefined;
             let captchaToken = undefined;
             if ("options" in params) {
@@ -6502,15 +8693,9 @@ class GoTrueClient {
      */ async signInWithSSO(params) {
         var _a, _b, _c;
         try {
-            await this._removeSession();
             let codeChallenge = null;
             let codeChallengeMethod = null;
-            if (this.flowType === "pkce") {
-                const codeVerifier = (0, _helpers.generatePKCEVerifier)();
-                await (0, _helpers.setItemAsync)(this.storage, `${this.storageKey}-code-verifier`, codeVerifier);
-                codeChallenge = await (0, _helpers.generatePKCEChallenge)(codeVerifier);
-                codeChallengeMethod = codeVerifier === codeChallenge ? "plain" : "s256";
-            }
+            if (this.flowType === "pkce") [codeChallenge, codeChallengeMethod] = await (0, _helpers.getCodeChallengeAndMethod)(this.storage, this.storageKey);
             return await (0, _fetch._request)(this.fetch, "POST", `${this.url}/sso`, {
                 body: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, "providerId" in params ? {
                     provider_id: params.providerId
@@ -6580,7 +8765,6 @@ class GoTrueClient {
      * Resends an existing signup confirmation email, email change email, SMS OTP or phone change OTP.
      */ async resend(credentials) {
         try {
-            if (credentials.type != "email_change" && credentials.type != "phone_change") await this._removeSession();
             const endpoint = `${this.url}/resend`;
             if ("email" in credentials) {
                 const { email, type, options } = credentials;
@@ -6637,14 +8821,22 @@ class GoTrueClient {
     }
     /**
      * Returns the session, refreshing it if necessary.
+     *
      * The session returned can be null if the session is not detected which can happen in the event a user is not signed-in or has logged out.
+     *
+     * **IMPORTANT:** This method loads values directly from the storage attached
+     * to the client. If that storage is based on request cookies for example,
+     * the values in it may not be authentic and therefore it's strongly advised
+     * against using this method and its results in such circumstances. A warning
+     * will be emitted if this is detected. Use {@link #getUser()} instead.
      */ async getSession() {
         await this.initializePromise;
-        return this._acquireLock(-1, async ()=>{
+        const result = await this._acquireLock(-1, async ()=>{
             return this._useSession(async (result)=>{
                 return result;
             });
         });
+        return result;
     }
     /**
      * Acquires a global lock based on the storage key.
@@ -6736,14 +8928,36 @@ class GoTrueClient {
                 },
                 error: null
             };
-            const hasExpired = currentSession.expires_at ? currentSession.expires_at <= Date.now() / 1000 : false;
+            // A session is considered expired before the access token _actually_
+            // expires. When the autoRefreshToken option is off (or when the tab is
+            // in the background), very eager users of getSession() -- like
+            // realtime-js -- might send a valid JWT which will expire by the time it
+            // reaches the server.
+            const hasExpired = currentSession.expires_at ? currentSession.expires_at * 1000 - Date.now() < (0, _constants.EXPIRY_MARGIN_MS) : false;
             this._debug("#__loadSession()", `session has${hasExpired ? "" : " not"} expired`, "expires_at", currentSession.expires_at);
-            if (!hasExpired) return {
-                data: {
-                    session: currentSession
-                },
-                error: null
-            };
+            if (!hasExpired) {
+                if (this.storage.isServer) {
+                    let suppressWarning = this.suppressGetSessionWarning;
+                    const proxySession = new Proxy(currentSession, {
+                        get: (target, prop, receiver)=>{
+                            if (!suppressWarning && prop === "user") {
+                                // only show warning when the user object is being accessed from the server
+                                console.warn("Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.");
+                                suppressWarning = true; // keeps this proxy instance from logging additional warnings
+                                this.suppressGetSessionWarning = true; // keeps this client's future proxy instances from warning
+                            }
+                            return Reflect.get(target, prop, receiver);
+                        }
+                    });
+                    currentSession = proxySession;
+                }
+                return {
+                    data: {
+                        session: currentSession
+                    },
+                    error: null
+                };
+            }
             const { session, error } = await this._callRefreshToken(currentSession.refresh_token);
             if (error) return {
                 data: {
@@ -6762,14 +8976,18 @@ class GoTrueClient {
         }
     }
     /**
-     * Gets the current user details if there is an existing session.
-     * @param jwt Takes in an optional access token jwt. If no jwt is provided, getUser() will attempt to get the jwt from the current session.
+     * Gets the current user details if there is an existing session. This method
+     * performs a network request to the Supabase Auth server, so the returned
+     * value is authentic and can be used to base authorization rules on.
+     *
+     * @param jwt Takes in an optional access token JWT. If no JWT is provided, the JWT from the current session is used.
      */ async getUser(jwt) {
         if (jwt) return await this._getUser(jwt);
         await this.initializePromise;
-        return this._acquireLock(-1, async ()=>{
+        const result = await this._acquireLock(-1, async ()=>{
             return await this._getUser();
         });
+        return result;
     }
     async _getUser(jwt) {
         try {
@@ -6779,22 +8997,37 @@ class GoTrueClient {
                 xform: (0, _fetch._userResponse)
             });
             return await this._useSession(async (result)=>{
-                var _a, _b;
+                var _a, _b, _c;
                 const { data, error } = result;
                 if (error) throw error;
+                // returns an error if there is no access_token or custom authorization header
+                if (!((_a = data.session) === null || _a === void 0 ? void 0 : _a.access_token) && !this.hasCustomAuthorizationHeader) return {
+                    data: {
+                        user: null
+                    },
+                    error: new (0, _errors.AuthSessionMissingError)()
+                };
                 return await (0, _fetch._request)(this.fetch, "GET", `${this.url}/user`, {
                     headers: this.headers,
-                    jwt: (_b = (_a = data.session) === null || _a === void 0 ? void 0 : _a.access_token) !== null && _b !== void 0 ? _b : undefined,
+                    jwt: (_c = (_b = data.session) === null || _b === void 0 ? void 0 : _b.access_token) !== null && _c !== void 0 ? _c : undefined,
                     xform: (0, _fetch._userResponse)
                 });
             });
         } catch (error) {
-            if ((0, _errors.isAuthError)(error)) return {
-                data: {
-                    user: null
-                },
-                error
-            };
+            if ((0, _errors.isAuthError)(error)) {
+                if ((0, _errors.isAuthSessionMissingError)(error)) {
+                    // JWT contains a `session_id` which does not correspond to an active
+                    // session in the database, indicating the user is signed out.
+                    await this._removeSession();
+                    await (0, _helpers.removeItemAsync)(this.storage, `${this.storageKey}-code-verifier`);
+                }
+                return {
+                    data: {
+                        user: null
+                    },
+                    error
+                };
+            }
             throw error;
         }
     }
@@ -6815,12 +9048,7 @@ class GoTrueClient {
                 const session = sessionData.session;
                 let codeChallenge = null;
                 let codeChallengeMethod = null;
-                if (this.flowType === "pkce" && attributes.email != null) {
-                    const codeVerifier = (0, _helpers.generatePKCEVerifier)();
-                    await (0, _helpers.setItemAsync)(this.storage, `${this.storageKey}-code-verifier`, codeVerifier);
-                    codeChallenge = await (0, _helpers.generatePKCEChallenge)(codeVerifier);
-                    codeChallengeMethod = codeVerifier === codeChallenge ? "plain" : "s256";
-                }
+                if (this.flowType === "pkce" && attributes.email != null) [codeChallenge, codeChallengeMethod] = await (0, _helpers.getCodeChallengeAndMethod)(this.storage, this.storageKey);
                 const { data, error: userError } = await (0, _fetch._request)(this.fetch, "PUT", `${this.url}/user`, {
                     headers: this.headers,
                     redirectTo: options === null || options === void 0 ? void 0 : options.emailRedirectTo,
@@ -6853,11 +9081,6 @@ class GoTrueClient {
         }
     }
     /**
-     * Decodes a JWT (without performing any validation).
-     */ _decodeJWT(jwt) {
-        return (0, _helpers.decodeJWTPayload)(jwt);
-    }
-    /**
      * Sets the session data from the current session. If the current session is expired, setSession will take care of refreshing it to obtain a new session.
      * If the refresh token or access token in the current session is invalid, an error will be thrown.
      * @param currentSession The current session that minimally contains an access token and refresh token.
@@ -6874,7 +9097,7 @@ class GoTrueClient {
             let expiresAt = timeNow;
             let hasExpired = true;
             let session = null;
-            const payload = (0, _helpers.decodeJWTPayload)(currentSession.access_token);
+            const { payload } = (0, _helpers.decodeJWT)(currentSession.access_token);
             if (payload.exp) {
                 expiresAt = payload.exp;
                 hasExpired = expiresAt <= timeNow;
@@ -6985,13 +9208,29 @@ class GoTrueClient {
     }
     /**
      * Gets the session data from a URL string
-     */ async _getSessionFromURL(isPKCEFlow) {
+     */ async _getSessionFromURL(params, callbackUrlType) {
         try {
             if (!(0, _helpers.isBrowser)()) throw new (0, _errors.AuthImplicitGrantRedirectError)("No browser detected.");
-            if (this.flowType === "implicit" && !this._isImplicitGrantFlow()) throw new (0, _errors.AuthImplicitGrantRedirectError)("Not a valid implicit grant flow url.");
-            else if (this.flowType == "pkce" && !isPKCEFlow) throw new (0, _errors.AuthPKCEGrantCodeExchangeError)("Not a valid PKCE flow url.");
-            const params = (0, _helpers.parseParametersFromURL)(window.location.href);
-            if (isPKCEFlow) {
+            // If there's an error in the URL, it doesn't matter what flow it is, we just return the error.
+            if (params.error || params.error_description || params.error_code) // The error class returned implies that the redirect is from an implicit grant flow
+            // but it could also be from a redirect error from a PKCE flow.
+            throw new (0, _errors.AuthImplicitGrantRedirectError)(params.error_description || "Error in URL with unspecified error_description", {
+                error: params.error || "unspecified_error",
+                code: params.error_code || "unspecified_code"
+            });
+            // Checks for mismatches between the flowType initialised in the client and the URL parameters
+            switch(callbackUrlType){
+                case "implicit":
+                    if (this.flowType === "pkce") throw new (0, _errors.AuthPKCEGrantCodeExchangeError)("Not a valid PKCE flow url.");
+                    break;
+                case "pkce":
+                    if (this.flowType === "implicit") throw new (0, _errors.AuthImplicitGrantRedirectError)("Not a valid implicit grant flow url.");
+                    break;
+                default:
+            }
+            // Since this is a redirect for PKCE, we attempt to retrieve the code from the URL for the code exchange
+            if (callbackUrlType === "pkce") {
+                this._debug("#_initialize()", "begin", "is PKCE flow", true);
                 if (!params.code) throw new (0, _errors.AuthPKCEGrantCodeExchangeError)("No code detected.");
                 const { data, error } = await this._exchangeCodeForSession(params.code);
                 if (error) throw error;
@@ -7006,10 +9245,6 @@ class GoTrueClient {
                     error: null
                 };
             }
-            if (params.error || params.error_description || params.error_code) throw new (0, _errors.AuthImplicitGrantRedirectError)(params.error_description || "Error in URL with unspecified error_description", {
-                error: params.error || "unspecified_error",
-                code: params.error_code || "unspecified_code"
-            });
             const { provider_token, provider_refresh_token, access_token, refresh_token, expires_in, expires_at, token_type } = params;
             if (!access_token || !expires_in || !refresh_token || !token_type) throw new (0, _errors.AuthImplicitGrantRedirectError)("No session defined in URL");
             const timeNow = Math.round(Date.now() / 1000);
@@ -7017,10 +9252,10 @@ class GoTrueClient {
             let expiresAt = timeNow + expiresIn;
             if (expires_at) expiresAt = parseInt(expires_at);
             const actuallyExpiresIn = expiresAt - timeNow;
-            if (actuallyExpiresIn * 1000 <= AUTO_REFRESH_TICK_DURATION) console.warn(`@supabase/gotrue-js: Session as retrieved from URL expires in ${actuallyExpiresIn}s, should have been closer to ${expiresIn}s`);
+            if (actuallyExpiresIn * 1000 <= (0, _constants.AUTO_REFRESH_TICK_DURATION_MS)) console.warn(`@supabase/gotrue-js: Session as retrieved from URL expires in ${actuallyExpiresIn}s, should have been closer to ${expiresIn}s`);
             const issuedAt = expiresAt - expiresIn;
             if (timeNow - issuedAt >= 120) console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued over 120s ago, URL could be stale", issuedAt, expiresAt, timeNow);
-            else if (timeNow - issuedAt < 0) console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued in the future? Check the device clok for skew", issuedAt, expiresAt, timeNow);
+            else if (timeNow - issuedAt < 0) console.warn("@supabase/gotrue-js: Session as retrieved from URL was issued in the future? Check the device clock for skew", issuedAt, expiresAt, timeNow);
             const { data, error } = await this._getUser(access_token);
             if (error) throw error;
             const session = {
@@ -7056,14 +9291,12 @@ class GoTrueClient {
     }
     /**
      * Checks if the current URL contains parameters given by an implicit oauth grant flow (https://www.rfc-editor.org/rfc/rfc6749.html#section-4.2)
-     */ _isImplicitGrantFlow() {
-        const params = (0, _helpers.parseParametersFromURL)(window.location.href);
-        return !!((0, _helpers.isBrowser)() && (params.access_token || params.error_description));
+     */ _isImplicitGrantCallback(params) {
+        return Boolean(params.access_token || params.error_description);
     }
     /**
      * Checks if the current URL and backing storage contain parameters given by a PKCE flow
-     */ async _isPKCEFlow() {
-        const params = (0, _helpers.parseParametersFromURL)(window.location.href);
+     */ async _isPKCECallback(params) {
         const currentStorageContent = await (0, _helpers.getItemAsync)(this.storage, `${this.storageKey}-code-verifier`);
         return !!(params.code && currentStorageContent);
     }
@@ -7097,7 +9330,7 @@ class GoTrueClient {
                 if (error) {
                     // ignore 404s since user might not exist anymore
                     // ignore 401s since an invalid or expired JWT should sign out the current session
-                    if (!((0, _errors.isAuthApiError)(error) && (error.status === 404 || error.status === 401))) return {
+                    if (!((0, _errors.isAuthApiError)(error) && (error.status === 404 || error.status === 401 || error.status === 403))) return {
                         error
                     };
                 }
@@ -7105,7 +9338,6 @@ class GoTrueClient {
             if (scope !== "others") {
                 await this._removeSession();
                 await (0, _helpers.removeItemAsync)(this.storage, `${this.storageKey}-code-verifier`);
-                await this._notifyAllSubscribers("SIGNED_OUT", null);
             }
             return {
                 error: null
@@ -7163,12 +9395,8 @@ class GoTrueClient {
      */ async resetPasswordForEmail(email, options = {}) {
         let codeChallenge = null;
         let codeChallengeMethod = null;
-        if (this.flowType === "pkce") {
-            const codeVerifier = (0, _helpers.generatePKCEVerifier)();
-            await (0, _helpers.setItemAsync)(this.storage, `${this.storageKey}-code-verifier`, `${codeVerifier}/PASSWORD_RECOVERY`);
-            codeChallenge = await (0, _helpers.generatePKCEChallenge)(codeVerifier);
-            codeChallengeMethod = codeVerifier === codeChallenge ? "plain" : "s256";
-        }
+        if (this.flowType === "pkce") [codeChallenge, codeChallengeMethod] = await (0, _helpers.getCodeChallengeAndMethod)(this.storage, this.storageKey, true // isPasswordRecovery
+        );
         try {
             return await (0, _fetch._request)(this.fetch, "POST", `${this.url}/recover`, {
                 body: {
@@ -7283,7 +9511,7 @@ class GoTrueClient {
             const startedAt = Date.now();
             // will attempt to refresh the token with exponential backoff
             return await (0, _helpers.retryable)(async (attempt)=>{
-                await (0, _helpers.sleep)(attempt * 200); // 0, 200, 400, 800, ...
+                if (attempt > 0) await (0, _helpers.sleep)(200 * Math.pow(2, attempt - 1)); // 200, 400, 800, ...
                 this._debug(debugName, "refreshing attempt", attempt);
                 return await (0, _fetch._request)(this.fetch, "POST", `${this.url}/token?grant_type=refresh_token`, {
                     body: {
@@ -7292,8 +9520,11 @@ class GoTrueClient {
                     headers: this.headers,
                     xform: (0, _fetch._sessionResponse)
                 });
-            }, (attempt, _, result)=>result && result.error && (0, _errors.isAuthRetryableFetchError)(result.error) && // retryable only if the request can be sent before the backoff overflows the tick duration
-                Date.now() + (attempt + 1) * 200 - startedAt < AUTO_REFRESH_TICK_DURATION);
+            }, (attempt, error)=>{
+                const nextBackOffInterval = 200 * Math.pow(2, attempt);
+                return error && (0, _errors.isAuthRetryableFetchError)(error) && // retryable only if the request can be sent before the backoff overflows the tick duration
+                Date.now() + nextBackOffInterval - startedAt < (0, _constants.AUTO_REFRESH_TICK_DURATION_MS);
+            });
         } catch (error) {
             this._debug(debugName, "error", error);
             if ((0, _errors.isAuthError)(error)) return {
@@ -7330,7 +9561,7 @@ class GoTrueClient {
         };
     }
     /**
-     * Recovers the session from LocalStorage and refreshes
+     * Recovers the session from LocalStorage and refreshes the token
      * Note: this method is async to accommodate for AsyncStorage e.g. in React native.
      */ async _recoverAndRefresh() {
         var _a;
@@ -7344,9 +9575,8 @@ class GoTrueClient {
                 if (currentSession !== null) await this._removeSession();
                 return;
             }
-            const timeNow = Math.round(Date.now() / 1000);
-            const expiresWithMargin = ((_a = currentSession.expires_at) !== null && _a !== void 0 ? _a : Infinity) < timeNow + (0, _constants.EXPIRY_MARGIN);
-            this._debug(debugName, `session has${expiresWithMargin ? "" : " not"} expired with margin of ${(0, _constants.EXPIRY_MARGIN)}s`);
+            const expiresWithMargin = ((_a = currentSession.expires_at) !== null && _a !== void 0 ? _a : Infinity) * 1000 - Date.now() < (0, _constants.EXPIRY_MARGIN_MS);
+            this._debug(debugName, `session has${expiresWithMargin ? "" : " not"} expired with margin of ${(0, _constants.EXPIRY_MARGIN_MS)}s`);
             if (expiresWithMargin) {
                 if (this.autoRefreshToken && currentSession.refresh_token) {
                     const { error } = await this._callRefreshToken(currentSession.refresh_token);
@@ -7397,10 +9627,7 @@ class GoTrueClient {
                     session: null,
                     error
                 };
-                if (!(0, _errors.isAuthRetryableFetchError)(error)) {
-                    await this._removeSession();
-                    await this._notifyAllSubscribers("SIGNED_OUT", null);
-                }
+                if (!(0, _errors.isAuthRetryableFetchError)(error)) await this._removeSession();
                 (_a = this.refreshingDeferred) === null || _a === void 0 || _a.resolve(result);
                 return result;
             }
@@ -7441,11 +9668,15 @@ class GoTrueClient {
      * process to _startAutoRefreshToken if possible
      */ async _saveSession(session) {
         this._debug("#_saveSession()", session);
+        // _saveSession is always called whenever a new session has been acquired
+        // so we can safely suppress the warning returned by future getSession calls
+        this.suppressGetSessionWarning = true;
         await (0, _helpers.setItemAsync)(this.storage, this.storageKey, session);
     }
     async _removeSession() {
         this._debug("#_removeSession()");
         await (0, _helpers.removeItemAsync)(this.storage, this.storageKey);
+        await this._notifyAllSubscribers("SIGNED_OUT", null);
     }
     /**
      * Removes any registered visibilitychange callback.
@@ -7468,7 +9699,7 @@ class GoTrueClient {
      */ async _startAutoRefresh() {
         await this._stopAutoRefresh();
         this._debug("#_startAutoRefresh()");
-        const ticker = setInterval(()=>this._autoRefreshTokenTick(), AUTO_REFRESH_TICK_DURATION);
+        const ticker = setInterval(()=>this._autoRefreshTokenTick(), (0, _constants.AUTO_REFRESH_TICK_DURATION_MS));
         this.autoRefreshTicker = ticker;
         if (ticker && typeof ticker === "object" && typeof ticker.unref === "function") // ticker is a NodeJS Timeout object that has an `unref` method
         // https://nodejs.org/api/timers.html#timeoutunref
@@ -7479,7 +9710,7 @@ class GoTrueClient {
         ticker.unref();
         else if (typeof Deno !== "undefined" && typeof Deno.unrefTimer === "function") // similar like for NodeJS, but with the Deno API
         // https://deno.land/api@latest?unstable&s=Deno.unrefTimer
-        // @ts-ignore
+        // @ts-expect-error TS has no context of Deno
         Deno.unrefTimer(ticker);
         // run the tick immediately, but in the next pass of the event loop so that
         // #_initialize can be allowed to complete without recursively waiting on
@@ -7550,9 +9781,9 @@ class GoTrueClient {
                                 return;
                             }
                             // session will expire in this many ticks (or has already expired if <= 0)
-                            const expiresInTicks = Math.floor((session.expires_at * 1000 - now) / AUTO_REFRESH_TICK_DURATION);
-                            this._debug("#_autoRefreshTokenTick()", `access token expires in ${expiresInTicks} ticks, a tick lasts ${AUTO_REFRESH_TICK_DURATION}ms, refresh threshold is ${AUTO_REFRESH_TICK_THRESHOLD} ticks`);
-                            if (expiresInTicks <= AUTO_REFRESH_TICK_THRESHOLD) await this._callRefreshToken(session.refresh_token);
+                            const expiresInTicks = Math.floor((session.expires_at * 1000 - now) / (0, _constants.AUTO_REFRESH_TICK_DURATION_MS));
+                            this._debug("#_autoRefreshTokenTick()", `access token expires in ${expiresInTicks} ticks, a tick lasts ${(0, _constants.AUTO_REFRESH_TICK_DURATION_MS)}ms, refresh threshold is ${(0, _constants.AUTO_REFRESH_TICK_THRESHOLD)} ticks`);
+                            if (expiresInTicks <= (0, _constants.AUTO_REFRESH_TICK_THRESHOLD)) await this._callRefreshToken(session.refresh_token);
                         });
                     } catch (e) {
                         console.error("Auto refresh tick failed with error. This is likely a transient error.", e);
@@ -7628,11 +9859,7 @@ class GoTrueClient {
         if (options === null || options === void 0 ? void 0 : options.redirectTo) urlParams.push(`redirect_to=${encodeURIComponent(options.redirectTo)}`);
         if (options === null || options === void 0 ? void 0 : options.scopes) urlParams.push(`scopes=${encodeURIComponent(options.scopes)}`);
         if (this.flowType === "pkce") {
-            const codeVerifier = (0, _helpers.generatePKCEVerifier)();
-            await (0, _helpers.setItemAsync)(this.storage, `${this.storageKey}-code-verifier`, codeVerifier);
-            const codeChallenge = await (0, _helpers.generatePKCEChallenge)(codeVerifier);
-            const codeChallengeMethod = codeVerifier === codeChallenge ? "plain" : "s256";
-            this._debug("PKCE", "code verifier", `${codeVerifier.substring(0, 5)}...`, "code challenge", codeChallenge, "method", codeChallengeMethod);
+            const [codeChallenge, codeChallengeMethod] = await (0, _helpers.getCodeChallengeAndMethod)(this.storage, this.storageKey);
             const flowParams = new URLSearchParams({
                 code_challenge: `${encodeURIComponent(codeChallenge)}`,
                 code_challenge_method: `${encodeURIComponent(codeChallengeMethod)}`
@@ -7668,9 +9895,7 @@ class GoTrueClient {
             throw error;
         }
     }
-    /**
-     * {@see GoTrueMFAApi#enroll}
-     */ async _enroll(params) {
+    async _enroll(params) {
         try {
             return await this._useSession(async (result)=>{
                 var _a, _b;
@@ -7679,12 +9904,16 @@ class GoTrueClient {
                     data: null,
                     error: sessionError
                 };
+                const body = Object.assign({
+                    friendly_name: params.friendlyName,
+                    factor_type: params.factorType
+                }, params.factorType === "phone" ? {
+                    phone: params.phone
+                } : {
+                    issuer: params.issuer
+                });
                 const { data, error } = await (0, _fetch._request)(this.fetch, "POST", `${this.url}/factors`, {
-                    body: {
-                        friendly_name: params.friendlyName,
-                        factor_type: params.factorType,
-                        issuer: params.issuer
-                    },
+                    body,
                     headers: this.headers,
                     jwt: (_a = sessionData === null || sessionData === void 0 ? void 0 : sessionData.session) === null || _a === void 0 ? void 0 : _a.access_token
                 });
@@ -7692,7 +9921,7 @@ class GoTrueClient {
                     data: null,
                     error
                 };
-                if ((_b = data === null || data === void 0 ? void 0 : data.totp) === null || _b === void 0 ? void 0 : _b.qr_code) data.totp.qr_code = `data:image/svg+xml;utf-8,${data.totp.qr_code}`;
+                if (params.factorType === "totp" && ((_b = data === null || data === void 0 ? void 0 : data.totp) === null || _b === void 0 ? void 0 : _b.qr_code)) data.totp.qr_code = `data:image/svg+xml;utf-8,${data.totp.qr_code}`;
                 return {
                     data,
                     error: null
@@ -7761,6 +9990,9 @@ class GoTrueClient {
                         error: sessionError
                     };
                     return await (0, _fetch._request)(this.fetch, "POST", `${this.url}/factors/${params.factorId}/challenge`, {
+                        body: {
+                            channel: params.channel
+                        },
                         headers: this.headers,
                         jwt: (_a = sessionData === null || sessionData === void 0 ? void 0 : sessionData.session) === null || _a === void 0 ? void 0 : _a.access_token
                     });
@@ -7803,10 +10035,12 @@ class GoTrueClient {
         };
         const factors = (user === null || user === void 0 ? void 0 : user.factors) || [];
         const totp = factors.filter((factor)=>factor.factor_type === "totp" && factor.status === "verified");
+        const phone = factors.filter((factor)=>factor.factor_type === "phone" && factor.status === "verified");
         return {
             data: {
                 all: factors,
-                totp
+                totp,
+                phone
             },
             error: null
         };
@@ -7830,7 +10064,7 @@ class GoTrueClient {
                     },
                     error: null
                 };
-                const payload = this._decodeJWT(session.access_token);
+                const { payload } = (0, _helpers.decodeJWT)(session.access_token);
                 let currentLevel = null;
                 if (payload.aal) currentLevel = payload.aal;
                 let nextLevel = currentLevel;
@@ -7848,40 +10082,93 @@ class GoTrueClient {
             });
         });
     }
+    async fetchJwk(kid, jwks = {
+        keys: []
+    }) {
+        // try fetching from the supplied jwks
+        let jwk = jwks.keys.find((key)=>key.kid === kid);
+        if (jwk) return jwk;
+        // try fetching from cache
+        jwk = this.jwks.keys.find((key)=>key.kid === kid);
+        // jwk exists and jwks isn't stale
+        if (jwk && this.jwks_cached_at + (0, _constants.JWKS_TTL) > Date.now()) return jwk;
+        // jwk isn't cached in memory so we need to fetch it from the well-known endpoint
+        const { data, error } = await (0, _fetch._request)(this.fetch, "GET", `${this.url}/.well-known/jwks.json`, {
+            headers: this.headers
+        });
+        if (error) throw error;
+        if (!data.keys || data.keys.length === 0) throw new (0, _errors.AuthInvalidJwtError)("JWKS is empty");
+        this.jwks = data;
+        this.jwks_cached_at = Date.now();
+        // Find the signing key
+        jwk = data.keys.find((key)=>key.kid === kid);
+        if (!jwk) throw new (0, _errors.AuthInvalidJwtError)("No matching signing key found in JWKS");
+        return jwk;
+    }
+    /**
+     * @experimental This method may change in future versions.
+     * @description Gets the claims from a JWT. If the JWT is symmetric JWTs, it will call getUser() to verify against the server. If the JWT is asymmetric, it will be verified against the JWKS using the WebCrypto API.
+     */ async getClaims(jwt, jwks = {
+        keys: []
+    }) {
+        try {
+            let token = jwt;
+            if (!token) {
+                const { data, error } = await this.getSession();
+                if (error || !data.session) return {
+                    data: null,
+                    error
+                };
+                token = data.session.access_token;
+            }
+            const { header, payload, signature, raw: { header: rawHeader, payload: rawPayload } } = (0, _helpers.decodeJWT)(token);
+            // Reject expired JWTs
+            (0, _helpers.validateExp)(payload.exp);
+            // If symmetric algorithm or WebCrypto API is unavailable, fallback to getUser()
+            if (!header.kid || header.alg === "HS256" || !("crypto" in globalThis && "subtle" in globalThis.crypto)) {
+                const { error } = await this.getUser(token);
+                if (error) throw error;
+                // getUser succeeds so the claims in the JWT can be trusted
+                return {
+                    data: {
+                        claims: payload,
+                        header,
+                        signature
+                    },
+                    error: null
+                };
+            }
+            const algorithm = (0, _helpers.getAlgorithm)(header.alg);
+            const signingKey = await this.fetchJwk(header.kid, jwks);
+            // Convert JWK to CryptoKey
+            const publicKey = await crypto.subtle.importKey("jwk", signingKey, algorithm, true, [
+                "verify"
+            ]);
+            // Verify the signature
+            const isValid = await crypto.subtle.verify(algorithm, publicKey, signature, (0, _base64Url.stringToUint8Array)(`${rawHeader}.${rawPayload}`));
+            if (!isValid) throw new (0, _errors.AuthInvalidJwtError)("Invalid JWT signature");
+            // If verification succeeds, decode and return claims
+            return {
+                data: {
+                    claims: payload,
+                    header,
+                    signature
+                },
+                error: null
+            };
+        } catch (error) {
+            if ((0, _errors.isAuthError)(error)) return {
+                data: null,
+                error
+            };
+            throw error;
+        }
+    }
 }
 exports.default = GoTrueClient;
 GoTrueClient.nextInstanceID = 0;
 
-},{"./GoTrueAdminApi":"baL5s","./lib/constants":"h2qh4","./lib/errors":"bDFnv","./lib/fetch":"4qm8y","./lib/helpers":"eALwT","./lib/local-storage":"byfaP","./lib/polyfills":"b7sYd","./lib/version":"jsC2f","./lib/locks":"8UVF7","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"h2qh4":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "GOTRUE_URL", ()=>GOTRUE_URL);
-parcelHelpers.export(exports, "STORAGE_KEY", ()=>STORAGE_KEY);
-parcelHelpers.export(exports, "AUDIENCE", ()=>AUDIENCE);
-parcelHelpers.export(exports, "DEFAULT_HEADERS", ()=>DEFAULT_HEADERS);
-parcelHelpers.export(exports, "EXPIRY_MARGIN", ()=>EXPIRY_MARGIN);
-parcelHelpers.export(exports, "NETWORK_FAILURE", ()=>NETWORK_FAILURE);
-var _version = require("./version");
-const GOTRUE_URL = "http://localhost:9999";
-const STORAGE_KEY = "supabase.auth.token";
-const AUDIENCE = "";
-const DEFAULT_HEADERS = {
-    "X-Client-Info": `gotrue-js/${(0, _version.version)}`
-};
-const EXPIRY_MARGIN = 10; // in seconds
-const NETWORK_FAILURE = {
-    MAX_RETRIES: 10,
-    RETRY_INTERVAL: 2
-};
-
-},{"./version":"jsC2f","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jsC2f":[function(require,module,exports) {
-// Generated by genversion.
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "version", ()=>version);
-const version = "0.0.0";
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"byfaP":[function(require,module,exports) {
+},{"./GoTrueAdminApi":"eBouV","./lib/constants":"kMUzl","./lib/errors":"l4Miv","./lib/fetch":"d3spS","./lib/helpers":"gVab2","./lib/local-storage":"geltS","./lib/polyfills":"ftheX","./lib/version":"03ZTv","./lib/locks":"hJm2t","./lib/base64url":"c5cyB","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"geltS":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "localStorageAdapter", ()=>localStorageAdapter);
@@ -7918,7 +10205,7 @@ function memoryLocalStorageAdapter(store = {}) {
     };
 }
 
-},{"./helpers":"eALwT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"b7sYd":[function(require,module,exports) {
+},{"./helpers":"gVab2","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ftheX":[function(require,module,exports) {
 /**
  * https://mathiasbynens.be/notes/globalthis
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -7943,7 +10230,7 @@ function polyfillGlobalThis() {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8UVF7":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hJm2t":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "internals", ()=>internals);
@@ -7953,6 +10240,7 @@ parcelHelpers.export(exports, "internals", ()=>internals);
  * Use the {@link #isAcquireTimeout} property instead of checking with `instanceof`.
  */ parcelHelpers.export(exports, "LockAcquireTimeoutError", ()=>LockAcquireTimeoutError);
 parcelHelpers.export(exports, "NavigatorLockAcquireTimeoutError", ()=>NavigatorLockAcquireTimeoutError);
+parcelHelpers.export(exports, "ProcessLockAcquireTimeoutError", ()=>ProcessLockAcquireTimeoutError);
 /**
  * Implements a global exclusive lock using the Navigator LockManager API. It
  * is available on all browsers released after 2022-03-15 with Safari being the
@@ -7978,6 +10266,20 @@ parcelHelpers.export(exports, "NavigatorLockAcquireTimeoutError", ()=>NavigatorL
  *                       a timeout if it has `isAcquireTimeout` set to true.
  * @param fn The operation to run once the lock is acquired.
  */ parcelHelpers.export(exports, "navigatorLock", ()=>navigatorLock);
+/**
+ * Implements a global exclusive lock that works only in the current process.
+ * Useful for environments like React Native or other non-browser
+ * single-process (i.e. no concept of "tabs") environments.
+ *
+ * Use {@link #navigatorLock} in browser environments.
+ *
+ * @param name Name of the lock to be acquired.
+ * @param acquireTimeout If negative, no timeout. If 0 an error is thrown if
+ *                       the lock can't be acquired without waiting. If positive, the lock acquire
+ *                       will time out after so many milliseconds. An error is
+ *                       a timeout if it has `isAcquireTimeout` set to true.
+ * @param fn The operation to run once the lock is acquired.
+ */ parcelHelpers.export(exports, "processLock", ()=>processLock);
 var _helpers = require("./helpers");
 const internals = {
     /**
@@ -7992,6 +10294,8 @@ class LockAcquireTimeoutError extends Error {
 }
 class NavigatorLockAcquireTimeoutError extends LockAcquireTimeoutError {
 }
+class ProcessLockAcquireTimeoutError extends LockAcquireTimeoutError {
+}
 async function navigatorLock(name, acquireTimeout, fn) {
     if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: acquire lock", name, acquireTimeout);
     const abortController = new globalThis.AbortController();
@@ -8000,41 +10304,83 @@ async function navigatorLock(name, acquireTimeout, fn) {
         if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock acquire timed out", name);
     }, acquireTimeout);
     // MDN article: https://developer.mozilla.org/en-US/docs/Web/API/LockManager/request
-    return await globalThis.navigator.locks.request(name, acquireTimeout === 0 ? {
-        mode: "exclusive",
-        ifAvailable: true
-    } : {
-        mode: "exclusive",
-        signal: abortController.signal
-    }, async (lock)=>{
-        if (lock) {
-            if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: acquired", name, lock.name);
-            try {
+    // Wrapping navigator.locks.request() with a plain Promise is done as some
+    // libraries like zone.js patch the Promise object to track the execution
+    // context. However, it appears that most browsers use an internal promise
+    // implementation when using the navigator.locks.request() API causing them
+    // to lose context and emit confusing log messages or break certain features.
+    // This wrapping is believed to help zone.js track the execution context
+    // better.
+    return await Promise.resolve().then(()=>globalThis.navigator.locks.request(name, acquireTimeout === 0 ? {
+            mode: "exclusive",
+            ifAvailable: true
+        } : {
+            mode: "exclusive",
+            signal: abortController.signal
+        }, async (lock)=>{
+            if (lock) {
+                if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: acquired", name, lock.name);
+                try {
+                    return await fn();
+                } finally{
+                    if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: released", name, lock.name);
+                }
+            } else if (acquireTimeout === 0) {
+                if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: not immediately available", name);
+                throw new NavigatorLockAcquireTimeoutError(`Acquiring an exclusive Navigator LockManager lock "${name}" immediately failed`);
+            } else {
+                if (internals.debug) try {
+                    const result = await globalThis.navigator.locks.query();
+                    console.log("@supabase/gotrue-js: Navigator LockManager state", JSON.stringify(result, null, "  "));
+                } catch (e) {
+                    console.warn("@supabase/gotrue-js: Error when querying Navigator LockManager state", e);
+                }
+                // Browser is not following the Navigator LockManager spec, it
+                // returned a null lock when we didn't use ifAvailable. So we can
+                // pretend the lock is acquired in the name of backward compatibility
+                // and user experience and just run the function.
+                console.warn("@supabase/gotrue-js: Navigator LockManager returned a null lock when using #request without ifAvailable set to true, it appears this browser is not following the LockManager spec https://developer.mozilla.org/en-US/docs/Web/API/LockManager/request");
                 return await fn();
-            } finally{
-                if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: released", name, lock.name);
             }
-        } else if (acquireTimeout === 0) {
-            if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: not immediately available", name);
-            throw new NavigatorLockAcquireTimeoutError(`Acquiring an exclusive Navigator LockManager lock "${name}" immediately failed`);
-        } else {
-            if (internals.debug) try {
-                const result = await globalThis.navigator.locks.query();
-                console.log("@supabase/gotrue-js: Navigator LockManager state", JSON.stringify(result, null, "  "));
-            } catch (e) {
-                console.warn("@supabase/gotrue-js: Error when querying Navigator LockManager state", e);
-            }
-            // Browser is not following the Navigator LockManager spec, it
-            // returned a null lock when we didn't use ifAvailable. So we can
-            // pretend the lock is acquired in the name of backward compatibility
-            // and user experience and just run the function.
-            console.warn("@supabase/gotrue-js: Navigator LockManager returned a null lock when using #request without ifAvailable set to true, it appears this browser is not following the LockManager spec https://developer.mozilla.org/en-US/docs/Web/API/LockManager/request");
-            return await fn();
-        }
+        }));
+}
+const PROCESS_LOCKS = {};
+async function processLock(name, acquireTimeout, fn) {
+    var _a;
+    const previousOperation = (_a = PROCESS_LOCKS[name]) !== null && _a !== void 0 ? _a : Promise.resolve();
+    const currentOperation = Promise.race([
+        previousOperation.catch(()=>{
+            // ignore error of previous operation that we're waiting to finish
+            return null;
+        }),
+        acquireTimeout >= 0 ? new Promise((_, reject)=>{
+            setTimeout(()=>{
+                reject(new ProcessLockAcquireTimeoutError(`Acquring process lock with name "${name}" timed out`));
+            }, acquireTimeout);
+        }) : null
+    ].filter((x)=>x)).catch((e)=>{
+        if (e && e.isAcquireTimeout) throw e;
+        return null;
+    }).then(async ()=>{
+        // previous operations finished and we didn't get a race on the acquire
+        // timeout, so the current operation can finally start
+        return await fn();
     });
+    PROCESS_LOCKS[name] = currentOperation.catch(async (e)=>{
+        if (e && e.isAcquireTimeout) {
+            // if the current operation timed out, it doesn't mean that the previous
+            // operation finished, so we need contnue waiting for it to finish
+            await previousOperation;
+            return null;
+        }
+        throw e;
+    });
+    // finally wait for the current operation to finish successfully, with an
+    // error or with an acquire timeout error
+    return await currentOperation;
 }
 
-},{"./helpers":"eALwT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8nRkI":[function(require,module,exports) {
+},{"./helpers":"gVab2","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jiS2C":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _goTrueAdminApi = require("./GoTrueAdminApi");
@@ -8042,7 +10388,7 @@ var _goTrueAdminApiDefault = parcelHelpers.interopDefault(_goTrueAdminApi);
 const AuthAdminApi = (0, _goTrueAdminApiDefault.default);
 exports.default = AuthAdminApi;
 
-},{"./GoTrueAdminApi":"baL5s","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fGGGl":[function(require,module,exports) {
+},{"./GoTrueAdminApi":"eBouV","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ka9HK":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _goTrueClient = require("./GoTrueClient");
@@ -8050,84 +10396,435 @@ var _goTrueClientDefault = parcelHelpers.interopDefault(_goTrueClient);
 const AuthClient = (0, _goTrueClientDefault.default);
 exports.default = AuthClient;
 
-},{"./GoTrueClient":"26r9B","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"32h29":[function(require,module,exports) {
+},{"./GoTrueClient":"san1E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9HJ2M":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "closeAllForms", ()=>closeAllForms);
+parcelHelpers.export(exports, "showLoginForm", ()=>showLoginForm);
+parcelHelpers.export(exports, "showSignUpForm", ()=>showSignUpForm);
+parcelHelpers.export(exports, "showLoginSection", ()=>showLoginSection);
+parcelHelpers.export(exports, "showAppSection", ()=>showAppSection);
+parcelHelpers.export(exports, "setCurrentGroup", ()=>setCurrentGroup);
+parcelHelpers.export(exports, "resetGroupSelection", ()=>resetGroupSelection);
+parcelHelpers.export(exports, "getProxyUrl", ()=>getProxyUrl);
+function closeAllForms() {
+    const createform = document.getElementById("createform");
+    if (createform) createform.style.display = "none";
+    const joinform = document.getElementById("joinform");
+    if (joinform) joinform.style.display = "none";
+    const inviteCodeArea = document.getElementById("inviteCodeArea");
+    if (inviteCodeArea) inviteCodeArea.style.display = "none";
+    const groupListArea = document.getElementById("groupListArea");
+    if (groupListArea) groupListArea.style.display = "none";
+}
+function showLoginForm() {
+    document.getElementById("loginForm").style.display = "block";
+    document.getElementById("signUpForm").style.display = "none";
+    document.getElementById("authMessage").textContent = "";
+}
+function showSignUpForm() {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("signUpForm").style.display = "block";
+    document.getElementById("authMessage").textContent = "";
+}
+function showLoginSection() {
+    document.getElementById("loginSection").style.display = "block";
+    document.getElementById("appSection").style.display = "none";
+    showLoginForm();
+}
+function showAppSection() {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("appSection").style.display = "block";
+}
+function setCurrentGroup(groupId, groupName) {
+    window.currentGroupId = groupId;
+    window.currentGroupName = groupName;
+    const currentGroupLabel = document.getElementById("currentGroupLabel");
+    currentGroupLabel.textContent = `\u{30B0}\u{30EB}\u{30FC}\u{30D7}: ${groupName}`;
+    const urlForm = document.getElementById("urlForm");
+    urlForm.style.display = "none";
+    const toggleBtn = document.getElementById("toggleFormBtn");
+    toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
+    toggleBtn.style.display = "inline-block"; // グループ選択時に表示
+    closeAllForms(); // グループ選択時にメニューや招待コードを閉じる
+    window.loadUrls();
+}
+function resetGroupSelection() {
+    window.currentGroupId = null;
+    window.currentGroupName = "";
+    const currentGroupLabel = document.getElementById("currentGroupLabel");
+    currentGroupLabel.textContent = "\u30B0\u30EB\u30FC\u30D7\u672A\u9078\u629E";
+    const urlForm = document.getElementById("urlForm");
+    urlForm.style.display = "none";
+    const urlList = document.getElementById("urlList");
+    urlList.innerHTML = "";
+    const toggleBtn = document.getElementById("toggleFormBtn");
+    if (toggleBtn) toggleBtn.style.display = "none"; // グループ未選択時は非表示
+    closeAllForms(); // リセット時にも全て閉じる
+}
+const PROXY_BASE_URL = "https://proxy-server-89ba.onrender.com/proxy";
+function getProxyUrl(imageUrl) {
+    return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
+}
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3NxY8":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4e0zJ":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "setupGroupHandlers", ()=>setupGroupHandlers);
+var _supabaseClientJs = require("../utils/supabaseClient.js");
+var _sharedUIJs = require("./sharedUI.js");
+function setupGroupHandlers() {
+    const groupebtn = document.getElementById("groupebtn");
+    const groupMenu = document.getElementById("groupMenu");
+    const createbtn = document.getElementById("createbtn");
+    const createform = document.getElementById("createform");
+    const groupenameForm = document.getElementById("groupename");
+    const createInput = document.getElementById("create");
+    const groupListArea = document.getElementById("groupListArea");
+    const groupList = document.getElementById("groupList");
+    const showGroupsBtn = document.getElementById("showGroupsBtn");
+    const showInviteBtn = document.getElementById("showInviteBtn");
+    const closeGroupListBtn = document.getElementById("closeGroupListBtn");
+    const closeGroupMenuBtn = document.getElementById("closeGroupMenuBtn");
+    // 追加: グループ参加用
+    const joinbtn = document.getElementById("joinbtn");
+    const joinform = document.getElementById("joinform");
+    const joinGroupForm = document.getElementById("joinGroupForm");
+    const joinGroupInput = document.getElementById("joinGroupInput");
+    // 招待コード関連
+    const inviteCodeArea = document.getElementById("inviteCodeArea");
+    const inviteCodeLabel = document.getElementById("inviteCodeLabel");
+    const copyInviteCodeBtn = document.getElementById("copyInviteCodeBtn");
+    // メニュー内のボタンをまとめて取得
+    const menuButtons = [
+        showGroupsBtn,
+        createbtn,
+        joinbtn,
+        showInviteBtn
+    ];
+    // フォーム表示時に他ボタンを非表示
+    function setMenuButtonsVisible(visible) {
+        menuButtons.forEach((btn)=>{
+            if (btn) btn.style.display = visible ? "" : "none";
+        });
+    }
+    // closeAllFormsを拡張
+    const origCloseAllForms = (0, _sharedUIJs.closeAllForms);
+    function closeAllFormsWithRestore() {
+        origCloseAllForms();
+        restoreMenuButtons();
+    }
+    // フォーム送信後やcloseAllForms時にもボタンを再表示
+    function restoreMenuButtons() {
+        setMenuButtonsVisible(true);
+    }
+    groupebtn.addEventListener("click", ()=>{
+        const check = groupMenu.style.display === "none";
+        groupMenu.style.display = check ? "flex" : "none";
+        if (check) closeAllFormsWithRestore();
+    });
+    createbtn.addEventListener("click", ()=>{
+        const check = createform.style.display === "none";
+        (0, _sharedUIJs.closeAllForms)();
+        if (check) {
+            createform.style.display = "block";
+            setMenuButtonsVisible(false);
+            createbtn.style.display = ""; // 自分だけは残す
+        } else {
+            createform.style.display = "none";
+            setMenuButtonsVisible(true);
+        }
+    });
+    // 追加: グループに参加ボタン
+    joinbtn.addEventListener("click", ()=>{
+        const check = joinform.style.display === "none";
+        (0, _sharedUIJs.closeAllForms)();
+        if (check) {
+            joinform.style.display = "block";
+            setMenuButtonsVisible(false);
+            joinbtn.style.display = ""; // 自分だけは残す
+        } else {
+            joinform.style.display = "none";
+            setMenuButtonsVisible(true);
+        }
+    });
+    // 追加: グループに参加フォーム送信（招待コードのみで参加）
+    joinGroupForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const code = joinGroupInput.value.trim();
+        if (!code) {
+            alert("\u62DB\u5F85\u30B3\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        // 招待コードでグループを検索
+        const { data: group, error } = await (0, _supabaseClientJs.supabase).from("groups").select("*").eq("invite_code", code).single();
+        if (error || !group) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093");
+            return;
+        }
+        // すでにメンバーか確認
+        const { data: member } = await (0, _supabaseClientJs.supabase).from("group_members").select("*").eq("group_id", group.id).eq("user_id", window.currentUser.id).single();
+        if (member) {
+            alert("\u3059\u3067\u306B\u3053\u306E\u30B0\u30EB\u30FC\u30D7\u306B\u53C2\u52A0\u3057\u3066\u3044\u307E\u3059");
+            joinform.style.display = "none";
+            joinGroupInput.value = "";
+            return;
+        }
+        // 参加処理
+        const { error: joinError } = await (0, _supabaseClientJs.supabase).from("group_members").insert([
+            {
+                group_id: group.id,
+                user_id: window.currentUser.id
+            }
+        ]);
+        if (joinError) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u53C2\u52A0\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+            return;
+        }
+        alert("\u30B0\u30EB\u30FC\u30D7\u306B\u53C2\u52A0\u3057\u307E\u3057\u305F");
+        joinform.style.display = "none";
+        joinGroupInput.value = "";
+    });
+    groupenameForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const groupName = createInput.value.trim();
+        if (!groupName) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u540D\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        const { data, error } = await (0, _supabaseClientJs.supabase).from("groups").insert([
+            {
+                name: groupName,
+                created_by: window.currentUser.id
+            }
+        ]).select().single();
+        if (error) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u4F5C\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+            return;
+        }
+        await (0, _supabaseClientJs.supabase).from("group_members").insert([
+            {
+                group_id: data.id,
+                user_id: window.currentUser.id
+            }
+        ]);
+        alert("\u30B0\u30EB\u30FC\u30D7\u3092\u4F5C\u6210\u3057\u307E\u3057\u305F");
+        createInput.value = "";
+        createform.style.display = "none";
+        restoreMenuButtons();
+    });
+    showGroupsBtn.addEventListener("click", async ()=>{
+        (0, _sharedUIJs.closeAllForms)();
+        groupList.innerHTML = "";
+        groupListArea.style.display = "block";
+        const { data, error } = await (0, _supabaseClientJs.supabase).from("groups").select("*, group_members!inner(user_id)").eq("group_members.user_id", window.currentUser.id);
+        if (error) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u4E00\u89A7\u306E\u53D6\u5F97\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+            return;
+        }
+        if (!data || data.length === 0) {
+            groupList.innerHTML = "<li>\u30B0\u30EB\u30FC\u30D7\u304C\u3042\u308A\u307E\u305B\u3093</li>";
+            return;
+        }
+        data.forEach((group)=>{
+            const li = document.createElement("li");
+            li.textContent = group.name + " ";
+            const selectBtn = document.createElement("button");
+            selectBtn.textContent = "\u9078\u629E";
+            selectBtn.onclick = ()=>{
+                (0, _sharedUIJs.setCurrentGroup)(group.id, group.name);
+                groupListArea.style.display = "none";
+            };
+            li.appendChild(selectBtn);
+            groupList.appendChild(li);
+        });
+    });
+    if (closeGroupListBtn) closeGroupListBtn.addEventListener("click", ()=>{
+        groupListArea.style.display = "none";
+    });
+    // メニュー閉じるボタン（右上のみ）
+    if (closeGroupMenuBtn) closeGroupMenuBtn.addEventListener("click", ()=>{
+        groupMenu.style.display = "none";
+        restoreMenuButtons();
+    });
+    // 招待コード表示ボタン
+    if (showInviteBtn) showInviteBtn.addEventListener("click", async ()=>{
+        (0, _sharedUIJs.closeAllForms)();
+        if (!window.currentGroupId) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        // グループ情報取得
+        const { data: group, error } = await (0, _supabaseClientJs.supabase).from("groups").select("id, invite_code").eq("id", window.currentGroupId).single();
+        if (error || !group) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u60C5\u5831\u306E\u53D6\u5F97\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+            return;
+        }
+        // 招待コードがなければ生成
+        let inviteCode = group.invite_code;
+        if (!inviteCode) {
+            inviteCode = generateInviteCode();
+            await (0, _supabaseClientJs.supabase).from("groups").update({
+                invite_code: inviteCode
+            }).eq("id", window.currentGroupId);
+        }
+        inviteCodeLabel.textContent = inviteCode;
+        inviteCodeArea.style.display = "block";
+    });
+    // 招待コードコピー
+    if (copyInviteCodeBtn) copyInviteCodeBtn.addEventListener("click", ()=>{
+        const code = inviteCodeLabel.textContent;
+        if (code) {
+            navigator.clipboard.writeText(code);
+            alert("\u30B3\u30D4\u30FC\u3057\u307E\u3057\u305F");
+        }
+    });
+    // 招待コード生成関数
+    function generateInviteCode() {
+        return Math.random().toString(36).slice(-8);
+    }
+}
+
+},{"../utils/supabaseClient.js":"h0CvN","./sharedUI.js":"9HJ2M","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jnGd2":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "setupUrlHandlers", ()=>setupUrlHandlers);
+var _dbOperationsJs = require("../utils/dbOperations.js");
+var _fetchPreviewJs = require("../utils/fetchPreview.js");
+var _supabaseClientJs = require("../utils/supabaseClient.js");
+var _sharedUIJs = require("./sharedUI.js");
+let lastUrlsJson = "";
+function setupUrlHandlers() {
+    const urlForm = document.getElementById("urlForm");
+    const urlInput = document.getElementById("urlInput");
+    const titleInput = document.getElementById("titleInput");
+    const categoryInput = document.getElementById("categoryInput");
+    const urlList = document.getElementById("urlList");
+    const toggleBtn = document.getElementById("toggleFormBtn");
+    toggleBtn.addEventListener("click", ()=>{
+        if (!window.currentGroupId) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        const showing = urlForm.style.display === "flex";
+        urlForm.style.display = showing ? "none" : "flex";
+        toggleBtn.innerText = showing ? "\uFF0B URL\u3092\u767B\u9332" : "\xd7 \u9589\u3058\u308B";
+    });
+    urlForm.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        if (!window.currentUser || !window.currentGroupId) {
+            alert("\u30B0\u30EB\u30FC\u30D7\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        const rawUrl = urlInput.value.trim();
+        const title = titleInput.value.trim();
+        const category = categoryInput.value.trim();
+        if (!rawUrl || !title || !category) {
+            alert("\u3059\u3079\u3066\u306E\u9805\u76EE\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044");
+            return;
+        }
+        try {
+            const imageUrl = await (0, _fetchPreviewJs.getPreview)(rawUrl);
+            const result = await (0, _dbOperationsJs.addUrl)(rawUrl, title, category, window.currentUser.id, imageUrl, window.currentGroupId);
+            if (result.success) {
+                urlForm.reset();
+                urlForm.style.display = "none";
+                toggleBtn.innerText = "\uFF0B URL\u3092\u767B\u9332";
+                await loadUrls();
+            } else alert("\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+        } catch (err) {
+            alert("\u30A8\u30E9\u30FC\u304C\u767A\u751F\u3057\u307E\u3057\u305F");
+            console.error(err);
+        }
+    });
+    window.loadUrls = async function loadUrls1() {
+        if (!window.currentUser || !window.currentGroupId) {
+            urlList.innerHTML = "";
+            lastUrlsJson = "";
+            return;
+        }
+        const { data: urls } = await (0, _supabaseClientJs.supabase).from("urls").select("*").eq("group_id", window.currentGroupId);
+        const urlsJson = JSON.stringify(urls);
+        if (urlsJson === lastUrlsJson) return;
+        lastUrlsJson = urlsJson;
+        urlList.innerHTML = "";
+        if (!urls || urls.length === 0) {
+            urlList.innerHTML = "<li>\u3053\u306E\u30B0\u30EB\u30FC\u30D7\u306B\u306FURL\u304C\u3042\u308A\u307E\u305B\u3093</li>";
+            return;
+        }
+        urls.forEach(({ id, url, title, thumbnail_url })=>{
+            const proxyThumbnail = thumbnail_url ? (0, _sharedUIJs.getProxyUrl)(thumbnail_url) : "https://placehold.co/80x80";
+            const li = document.createElement("li");
+            li.dataset.id = id;
+            li.style.display = "flex";
+            li.style.alignItems = "center";
+            li.style.gap = "12px";
+            li.style.margin = "10px 0";
+            const img = document.createElement("img");
+            img.width = 80;
+            img.height = 80;
+            img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
+            img.style.objectFit = "cover";
+            img.onerror = ()=>img.src = "https://placehold.co/80x80";
+            img.src = proxyThumbnail;
+            const link = document.createElement("a");
+            link.target = "_blank";
+            link.style.flex = "1";
+            link.style.fontSize = "16px";
+            link.style.fontWeight = "bold";
+            link.style.color = "#E76F51";
+            link.style.textDecoration = "none";
+            link.href = url;
+            link.innerText = title;
+            const btn = document.createElement("button");
+            btn.innerText = "\u524A\u9664";
+            btn.classList.add("btn-delete");
+            btn.onclick = async ()=>{
+                if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
+                const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
+                if (success) loadUrls1();
+                else {
+                    alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+                    console.error(error);
+                }
+            };
+            li.append(img, link, btn);
+            urlList.appendChild(li);
+        });
+    };
+}
+
+},{"../utils/dbOperations.js":"hlloK","../utils/fetchPreview.js":"2NoiV","../utils/supabaseClient.js":"h0CvN","./sharedUI.js":"9HJ2M","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hlloK":[function(require,module,exports) {
+// ...既存のdb操作ロジックがあればここに記述...
+// ダミー実装例（必要に応じて本物のロジックに置き換えてください）
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "addUrl", ()=>addUrl);
+parcelHelpers.export(exports, "deleteUrl", ()=>deleteUrl);
+async function addUrl(url, title, category, userId, imageUrl, groupId) {
+    // ここにSupabaseへのINSERT処理を実装
+    return {
+        success: true
+    };
+}
+async function deleteUrl(id) {
+    // ここにSupabaseへのDELETE処理を実装
+    return {
+        success: true
+    };
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2NoiV":[function(require,module,exports) {
+// ...既存のプレビュー取得ロジックがあればここに記述...
+// ダミー実装例
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "getPreview", ()=>getPreview);
 async function getPreview(url) {
-    const API_KEY = "479caf1751a010ec074397313794465c"; // LinkPreview API
-    const apiUrl = `https://api.linkpreview.net/?key=${API_KEY}&q=${encodeURIComponent(url)}`;
-    try {
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error(`HTTP\u{30A8}\u{30E9}\u{30FC}: ${res.status}`);
-        const data = await res.json();
-        // プロキシ経由で画像を取得
-        const rawImageUrl = data.image || "https://placehold.co/300x200";
-        const proxiedImageUrl = `https://proxy-server-89ba.onrender.com/proxy?url=${encodeURIComponent(rawImageUrl)}`;
-        return proxiedImageUrl;
-    } catch (error) {
-        console.error("\u753B\u50CFURL\u53D6\u5F97\u30A8\u30E9\u30FC:", error);
-        return "https://placehold.co/300x200";
-    }
+    // 本来はURLからサムネイル画像URLを取得
+    return "https://placehold.co/80x80";
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"lncmE":[function(require,module,exports) {
-// src/utils/auth.js
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "handleLogin", ()=>handleLogin);
-parcelHelpers.export(exports, "handleSignUp", ()=>handleSignUp);
-parcelHelpers.export(exports, "logout", ()=>logout);
-var _supabaseClientJs = require("./supabaseClient.js");
-async function handleLogin(email, password, messageEl) {
-    messageEl.textContent = "";
-    if (!email || !password) {
-        messageEl.textContent = "\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3068\u30D1\u30B9\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044";
-        messageEl.style.color = "red";
-        return false;
-    }
-    const { data, error } = await (0, _supabaseClientJs.supabase).auth.signInWithPassword({
-        email,
-        password
-    });
-    if (error) {
-        messageEl.textContent = "\u30ED\u30B0\u30A4\u30F3\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error.message;
-        messageEl.style.color = "red";
-        return false;
-    }
-    messageEl.textContent = "";
-    return true;
-}
-async function handleSignUp(email, password, messageEl, onSuccess) {
-    messageEl.textContent = "";
-    if (!email || !password) {
-        messageEl.textContent = "\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3068\u30D1\u30B9\u30EF\u30FC\u30C9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044";
-        messageEl.style.color = "red";
-        return false;
-    }
-    const { data, error } = await (0, _supabaseClientJs.supabase).auth.signUp({
-        email,
-        password
-    });
-    if (error) {
-        if (error.message.includes("already registered") || error.message.includes("User already registered")) messageEl.textContent = "\u3053\u306E\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u306F\u3059\u3067\u306B\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u3059";
-        else messageEl.textContent = "\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error.message;
-        messageEl.style.color = "red";
-        return false;
-    }
-    messageEl.style.color = "green";
-    messageEl.textContent = "\u767B\u9332\u6210\u529F\uFF01\u78BA\u8A8D\u30E1\u30FC\u30EB\u3092\u3054\u78BA\u8A8D\u304F\u3060\u3055\u3044\u3002";
-    if (onSuccess) onSuccess();
-    return true;
-}
-async function logout() {
-    await (0, _supabaseClientJs.supabase).auth.signOut();
-}
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["cbjdT","adjPd"], "adjPd", "parcelRequire893f")
 
-},{"./supabaseClient.js":"kDxOT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["3zq8u","gLLPy"], "gLLPy", "parcelRequire893f")
-
-//# sourceMappingURL=index.4d6bcbeb.js.map
+//# sourceMappingURL=index.63aff760.js.map
