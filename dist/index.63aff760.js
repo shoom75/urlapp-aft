@@ -575,10 +575,10 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"adjPd":[function(require,module,exports) {
-var _authUIJs = require("./ui/authUI.js");
-var _groupUIJs = require("./ui/groupUI.js");
-var _urlUIJs = require("./ui/urlUI.js");
-var _sharedUIJs = require("./ui/sharedUI.js");
+var _authUIJs = require("./src/ui/authUI.js");
+var _groupUIJs = require("./src/ui/groupUI.js");
+var _urlUIJs = require("./src/ui/urlUI.js");
+var _sharedUIJs = require("./src/ui/sharedUI.js");
 console.log("\u2705 main.js loaded");
 document.addEventListener("DOMContentLoaded", ()=>{
     (0, _authUIJs.setupAuthHandlers)();
@@ -588,7 +588,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     (0, _authUIJs.checkAuthState)();
 });
 
-},{"./ui/authUI.js":"5pu6H","./ui/groupUI.js":"4e0zJ","./ui/urlUI.js":"jnGd2","./ui/sharedUI.js":"9HJ2M"}],"5pu6H":[function(require,module,exports) {
+},{"./src/ui/authUI.js":"38U3j","./src/ui/groupUI.js":"hYPQ9","./src/ui/urlUI.js":"XOESl","./src/ui/sharedUI.js":"dczMB"}],"38U3j":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "setupAuthHandlers", ()=>setupAuthHandlers);
@@ -625,16 +625,16 @@ function setupAuthHandlers() {
         const email = signUpEmail.value.trim();
         const password = signUpPassword.value.trim();
         await (0, _authJs.handleSignUp)(email, password, authMessage, ()=>{
-            showLoginForm();
+            (0, _sharedUIJs.showLoginForm)();
         });
     });
     showSignUpLink.addEventListener("click", (e)=>{
         e.preventDefault();
-        showSignUpForm();
+        (0, _sharedUIJs.showSignUpForm)(); // ← sharedUI.js からimportすることで解決
     });
     showLoginLink.addEventListener("click", (e)=>{
         e.preventDefault();
-        showLoginForm();
+        (0, _sharedUIJs.showLoginForm)(); // ← sharedUI.js からimportすることで解決
     });
     if (logoutBtn) logoutBtn.addEventListener("click", async ()=>{
         await (0, _authJs.logout)();
@@ -655,7 +655,7 @@ async function checkAuthState() {
     }
 }
 
-},{"../utils/auth.js":"if8gf","../utils/supabaseClient.js":"h0CvN","./sharedUI.js":"9HJ2M","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"if8gf":[function(require,module,exports) {
+},{"../utils/auth.js":"lncmE","../utils/supabaseClient.js":"kDxOT","./sharedUI.js":"dczMB","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"lncmE":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "handleLogin", ()=>handleLogin);
@@ -676,6 +676,7 @@ async function handleLogin(email, password, messageEl) {
     if (error) {
         messageEl.textContent = "\u30ED\u30B0\u30A4\u30F3\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error.message;
         messageEl.style.color = "red";
+        console.error("\u30ED\u30B0\u30A4\u30F3\u30A8\u30E9\u30FC\u8A73\u7D30:", error);
         return false;
     }
     messageEl.textContent = "";
@@ -696,6 +697,7 @@ async function handleSignUp(email, password, messageEl, onSuccess) {
         if (error.message.includes("already registered") || error.message.includes("User already registered")) messageEl.textContent = "\u3053\u306E\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u306F\u3059\u3067\u306B\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u3059";
         else messageEl.textContent = "\u767B\u9332\u306B\u5931\u6557\u3057\u307E\u3057\u305F: " + error.message;
         messageEl.style.color = "red";
+        console.error("\u30B5\u30A4\u30F3\u30A2\u30C3\u30D7\u30A8\u30E9\u30FC\u8A73\u7D30:", error);
         return false;
     }
     messageEl.style.color = "green";
@@ -704,10 +706,12 @@ async function handleSignUp(email, password, messageEl, onSuccess) {
     return true;
 }
 async function logout() {
+    // グローバルサインアウトで403になる場合はscope: 'global'を外す
+    // await supabase.auth.signOut({ scope: 'global' });
     await (0, _supabaseClientJs.supabase).auth.signOut();
 }
 
-},{"./supabaseClient.js":"h0CvN","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"h0CvN":[function(require,module,exports) {
+},{"./supabaseClient.js":"kDxOT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kDxOT":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "supabase", ()=>supabase);
@@ -10396,7 +10400,7 @@ var _goTrueClientDefault = parcelHelpers.interopDefault(_goTrueClient);
 const AuthClient = (0, _goTrueClientDefault.default);
 exports.default = AuthClient;
 
-},{"./GoTrueClient":"san1E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9HJ2M":[function(require,module,exports) {
+},{"./GoTrueClient":"san1E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dczMB":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "closeAllForms", ()=>closeAllForms);
@@ -10468,7 +10472,7 @@ function getProxyUrl(imageUrl) {
     return `${PROXY_BASE_URL}?url=${encodeURIComponent(imageUrl)}`;
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4e0zJ":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hYPQ9":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "setupGroupHandlers", ()=>setupGroupHandlers);
@@ -10695,7 +10699,7 @@ function setupGroupHandlers() {
     }
 }
 
-},{"../utils/supabaseClient.js":"h0CvN","./sharedUI.js":"9HJ2M","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jnGd2":[function(require,module,exports) {
+},{"../utils/supabaseClient.js":"kDxOT","./sharedUI.js":"dczMB","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"XOESl":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "setupUrlHandlers", ()=>setupUrlHandlers);
@@ -10932,7 +10936,7 @@ function setupUrlHandlers() {
     }, 7000); // 7秒ごとにチェック
 }
 
-},{"../utils/dbOperations.js":"hlloK","../utils/fetchPreview.js":"2NoiV","../utils/supabaseClient.js":"h0CvN","./sharedUI.js":"9HJ2M","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hlloK":[function(require,module,exports) {
+},{"../utils/dbOperations.js":"7f4gD","../utils/fetchPreview.js":"3NxY8","../utils/supabaseClient.js":"kDxOT","./sharedUI.js":"dczMB","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7f4gD":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -10995,7 +10999,7 @@ async function deleteUrl(id) {
     };
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./supabaseClient.js":"h0CvN"}],"2NoiV":[function(require,module,exports) {
+},{"./supabaseClient.js":"kDxOT","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3NxY8":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "getPreview", ()=>getPreview);

@@ -1,6 +1,6 @@
 import { handleLogin, handleSignUp, logout } from "../utils/auth.js";
 import { supabase } from "../utils/supabaseClient.js";
-import { showAppSection, showLoginSection, resetGroupSelection } from "./sharedUI.js";
+import { showAppSection, showLoginSection, resetGroupSelection, showLoginForm, showSignUpForm } from "./sharedUI.js";
 
 export function setupAuthHandlers() {
     const loginForm = document.getElementById("loginFormElement");
@@ -38,11 +38,11 @@ export function setupAuthHandlers() {
 
     showSignUpLink.addEventListener("click", (e) => {
         e.preventDefault();
-        showSignUpForm();
+        showSignUpForm(); // ← sharedUI.js からimportすることで解決
     });
     showLoginLink.addEventListener("click", (e) => {
         e.preventDefault();
-        showLoginForm();
+        showLoginForm(); // ← sharedUI.js からimportすることで解決
     });
 
     if (logoutBtn) {

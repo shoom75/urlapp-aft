@@ -1,7 +1,7 @@
-import { setupAuthHandlers, checkAuthState } from "./ui/authUI.js";
-import { setupGroupHandlers } from "./ui/groupUI.js";
-import { setupUrlHandlers } from "./ui/urlUI.js";
-import { showLoginSection } from "./ui/sharedUI.js";
+import { setupAuthHandlers, checkAuthState } from "./src/ui/authUI.js";
+import { setupGroupHandlers } from "./src/ui/groupUI.js";
+import { setupUrlHandlers } from "./src/ui/urlUI.js";
+import { showLoginSection } from "./src/ui/sharedUI.js";
 
 console.log("✅ main.js loaded");
 
