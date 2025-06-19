@@ -6,115 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>グルメURL管理アプリ</title>
   <link rel="stylesheet" href="./styles.css" />
-  <style>
-    @media (max-width: 600px) {
-
-      #appSection,
-      #loginSection {
-        padding: 0 4vw;
-      }
-
-      #groupMenu {
-        min-width: 90vw !important;
-        max-width: 98vw !important;
-        padding: 18vw 2vw 6vw 2vw !important;
-        border-radius: 8px !important;
-        font-size: 1em;
-      }
-
-      #groupMenu button,
-      #groupMenu input {
-        font-size: 1em !important;
-      }
-
-      #mainBtnArea {
-        flex-direction: column !important;
-        gap: 12px !important;
-        position: static !important;
-      }
-
-      #logoutBtn {
-        position: fixed !important;
-        top: 8px !important;
-        right: 12px !important;
-        margin: 0 !important;
-        min-width: 80px;
-        z-index: 900;
-        background: inherit !important;
-        border: inherit !important;
-        border-radius: inherit !important;
-        box-shadow: inherit !important;
-        color: inherit !important;
-        font-weight: inherit !important;
-      }
-
-      #toggleFormBtn,
-      #groupebtn {
-        width: 100%;
-      }
-
-      #urlForm {
-        gap: 10px !important;
-      }
-
-      #urlForm input,
-      #urlForm button {
-        font-size: 1em !important;
-      }
-
-      #groupListArea {
-        min-width: 90vw !important;
-        max-width: 98vw !important;
-        border-radius: 8px !important;
-        font-size: 1em;
-      }
-
-      #groupListArea ul {
-        font-size: 1em !important;
-      }
-
-      h1 {
-        font-size: 1.3em !important;
-      }
-    }
-
-    @media (min-width: 601px) {
-      #mainBtnArea {
-        position: relative;
-      }
-
-      #logoutBtn {
-        /* 右上固定にする */
-        position: fixed !important;
-        top: 16px !important;
-        right: 32px !important;
-        margin: 0 !important;
-        min-width: 80px;
-        z-index: 900;
-        background: inherit !important;
-        border: inherit !important;
-        border-radius: inherit !important;
-        box-shadow: inherit !important;
-        color: inherit !important;
-        font-weight: inherit !important;
-        width: auto;
-      }
-
-      #toggleFormBtn,
-      #groupebtn {
-        width: auto;
-      }
-    }
-
-    button {
-      min-height: 40px;
-      touch-action: manipulation;
-    }
-
-    input {
-      min-height: 38px;
-    }
-  </style>
+  
 </head>
 
 <body>
@@ -134,7 +26,7 @@
       <h1>新規登録</h1>
       <form id="signUpFormElement">
         <input type="email" id="signUpEmail" placeholder="メールアドレス" required />
-        <input type="password" id="signUpPassword" placeholder="パスワード" required />
+        <input type="password" id="signUpPassword" placeholder="パスワード(6文字以上)" required />
         <button type="submit">登録</button>
       </form>
       <p>すでにアカウントをお持ちの方は <a href="#" id="showLoginLink">ログインはこちら</a></p>
