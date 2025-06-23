@@ -16,3 +16,9 @@ export async function getPreview(url) {
         return "https://placehold.co/300x200";
     }
 }
+
+// Instagram画像URLを再取得する関数（投稿URLを渡す）
+export async function retryInstagramImageUrl(instagramPostUrl) {
+    // getPreviewを再利用
+    return await getPreview(instagramPostUrl);
+}

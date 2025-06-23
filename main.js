@@ -9,6 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setupAuthHandlers();
     setupGroupHandlers();
     setupUrlHandlers();
-    showLoginSection(); // 追加: 最初にログイン画面を表示
+    showLoginSection(); 
     checkAuthState();
 });

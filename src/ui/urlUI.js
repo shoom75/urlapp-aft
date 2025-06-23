@@ -1,5 +1,5 @@
 import { addUrl, deleteUrl } from "../utils/dbOperations.js";
-import { getPreview } from "../utils/fetchPreview.js";
+import { getPreview, retryInstagramImageUrl } from "../utils/fetchPreview.js";
 import { supabase } from "../utils/supabaseClient.js";
 import { getProxyUrl } from "./sharedUI.js";
 
@@ -58,7 +58,8 @@ export function setupUrlHandlers() {
     // リアルタイムでURL追加を監視
     let urlSubscription = null;
     function subscribeRealtimeUrls() {
-        // 既存のサブスクリプションがあれば解除
+        
+
         if (urlSubscription) {
             supabase.removeChannel(urlSubscription);
             urlSubscription = null;
@@ -76,6 +77,7 @@ export function setupUrlHandlers() {
                 },
                 payload => {
                     // 新しいURLが追加されたらリストを再取得
+                    
                     window.loadUrls && window.loadUrls();
                 }
             )
@@ -107,7 +109,7 @@ export function setupUrlHandlers() {
         lastUrlsJson = urlsJson;
 
         urlList.innerHTML = "";
-        lastUrlIds = new Set(); // ★ここで初期化
+        lastUrlIds = new Set();
         if (!urls || urls.length === 0) {
             urlList.innerHTML = "<li>このグループにはURLがありません</li>";
             return;
@@ -126,8 +128,22 @@ export function setupUrlHandlers() {
             img.height = 80;
             img.alt = "サムネイル";
             img.style.objectFit = "cover";
-            img.onerror = () => (img.src = "https://placehold.co/80x80");
             img.src = proxyThumbnail;
+
+            // --- ここから再取得処理 ---
+            img.onerror = async () => {
+                // Instagram投稿URLが保存されている場合はそれを使う
+                // ここでは「url」がInstagram投稿URLだと仮定
+                const newImageUrl = await retryInstagramImageUrl(url);
+                if (newImageUrl && newImageUrl !== img.src) {
+                    img.src = newImageUrl;
+                    // 必要ならDBも更新
+                    await supabase.from("urls").update({ thumbnail_url: newImageUrl }).eq("id", id);
+                } else {
+                    img.src = "https://placehold.co/80x80";
+                }
+            };
+            // --- ここまで ---
 
             const link = document.createElement("a");
             link.target = "_blank";
@@ -155,7 +171,7 @@ export function setupUrlHandlers() {
 
             li.append(img, link, btn);
             urlList.appendChild(li);
-            lastUrlIds.add(id); // ★ここでIDをセット
+            lastUrlIds.add(id);
         });
     };
 
